@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   1. Official Google Sans & Noto Sans Khmer Direct Font-Face
+   ========================================================================= */
+
+/* Google Sans (Official Google Sans-serif Typeface) */
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrwEIKli.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrw2IKli.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrzjJ6li.ttf') format('truetype');
+}
+
+/* Noto Sans Khmer (Official Google Khmer Companion for Google Sans) */
+@font-face {
+  font-family: 'Noto Sans Khmer';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYuNAJz4.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Noto Sans Khmer';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYu_AJz4.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Noto Sans Khmer';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYtqB5z4.ttf') format('truetype');
+}
+
+/* =========================================================================
+   2. Tailwind CSS Theme Setup
+   ========================================================================= */
+@theme {
+  --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-khmer: 'Noto Sans Khmer', 'Google Sans', sans-serif;
+}
+
+@layer base {
+  :root {
+    --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-khmer: 'Noto Sans Khmer', 'Google Sans', sans-serif;
+  }
+
+  html,
+  body {
+    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.01em;
+    @apply bg-slate-50/70 text-slate-900 antialiased min-h-screen;
+  }
+
+  /* Universal Google Sans typography */
+  * {
+    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* Exceptions: Preserve monospaced code blocks */
+code, pre, kbd, samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+/* Clear High-Contrast Dashboard Utility Classes & Glassmorphism ("Clear Glass") */
+.card-clear {
+  @apply bg-white border border-slate-200/90 rounded-2xl shadow-2xs;
+}
+
+.card-clear-hover {
+  @apply bg-white border border-slate-200/90 rounded-2xl shadow-2xs hover:border-blue-500 hover:shadow-xs transition duration-200;
+}
+
+/* Modern Glassmorphism ("Clear Glass") Design System */
+.glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+}
+
+.glass-card-hover {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(147, 197, 253, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+}
+
+.glass-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 246, 255, 0.78) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px -4px rgba(37, 99, 235, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+}
+
+/* Platform-Wide Workspace Layout Glassmorphism */
+.workspace-layout {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* All cards, panels, tables, and containers in workspace layout */
+.workspace-layout main .bg-white.rounded-2xl,
+.workspace-layout main .bg-white.rounded-xl,
+.workspace-layout main .card-clear {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02) !important;
+}
+
+/* Interactive card hover inside workspace */
+.workspace-layout main .bg-white.rounded-2xl.hover\:border-blue-500:hover,
+.workspace-layout main .bg-white.rounded-xl.hover\:border-blue-400:hover,
+.workspace-layout main .card-clear-hover:hover {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(147, 197, 253, 0.8) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Glass Sidebar */
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 4px 0 24px -2px rgba(15, 23, 42, 0.03);
+}
+
+/* Glass Topbar Header */
+.glass-topbar {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.03);
+}
+
+/* Glass Dropdown Panel */
+.glass-dropdown {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
