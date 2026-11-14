@@ -247,3 +247,55 @@ export interface ApiResponse<T> {
   error?: string
   details?: any
 }
+
+// AI Job Agent & Career Chart Types
+export interface AIMatchedJob extends Omit<Job, 'skills'> {
+  skills?: string[]
+  matched_skills?: string[]
+  missing_skills?: string[]
+  match_score: number
+  verification_status?: string
+}
+
+export interface AISkillMatchItem {
+  skill: string
+  user_has: boolean
+  match_percent: number
+}
+
+export interface AISalaryBenchmarkItem {
+  label: string
+  label_km?: string
+  min: number
+  avg: number
+  max: number
+  count?: number
+}
+
+export interface AIChartData {
+  type: 'salary_benchmark' | 'skill_match' | 'category_distribution'
+  title: string
+  title_km?: string
+  match_score?: number
+  company?: string
+  items: any[]
+}
+
+export interface AIChatMessage {
+  id: string
+  sender: 'user' | 'agent'
+  text: string
+  timestamp: string
+  jobs?: AIMatchedJob[]
+  chart?: AIChartData | null
+  suggested_actions?: string[]
+}
+
+export interface AIChatResponse {
+  reply: string
+  matched_jobs: AIMatchedJob[]
+  chart: AIChartData | null
+  suggested_actions: string[]
+  total_matches: number
+}
+

@@ -17,6 +17,7 @@ import {
   X,
   LayoutDashboard,
   Users,
+  Sparkles,
 } from 'lucide-react'
 
 export const Navbar: React.FC = () => {
@@ -87,6 +88,18 @@ export const Navbar: React.FC = () => {
             <NavLink to="/companies" className={navLinkClass}>
               {t('nav.companies')}
             </NavLink>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-cambodiajobs-ai'))}
+              className="ml-1 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 flex items-center gap-1.5 border border-indigo-200/60 shadow-2xs hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+              title="Open CambodiaJobs AI Platform Assistant"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse group-hover:rotate-12 transition-transform" />
+              <span>{isKhmer ? 'ជំនួយការ AI' : 'AI Assistant'}</span>
+              <span className="text-[9px] uppercase px-1 py-0.2 rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black tracking-wider shadow-2xs">
+                AI
+              </span>
+            </button>
           </nav>
 
           {/* Right Header Controls */}
@@ -247,16 +260,11 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
             ) : (
-              /* Crisp Modern Sign In & Register Buttons */
-              <div className="flex items-center space-x-2">
+              /* Single Modern Sign In Button */
+              <div className="flex items-center">
                 <Link to="/login">
-                  <Button variant="ghost" size="sm">
-                    {t('nav.signIn')}
-                  </Button>
-                </Link>
-                <Link to="/register">
                   <Button variant="primary" size="sm">
-                    {t('nav.register')}
+                    {t('nav.signIn')}
                   </Button>
                 </Link>
               </div>
@@ -301,6 +309,22 @@ export const Navbar: React.FC = () => {
               >
                 {t('nav.companies')}
               </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  window.dispatchEvent(new CustomEvent('open-cambodiajobs-ai'))
+                }}
+                className="w-full mt-1 px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold flex items-center justify-between border border-indigo-200/60"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                  <span>{isKhmer ? 'ជំនួយការការងារ AI' : 'AI Job Agent'}</span>
+                </div>
+                <span className="text-[10px] uppercase px-1.5 py-0.5 rounded-md bg-indigo-600 text-white font-extrabold">
+                  Chat
+                </span>
+              </button>
             </nav>
 
             <div className="border-t border-slate-100 pt-2">
@@ -420,15 +444,10 @@ export const Navbar: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="pt-1">
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" size="sm" fullWidth>
-                      {t('nav.signIn')}
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="primary" size="sm" fullWidth>
-                      {t('nav.register')}
+                      {t('nav.signIn')}
                     </Button>
                   </Link>
                 </div>

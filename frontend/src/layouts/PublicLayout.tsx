@@ -2,6 +2,7 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import { Navbar } from '../components/layout/Navbar'
 import { Footer } from '../components/layout/Footer'
+import { AIAgentFloatingButton } from '../components/ai/AIAgentFloatingButton'
 
 export const PublicLayout: React.FC = () => {
   return (
@@ -11,7 +12,9 @@ export const PublicLayout: React.FC = () => {
         <Outlet />
       </main>
       <Footer />
+      <AIAgentFloatingButton />
     </div>
   )
 }
+
 

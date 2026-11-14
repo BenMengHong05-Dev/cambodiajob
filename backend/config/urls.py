@@ -24,6 +24,8 @@ urlpatterns = [
     path("api/v1/interviews/", include("apps.interviews.urls")),
     # Notifications
     path("api/v1/notifications/", include("apps.notifications.urls")),
+    # AI Job Agent
+    path("api/v1/ai/", include("apps.ai_agent.urls")),
     # Admin
     path("api/v1/admin/", include("apps.audit_logs.admin_urls")),
 ]

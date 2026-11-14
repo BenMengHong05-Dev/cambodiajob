@@ -257,11 +257,6 @@ export const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
         </div>
         <div className="relative max-w-5xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>#1 Recruitment Platform in Cambodia • 25 Provinces</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
             {t('home.heroTitle')}
           </h1>
