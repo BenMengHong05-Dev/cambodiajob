@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
 import { AdminLineChart } from './AdminLineChart'
+import { TelegramConnectButton } from '../../components/layout/TelegramConnectButton'
 import {
   Users,
   Building2,
@@ -164,6 +165,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
+          <TelegramConnectButton variant="button" role="admin" />
           <Link
             to="/admin/users"
             className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
@@ -275,20 +277,18 @@ export const AdminDashboardPage: React.FC = () => {
               {isKhmer ? 'រង់ចាំការត្រួតពិនិត្យ' : 'Pending Review'}
             </span>
             <div
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 shadow-inner ${
-                pendingReviewTotal > 0
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 shadow-inner ${pendingReviewTotal > 0
                   ? 'bg-gradient-to-br from-amber-500/15 to-orange-500/15 text-amber-600 border-amber-400/30'
                   : 'bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-600 border-blue-400/20'
-              }`}
+                }`}
             >
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3.5 flex items-baseline justify-between relative z-10">
             <span
-              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
-                pendingReviewTotal > 0 ? 'text-amber-600' : 'text-slate-900 group-hover:text-blue-600 transition-colors'
-              }`}
+              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${pendingReviewTotal > 0 ? 'text-amber-600' : 'text-slate-900 group-hover:text-blue-600 transition-colors'
+                }`}
             >
               {pendingReviewTotal}
             </span>
@@ -339,6 +339,8 @@ export const AdminDashboardPage: React.FC = () => {
             <History className="w-3.5 h-3.5 text-slate-500" />
             <span>{isKhmer ? 'កំណត់ហេតុ Audit' : 'Audit Trail'}</span>
           </Link>
+
+          <TelegramConnectButton variant="pill" role="admin" />
         </div>
 
         <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
@@ -475,6 +477,9 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* Right Column (5 cols): Enterprises + Audit Trail */}
         <div className="lg:col-span-5 space-y-4 sm:space-y-5">
+          {/* Card: Connect Telegram Bot for Admin Alerts */}
+          <TelegramConnectButton variant="card" role="admin" />
+
           {/* Card: Recently Registered Companies */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">
@@ -543,19 +548,18 @@ export const AdminDashboardPage: React.FC = () => {
                           </td>
                           <td className="py-2.5 px-3 text-center">
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-md shadow-2xs ${
-                                isVerified
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-md shadow-2xs ${isVerified
                                   ? 'bg-emerald-500/10 text-emerald-700 border-emerald-400/25'
                                   : isRejected
-                                  ? 'bg-rose-500/10 text-rose-700 border-rose-400/25'
-                                  : 'bg-amber-500/10 text-amber-700 border-amber-400/25'
-                              }`}
+                                    ? 'bg-rose-500/10 text-rose-700 border-rose-400/25'
+                                    : 'bg-amber-500/10 text-amber-700 border-amber-400/25'
+                                }`}
                             >
                               {isVerified
                                 ? isKhmer ? 'ផ្ទៀងផ្ទាត់រួច' : 'Verified'
                                 : isRejected
-                                ? isKhmer ? 'បដិសេធ' : 'Rejected'
-                                : isKhmer ? 'រង់ចាំ' : 'Pending'}
+                                  ? isKhmer ? 'បដិសេធ' : 'Rejected'
+                                  : isKhmer ? 'រង់ចាំ' : 'Pending'}
                             </span>
                           </td>
                           <td className="py-2.5 px-3 text-right">

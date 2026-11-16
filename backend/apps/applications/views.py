@@ -261,6 +261,51 @@ class EmployerJobApplicationsView(APIView):
         })
 
 
+class EmployerRecentApplicationsView(APIView):
+    """
+    List recent applicants across all vacancies belonging to current employer's company.
+    """
+    permission_classes = [IsEmployer]
+
+    def get(self, request):
+        em = fetch_one("SELECT company_id FROM employer_members WHERE user_id = %s", [request.user.id])
+        if not em:
+            return Response({"success": True, "data": []})
+
+        company_id = em["company_id"]
+        company = fetch_one("SELECT name FROM companies WHERE id = %s", [company_id])
+        company_name = company["name"] if company else "Company"
+
+        sql = """
+            SELECT 
+                a.id, a.job_id, a.seeker_id, a.resume_id, a.cover_letter, a.status, a.created_at,
+                j.title AS job_title, j.slug AS job_slug,
+                u.full_name AS applicant_name, u.email AS applicant_email, u.phone_number AS applicant_phone,
+                sp.headline AS applicant_headline, sp.summary AS applicant_summary, sp.avatar_url AS applicant_avatar,
+                sp.province AS applicant_province, sp.city AS applicant_city, sp.expected_salary, sp.salary_currency,
+                r.title AS resume_title, r.file_path AS resume_path
+            FROM applications a
+            INNER JOIN jobs j ON j.id = a.job_id
+            INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
+            INNER JOIN users u ON u.id = sp.user_id
+            LEFT JOIN resumes r ON r.id = a.resume_id
+            WHERE j.company_id = %s
+            ORDER BY a.created_at DESC
+            LIMIT 10
+        """
+        applicants = fetch_all(sql, [company_id])
+        for applicant in applicants:
+            interview = fetch_one(
+                "SELECT id, scheduled_at, location_or_link, interview_type, notes, status FROM interviews WHERE application_id = %s ORDER BY id DESC LIMIT 1",
+                [applicant["id"]],
+            )
+            if interview:
+                attach_calendar_urls(interview, applicant.get("job_title", "Job"), company_name)
+            applicant["interview"] = interview
+
+        return Response({"success": True, "data": applicants})
+
+
 class EmployerApplicationStatusUpdateView(APIView):
     """
     Update candidate application status and notify applicant.

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth, useToast } from '../../app/providers'
 import { Button } from '../ui/Button'
@@ -24,11 +24,26 @@ export const Navbar: React.FC = () => {
   const { user, logout } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   const isKhmer = i18n.language === 'km'
+
+  const getRoleLabel = () => {
+    if (!user) return ''
+    if (user.roles?.includes('admin')) return isKhmer ? 'អភិបាល' : 'Admin'
+    if (user.roles?.includes('employer')) return isKhmer ? 'និយោជក' : 'Employer'
+    return isKhmer ? 'បេក្ខជន' : 'Job Seeker'
+  }
+
+  const getDashboardPath = () => {
+    if (!user) return '/login'
+    if (user.roles?.includes('admin')) return '/admin/dashboard'
+    if (user.roles?.includes('employer')) return '/employer/dashboard'
+    return '/seeker/dashboard'
+  }
 
   // Close user dropdown when clicking outside
   useEffect(() => {
@@ -87,6 +102,24 @@ export const Navbar: React.FC = () => {
             <NavLink to="/companies" className={navLinkClass}>
               {t('nav.companies')}
             </NavLink>
+            {user && (
+              <NavLink
+                to={getDashboardPath()}
+                className={({ isActive }) =>
+                  `px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
+                    isActive ||
+                    location.pathname.includes('/seeker/') ||
+                    location.pathname.includes('/employer/') ||
+                    location.pathname.includes('/admin/')
+                      ? 'text-blue-600 bg-blue-50/90 font-extrabold ring-1 ring-blue-500/20'
+                      : 'text-blue-700 bg-blue-50/60 hover:bg-blue-100/70 hover:text-blue-800'
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
+                <span>{t('nav.dashboard')}</span>
+              </NavLink>
+            )}
           </nav>
 
           {/* Right Header Controls */}
@@ -96,6 +129,23 @@ export const Navbar: React.FC = () => {
             {/* Logged-in Profile Avatar vs Guest Buttons */}
             {user ? (
               <div className="flex items-center space-x-2 sm:space-x-3">
+                <Link
+                  to={getDashboardPath()}
+                  className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/60 transition shadow-2xs"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
+                  <span>{t('nav.dashboard')}</span>
+                </Link>
+
+                <div className="hidden sm:flex flex-col text-right leading-tight">
+                  <span className="text-xs font-bold text-slate-800 truncate max-w-[120px]">
+                    {user.full_name}
+                  </span>
+                  <span className="text-[10px] font-semibold text-blue-600">
+                    {getRoleLabel()}
+                  </span>
+                </div>
+
                 {/* Profile Avatar with Role-Specific Dropdown Menu (3 Cases) */}
                 <div className="relative" ref={userMenuRef}>
                   <button

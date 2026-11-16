@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../app/providers'
 import { LanguageDropdown } from '../components/layout/LanguageDropdown'
 import { NotificationDropdown } from '../components/layout/NotificationDropdown'
+import { AIAgentFloatingButton } from '../components/ai/AIAgentFloatingButton'
 import {
   LayoutDashboard,
   Briefcase,
@@ -313,6 +314,7 @@ export const EmployerLayout: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
           <Outlet />
         </main>
+        <AIAgentFloatingButton />
       </div>
     </div>
   )

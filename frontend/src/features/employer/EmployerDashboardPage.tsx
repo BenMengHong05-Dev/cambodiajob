@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { employerService } from '../../services/employer.service'
 import { companiesService } from '../../services/companies.service'
-import { Job, Company } from '../../types'
+import { Job, Company, Application } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
 import {
@@ -24,6 +24,11 @@ import {
   RefreshCw,
   X,
   TrendingUp,
+  UserCheck,
+  FileText,
+  Video,
+  Sparkles,
+  Zap,
 } from 'lucide-react'
 
 export const EmployerDashboardPage: React.FC = () => {
@@ -32,8 +37,10 @@ export const EmployerDashboardPage: React.FC = () => {
 
   const [jobs, setJobs] = useState<Job[]>([])
   const [company, setCompany] = useState<Company | null>(null)
+  const [recentApplicants, setRecentApplicants] = useState<Application[]>([])
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft' | 'closed'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [applicantFilter, setApplicantFilter] = useState<'all' | 'submitted' | 'interview' | 'offered'>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -41,12 +48,14 @@ export const EmployerDashboardPage: React.FC = () => {
     if (!quiet) setIsLoading(true)
     else setIsRefreshing(true)
     try {
-      const [jobsData, comp] = await Promise.all([
-        employerService.getEmployerJobs(),
-        companiesService.getEmployerCompany(),
+      const [jobsData, comp, applicantsData] = await Promise.all([
+        employerService.getEmployerJobs().catch(() => []),
+        companiesService.getEmployerCompany().catch(() => null),
+        employerService.getRecentApplicants().catch(() => []),
       ])
       setJobs(jobsData || [])
       setCompany(comp)
+      setRecentApplicants(applicantsData || [])
     } catch (err) {
       console.error('Failed to load employer dashboard:', err)
     } finally {
@@ -64,6 +73,15 @@ export const EmployerDashboardPage: React.FC = () => {
   const closedJobsCount = jobs.filter((j) => j.status === 'closed').length
   const totalApplicationsCount = jobs.reduce((acc, j: any) => acc + (j.applications_count || 0), 0)
 
+  // Calculate funnel counts across recent applicants
+  const screeningApplicantsCount = recentApplicants.filter((a) =>
+    ['submitted', 'screening', 'reviewing'].includes(a.status)
+  ).length
+  const interviewApplicantsCount = recentApplicants.filter((a) =>
+    ['shortlisted', 'interview', 'interview_scheduled'].includes(a.status)
+  ).length
+  const hiredApplicantsCount = recentApplicants.filter((a) => a.status === 'offered').length
+
   const filteredJobs = jobs.filter((j) => {
     if (filterStatus !== 'all' && j.status !== filterStatus) return false
     if (searchQuery.trim()) {
@@ -71,6 +89,15 @@ export const EmployerDashboardPage: React.FC = () => {
       const titleMatch = j.title?.toLowerCase().includes(q)
       const locMatch = j.province?.toLowerCase().includes(q)
       return titleMatch || locMatch
+    }
+    return true
+  })
+
+  const filteredApplicants = recentApplicants.filter((a) => {
+    if (applicantFilter !== 'all') {
+      if (applicantFilter === 'submitted' && !['submitted', 'screening', 'reviewing'].includes(a.status)) return false
+      if (applicantFilter === 'interview' && !['shortlisted', 'interview', 'interview_scheduled'].includes(a.status)) return false
+      if (applicantFilter === 'offered' && a.status !== 'offered') return false
     }
     return true
   })
@@ -115,6 +142,54 @@ export const EmployerDashboardPage: React.FC = () => {
     }
   }
 
+  const getApplicantStatusBadge = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <span>{isKhmer ? 'បានដាក់' : 'Submitted'}</span>
+          </span>
+        )
+      case 'screening':
+      case 'reviewing':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-400/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span>{isKhmer ? 'កំពុងពិនិត្យ' : 'Reviewing'}</span>
+          </span>
+        )
+      case 'shortlisted':
+      case 'interview':
+      case 'interview_scheduled':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 border border-indigo-400/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            <span>{isKhmer ? 'សម្ភាសន៍' : 'Interview'}</span>
+          </span>
+        )
+      case 'offered':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-400/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+            <span>{isKhmer ? 'ផ្តល់ការងារ' : 'Offered'}</span>
+          </span>
+        )
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-400/25">
+            <span>{isKhmer ? 'បដិសេធ' : 'Rejected'}</span>
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 capitalize">
+            {status}
+          </span>
+        )
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="py-24 text-center font-sans">
@@ -140,7 +215,6 @@ export const EmployerDashboardPage: React.FC = () => {
 
       {/* 1. Glassmorphic Header Bar with Clear Glass Finish */}
       <div className="glass-header p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Decorative inner corner sheen */}
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-bl from-blue-400/15 via-indigo-300/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
         <div className="flex items-center space-x-3.5 min-w-0 relative z-10">
@@ -159,24 +233,33 @@ export const EmployerDashboardPage: React.FC = () => {
               {company?.verification_status === 'verified' ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-400/25 backdrop-blur-md shadow-2xs shrink-0">
                   <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់រួច' : 'Verified'}</span>
+                  <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់រួច' : 'Verified Enterprise'}</span>
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-700 border border-amber-400/25 backdrop-blur-md shadow-2xs shrink-0">
                   <ShieldAlert className="w-3 h-3 text-amber-600" />
-                  <span>{isKhmer ? 'រង់ចាំផ្ទៀងផ្ទាត់' : 'Pending'}</span>
+                  <span>{isKhmer ? 'រង់ចាំផ្ទៀងផ្ទាត់' : 'Pending Verification'}</span>
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               {isKhmer
-                ? 'តាមដានការផ្សាយការងារ បេក្ខជនដាក់ពាក្យ និងដំណើរការជ្រើសរើសបុគ្គលិកជាក់ស្តែង'
-                : 'Monitor job openings, candidate applicants, and real-time recruitment progress'}
+                ? `បច្ចុប្បន្នកំពុងផ្សាយ ${activeJobsCount} ការងារ និងទទួលបានបេក្ខជនសរុប ${totalApplicationsCount} នាក់។`
+                : `Managing ${activeJobsCount} live vacancies with ${totalApplicationsCount} candidate applications received.`}
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
+          <button
+            type="button"
+            onClick={() => fetchDashboardData(true)}
+            disabled={isRefreshing}
+            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh'}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
           <Link
             to="/employer/company"
             className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
@@ -191,22 +274,13 @@ export const EmployerDashboardPage: React.FC = () => {
             <Plus className="w-3.5 h-3.5" />
             <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
           </Link>
-          <button
-            type="button"
-            onClick={() => fetchDashboardData(true)}
-            disabled={isRefreshing}
-            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh'}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
-          </button>
         </div>
       </div>
 
       {/* Notification Alert Banner (if any) */}
       <DashboardNotificationAlert role="employer" />
 
-      {/* Company Verification Status Banner (Admin confirmation authority) */}
+      {/* Company Verification Status Banner (if pending) */}
       {company && company.verification_status !== 'verified' && (
         <div className="p-4.5 rounded-2xl bg-amber-500/10 backdrop-blur-xl border border-amber-400/30 text-amber-950 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 relative overflow-hidden">
           <div className="flex items-start space-x-3.5 relative z-10">
@@ -215,12 +289,12 @@ export const EmployerDashboardPage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xs sm:text-sm font-bold text-amber-900">
-                {isKhmer ? 'ក្រុមហ៊ុនកំពុងរង់ចាំការអនុម័តពី Admin (Awaiting Admin Confirmation)' : 'Company Awaiting Administrator Confirmation'}
+                {isKhmer ? 'ក្រុមហ៊ុនកំពុងរង់ចាំការអនុម័តពី Admin' : 'Company Awaiting Administrator Confirmation'}
               </h3>
               <p className="text-xs text-amber-800 leading-relaxed mt-0.5 font-normal">
                 {isKhmer
-                  ? 'មានតែ Admin ប៉ុណ្ណោះដែលអាចបញ្ជាក់ និងអនុម័តក្រុមហ៊ុនឱ្យដំណើរការ និងផ្សាយការងារលើប្រព័ន្ធបាន។ សូមរង់ចាំការពិនិត្យពី Admin។'
-                  : 'Only the Platform Administrator can confirm and approve companies to use this platform and recruit candidates. Your account is pending Admin review.'}
+                  ? 'មានតែ Admin ប៉ុណ្ណោះដែលអាចបញ្ជាក់ និងអនុម័តក្រុមហ៊ុនឱ្យដំណើរការ និងផ្សាយការងារលើប្រព័ន្ធបាន។'
+                  : 'Only the Platform Administrator can confirm and approve companies to publish live vacancies.'}
               </p>
             </div>
           </div>
@@ -233,10 +307,78 @@ export const EmployerDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Glassmorphic 4-Column Metric Cards */}
+      {/* 2. Visual Recruitment Pipeline Strip */}
+      <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/90 shadow-sm relative overflow-hidden">
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-blue-600" />
+            <h3 className="text-xs font-bold text-slate-800">
+              {isKhmer ? 'ចរន្តជ្រើសរើសបុគ្គលិកសកម្ម' : 'Recruitment Pipeline Overview'}
+            </h3>
+          </div>
+          <span className="text-[11px] text-slate-400 font-medium">
+            {isKhmer ? 'តាមដានបេក្ខជនតាមដំណាក់កាលនីមួយៗ' : 'Candidate flow through hiring stages'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="p-2.5 rounded-xl border border-blue-400/30 bg-blue-500/10 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                1. {isKhmer ? 'ការងារសកម្ម' : 'Active Jobs'}
+              </span>
+              <span className="text-sm font-extrabold text-blue-700">{activeJobsCount}</span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+              {isKhmer ? 'កំពុងទទួលពាក្យ' : 'Live vacancies accepting CVs'}
+            </p>
+          </div>
+
+          <div className="p-2.5 rounded-xl border border-amber-400/30 bg-amber-500/10 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                2. {isKhmer ? 'បេក្ខជនសរុប' : 'Applicants'}
+              </span>
+              <span className="text-sm font-extrabold text-amber-700">{totalApplicationsCount}</span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+              {isKhmer ? 'ពាក្យសុំបានទទួល' : 'Applications received'}
+            </p>
+          </div>
+
+          <div className="p-2.5 rounded-xl border border-indigo-400/30 bg-indigo-500/10 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                3. {isKhmer ? 'សម្ភាសន៍' : 'Interviewing'}
+              </span>
+              <span className="text-sm font-extrabold text-indigo-700">{interviewApplicantsCount}</span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+              {isKhmer ? 'បានកំណត់កាលវិភាគ' : 'Scheduled meetings'}
+            </p>
+          </div>
+
+          <div className="p-2.5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-left">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                4. {isKhmer ? 'ផ្តល់ការងារ' : 'Hired / Offered'}
+              </span>
+              <span className="text-sm font-extrabold text-emerald-700">{hiredApplicantsCount}</span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+              {isKhmer ? 'ជោគជ័យ' : 'Job offers extended'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Glassmorphic 4-Column Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Published Vacancies */}
-        <div className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+        <Link
+          to="/employer/jobs"
+          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
+        >
           <div className="absolute -right-8 -top-8 w-24 h-24 bg-blue-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
@@ -254,10 +396,13 @@ export const EmployerDashboardPage: React.FC = () => {
               {isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live now'}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Metric 2: Total Candidates */}
-        <div className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+        <Link
+          to="/employer/jobs"
+          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
+        >
           <div className="absolute -right-8 -top-8 w-24 h-24 bg-indigo-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
@@ -275,10 +420,13 @@ export const EmployerDashboardPage: React.FC = () => {
               {isKhmer ? 'ពាក្យសុំ' : 'Applicants'}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Metric 3: Draft Positions */}
-        <div className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+        <Link
+          to="/employer/jobs"
+          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
+        >
           <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
@@ -296,7 +444,7 @@ export const EmployerDashboardPage: React.FC = () => {
               {isKhmer ? 'មិនទាន់ផ្សាយ' : 'Unpublished'}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Metric 4: Organization Location */}
         <div className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
@@ -320,47 +468,125 @@ export const EmployerDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2.5 Active Recruitment Status Highlight Strip */}
-      <div className="glass-card p-4 rounded-2xl border border-white/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 relative overflow-hidden">
-        <div className="flex items-center space-x-3.5 min-w-0 relative z-10">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/25 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-              {isKhmer ? 'ស្ថានភាពជ្រើសរើសបុគ្គលិកសកម្ម' : 'Active Recruitment Status'}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5 truncate">
-              {isKhmer
-                ? `បច្ចុប្បន្នកំពុងផ្សាយ ${activeJobsCount} ការងារ និងទទួលបានបេក្ខជនសរុប ${totalApplicationsCount} នាក់។`
-                : `Currently running ${activeJobsCount} live vacancies with ${totalApplicationsCount} candidates received.`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0 self-start md:self-auto relative z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 border border-white/80 shadow-2xs">
-            <Briefcase className="w-3.5 h-3.5 text-blue-600" />
-            <span>{activeJobsCount} {isKhmer ? 'ការងារសកម្ម' : 'Active'}</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 border border-white/80 shadow-2xs">
-            <Users className="w-3.5 h-3.5 text-indigo-600" />
-            <span>{totalApplicationsCount} {isKhmer ? 'បេក្ខជន' : 'Candidates'}</span>
-          </span>
-          <Link
-            to="/employer/jobs/new"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{isKhmer ? 'បន្ថែមការងារ' : 'Post Vacancy'}</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* 3. Main 2-Column Split: Clean, Compact, Blue & Slate */}
+      {/* 4. Main 2-Column Split: Clean 2/3 (left) + 1/3 (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
-        {/* Left Column (2/3): Job Openings & Candidate Pipeline */}
+        {/* Left Column (2/3): Recent Applicants & Job Openings */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+          {/* SECTION A: Recent Applicants Across All Vacancies */}
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200/60 bg-white/50 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-400/25 text-indigo-600 flex items-center justify-center shadow-inner">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                    {isKhmer ? 'បេក្ខជនដាក់ពាក្យចុងក្រោយ' : 'Recent Candidate Applicants'}
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                    {isKhmer ? 'បេក្ខជនដែលបានដាក់ពាក្យគ្រប់ការងាររបស់អ្នក' : 'Latest applications across all your job openings'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick filter pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                {[
+                  { id: 'all', label: isKhmer ? 'ទាំងអស់' : 'All', count: recentApplicants.length },
+                  { id: 'submitted', label: isKhmer ? 'ថ្មី' : 'New', count: screeningApplicantsCount },
+                  { id: 'interview', label: isKhmer ? 'សម្ភាសន៍' : 'Interview', count: interviewApplicantsCount },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setApplicantFilter(tab.id as any)}
+                    className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold transition shrink-0 cursor-pointer ${
+                      applicantFilter === tab.id
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white/70 hover:bg-white text-slate-600 border border-white/80 shadow-2xs'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filteredApplicants.length === 0 ? (
+              <div className="py-10 text-center px-4 space-y-2">
+                <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-xs text-slate-500 font-medium">
+                  {isKhmer ? 'មិនទាន់មានបេក្ខជនដាក់ពាក្យនៅឡើយទេ' : 'No candidate applications received yet.'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/70 border-b border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wider backdrop-blur-xs">
+                      <th className="py-2.5 px-4">{isKhmer ? 'បេក្ខជន' : 'Applicant'}</th>
+                      <th className="py-2.5 px-4">{isKhmer ? 'ការងារដាក់ពាក្យ' : 'Applied Position'}</th>
+                      <th className="py-2.5 px-4 hidden sm:table-cell">{isKhmer ? 'ប្រាក់ខែរំពឹង' : 'Expected'}</th>
+                      <th className="py-2.5 px-4">{isKhmer ? 'ស្ថានភាព' : 'Status'}</th>
+                      <th className="py-2.5 px-4 text-right">{isKhmer ? 'សកម្មភាព' : 'Action'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs">
+                    {filteredApplicants.slice(0, 5).map((app: any) => (
+                      <tr key={app.id} className="hover:bg-indigo-50/30 transition-colors group">
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 border border-indigo-400/30 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                              {app.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-bold text-slate-900 group-hover:text-indigo-600 block truncate max-w-[130px]">
+                                {app.applicant_name}
+                              </span>
+                              <span className="text-[10px] text-slate-400 block truncate max-w-[130px]">
+                                {app.applicant_province || 'Cambodia'}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-4">
+                          <Link
+                            to={`/employer/jobs/${app.job_id}/applications`}
+                            className="font-medium text-slate-800 hover:text-blue-600 transition truncate max-w-[160px] block"
+                          >
+                            {app.job_title}
+                          </Link>
+                        </td>
+                        <td className="py-2.5 px-4 hidden sm:table-cell text-slate-600">
+                          {app.expected_salary ? (
+                            <span className="font-semibold text-emerald-600 font-mono text-[11px]">
+                              ${app.expected_salary}/mo
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">-</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          {getApplicantStatusBadge(app.status)}
+                        </td>
+                        <td className="py-2.5 px-4 text-right">
+                          <Link
+                            to={`/employer/jobs/${app.job_id}/applications`}
+                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white/80 hover:bg-indigo-600 hover:text-white text-slate-700 border border-slate-200/70 text-[11px] font-semibold transition-all shadow-2xs"
+                          >
+                            <span>{isKhmer ? 'ពិនិត្យ' : 'Review'}</span>
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION B: Job Openings & Management Table */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm overflow-hidden">
             {/* Header + Tabs */}
             <div className="p-4 sm:p-5 border-b border-slate-200/60 bg-white/50 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -373,7 +599,7 @@ export const EmployerDashboardPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Status Filter Tabs with Frosted Glass styling */}
+              {/* Status Filter Tabs */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 {[
                   { id: 'all', label: isKhmer ? 'ទាំងអស់' : 'All', count: jobs.length },
@@ -397,7 +623,7 @@ export const EmployerDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Search within Employer Jobs */}
+            {/* Quick Search */}
             <div className="px-4 sm:px-5 py-2.5 bg-slate-50/50 backdrop-blur-xs border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="relative flex-1 max-w-md">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -457,7 +683,7 @@ export const EmployerDashboardPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
-                    {filteredJobs.slice(0, 5).map((job: any) => (
+                    {filteredJobs.slice(0, 6).map((job: any) => (
                       <tr key={job.id} className="hover:bg-blue-50/40 transition-colors group">
                         <td className="py-3 px-4">
                           <div className="space-y-0.5">
