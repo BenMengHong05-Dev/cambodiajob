@@ -1067,14 +1067,14 @@ INSTRUCTIONS:
             if in_khmer:
                 ai_reply = (
                     "**ទាក់ទងក្រុមការងារគាំទ្រ CambodiaJobs តាមរយៈ Telegram៖**\n\n"
-                    "💬 **ការគាំទ្រផ្ទាល់ (Live Support)**៖ [@cambodiajobs_support](https://t.me/cambodiajobs_support)\n"
+                    "💬 **Telegram Bot ផ្លូវការ (Support Bot)**៖ [@CambodiaJobSupportBot](https://t.me/CambodiaJobSupportBot)\n"
                     "📢 **Channel ដំណឹងការងារថ្មីៗប្រចាំថ្ងៃ (Job Alerts)**៖ [@cambodiajobs_channel](https://t.me/cambodiajobs_channel)\n\n"
-                    "ក្រុមការងារយើងខ្ញុំត្រៀមខ្លួនជួយសម្រួលដល់បេក្ខជនក្នុងការដាក់ពាក្យ ពិនិត្យមើល CV និងជួយនិយោជកក្នុងការប្រកាសរើសបុគ្គលិកដោយផ្ទាល់រៀងរាល់ថ្ងៃធ្វើការ!"
+                    "ក្រុមការងារយើងខ្ញុំត្រៀមខ្លួនជួយសម្រួលដល់បេក្ខជនក្នុងការស្វែងរកការងារ ដាក់ពាក្យ ពិនិត្យមើល CV និងជួយនិយោជកក្នុងការប្រកាសរើសបុគ្គលិកដោយផ្ទាល់រៀងរាល់ថ្ងៃធ្វើការ!"
                 )
             else:
                 ai_reply = (
                     "**Connect with CambodiaJobs Support on Telegram:**\n\n"
-                    "💬 **Live Candidate & Recruiter Support**: [@cambodiajobs_support](https://t.me/cambodiajobs_support)\n"
+                    "💬 **Official Telegram Support Bot**: [@CambodiaJobSupportBot](https://t.me/CambodiaJobSupportBot)\n"
                     "📢 **Official Daily Job Alerts Channel**: [@cambodiajobs_channel](https://t.me/cambodiajobs_channel)\n\n"
                     "Our team is available on Telegram to assist job seekers with applications and employers with posting vacancies!"
                 )

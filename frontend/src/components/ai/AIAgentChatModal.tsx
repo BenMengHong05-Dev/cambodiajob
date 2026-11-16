@@ -241,10 +241,10 @@ export const AIAgentChatModal: React.FC<AIAgentChatModalProps> = ({ isOpen, onCl
         <div className="flex items-center gap-1.5 text-white/90 shrink-0">
           {/* Direct Telegram Support Link */}
           <a
-            href="https://t.me/cambodiajobs_support"
+            href="https://t.me/CambodiaJobSupportBot"
             target="_blank"
             rel="noopener noreferrer"
-            title={isKhmer ? 'ជំនួយការផ្ទាល់តាម Telegram (@cambodiajobs_support)' : 'Live Telegram Support (@cambodiajobs_support)'}
+            title={isKhmer ? 'ជំនួយការផ្ទាល់តាម Telegram (@CambodiaJobSupportBot)' : 'Live Telegram Support (@CambodiaJobSupportBot)'}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-[#24A1DE]/40 text-white text-xs font-semibold transition-all cursor-pointer border border-white/15 hover:border-white/25 active:scale-95"
           >
             <svg className="w-3.5 h-3.5 fill-current text-sky-200" viewBox="0 0 24 24">

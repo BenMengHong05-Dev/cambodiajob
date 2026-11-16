@@ -21,12 +21,12 @@ export const AIAgentFloatingButton: React.FC = () => {
         <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-40 flex flex-col items-center gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
           {/* Telegram Quick Contact Button */}
           <a
-            href="https://t.me/cambodiajobs_support"
+            href="https://t.me/CambodiaJobSupportBot"
             target="_blank"
             rel="noopener noreferrer"
             className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-[#0088cc] via-[#24A1DE] to-[#29B6F6] text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/40 hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center border border-white/20 cursor-pointer"
             aria-label="Contact on Telegram"
-            title={isKhmer ? 'ទាក់ទងតាម Telegram (@cambodiajobs_support)' : 'Chat on Telegram (@cambodiajobs_support)'}
+            title={isKhmer ? 'ទាក់ទងតាម Telegram Bot (@CambodiaJobSupportBot)' : 'Chat on Telegram Bot (@CambodiaJobSupportBot)'}
           >
             {/* Subtle glow effect */}
             <span className="absolute -inset-0.5 rounded-full bg-sky-400 opacity-40 blur-xs group-hover:opacity-75 transition-opacity pointer-events-none" />
