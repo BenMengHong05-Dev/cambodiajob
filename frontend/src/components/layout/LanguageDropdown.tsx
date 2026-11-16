@@ -61,15 +61,15 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ className = 
 
   return (
     <div
-      className={`inline-flex items-center p-0.5 rounded-full bg-white/80 backdrop-blur-md border border-white/80 shadow-2xs gap-0.5 ${className}`}
+      className={`inline-flex items-center p-0.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 shadow-2xs gap-0.5 ${className}`}
     >
       <button
         type="button"
         onClick={() => setLanguage('en')}
         className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer ${
           language === 'en'
-            ? 'bg-white shadow-xs scale-105 ring-1 ring-blue-500/25'
-            : 'opacity-50 hover:opacity-100 hover:bg-white/60'
+            ? 'bg-white dark:bg-slate-700 shadow-xs scale-105 ring-1 ring-blue-500/25'
+            : 'opacity-50 hover:opacity-100 hover:bg-white/60 dark:hover:bg-slate-700/60'
         }`}
         title="English"
         aria-label="Switch to English"
@@ -82,8 +82,8 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ className = 
         onClick={() => setLanguage('km')}
         className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer ${
           language === 'km'
-            ? 'bg-white shadow-xs scale-105 ring-1 ring-blue-500/25'
-            : 'opacity-50 hover:opacity-100 hover:bg-white/60'
+            ? 'bg-white dark:bg-slate-700 shadow-xs scale-105 ring-1 ring-blue-500/25'
+            : 'opacity-50 hover:opacity-100 hover:bg-white/60 dark:hover:bg-slate-700/60'
         }`}
         title="ភាសាខ្មែរ"
         aria-label="ប្តូរទៅជាភាសាខ្មែរ"

@@ -185,31 +185,31 @@ export const HomePage: React.FC = () => {
   const getCategoryIcon = (iconName?: string | null) => {
     switch (iconName) {
       case 'Code2':
-        return { Icon: Code2, color: 'text-blue-600 bg-blue-50/90 border-blue-100' }
+        return { Icon: Code2, color: 'text-blue-600 dark:text-blue-400 bg-blue-50/90 dark:bg-blue-950/40 border-blue-100 dark:border-blue-900/40' }
       case 'Building2':
-        return { Icon: Building2, color: 'text-emerald-600 bg-emerald-50/90 border-emerald-100' }
+        return { Icon: Building2, color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/40' }
       case 'TrendingUp':
-        return { Icon: TrendingUp, color: 'text-purple-600 bg-purple-50/90 border-purple-100' }
+        return { Icon: TrendingUp, color: 'text-purple-600 dark:text-purple-400 bg-purple-50/90 dark:bg-purple-950/40 border-purple-100 dark:border-purple-900/40' }
       case 'Calculator':
-        return { Icon: Calculator, color: 'text-amber-600 bg-amber-50/90 border-amber-100' }
+        return { Icon: Calculator, color: 'text-amber-600 dark:text-amber-400 bg-amber-50/90 dark:bg-amber-950/40 border-amber-100 dark:border-amber-900/40' }
       case 'Users':
-        return { Icon: Users, color: 'text-rose-600 bg-rose-50/90 border-rose-100' }
+        return { Icon: Users, color: 'text-rose-600 dark:text-rose-400 bg-rose-50/90 dark:bg-rose-950/40 border-rose-100 dark:border-rose-900/40' }
       case 'Compass':
-        return { Icon: Compass, color: 'text-cyan-600 bg-cyan-50/90 border-cyan-100' }
+        return { Icon: Compass, color: 'text-cyan-600 dark:text-cyan-400 bg-cyan-50/90 dark:bg-cyan-950/40 border-cyan-100 dark:border-cyan-900/40' }
       case 'GraduationCap':
-        return { Icon: GraduationCap, color: 'text-orange-600 bg-orange-50/90 border-orange-100' }
+        return { Icon: GraduationCap, color: 'text-orange-600 dark:text-orange-400 bg-orange-50/90 dark:bg-orange-950/40 border-orange-100 dark:border-orange-900/40' }
       case 'Utensils':
-        return { Icon: Utensils, color: 'text-red-600 bg-red-50/90 border-red-100' }
+        return { Icon: Utensils, color: 'text-red-600 dark:text-red-400 bg-red-50/90 dark:bg-red-950/40 border-red-100 dark:border-red-900/40' }
       case 'Headphones':
-        return { Icon: Headphones, color: 'text-indigo-600 bg-indigo-50/90 border-indigo-100' }
+        return { Icon: Headphones, color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/90 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/40' }
       case 'Palette':
-        return { Icon: Palette, color: 'text-fuchsia-600 bg-fuchsia-50/90 border-fuchsia-100' }
+        return { Icon: Palette, color: 'text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-50/90 dark:bg-fuchsia-950/40 border-fuchsia-100 dark:border-fuchsia-900/40' }
       case 'HeartPulse':
-        return { Icon: HeartPulse, color: 'text-teal-600 bg-teal-50/90 border-teal-100' }
+        return { Icon: HeartPulse, color: 'text-teal-600 dark:text-teal-400 bg-teal-50/90 dark:bg-teal-950/40 border-teal-100 dark:border-teal-900/40' }
       case 'Truck':
-        return { Icon: Truck, color: 'text-slate-700 bg-slate-100 border-slate-200' }
+        return { Icon: Truck, color: 'text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700/60' }
       default:
-        return { Icon: Briefcase, color: 'text-blue-600 bg-blue-50/90 border-blue-100' }
+        return { Icon: Briefcase, color: 'text-blue-600 dark:text-blue-400 bg-blue-50/90 dark:bg-blue-950/40 border-blue-100 dark:border-blue-900/40' }
     }
   }
 
@@ -415,7 +415,7 @@ export const HomePage: React.FC = () => {
               <Link
                 key={cat.id}
                 to={`/jobs?category=${cat.id}`}
-                className="group flex items-center justify-between p-3 bg-white hover:bg-slate-50/70 rounded-2xl border border-slate-200/90 hover:border-blue-500/80 hover:shadow-md hover:shadow-blue-500/10 transition-all duration-150 min-h-[58px]"
+                className="group flex items-center justify-between p-3 bg-white dark:bg-slate-900/90 hover:bg-slate-50/70 dark:hover:bg-slate-800/80 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-500/80 dark:hover:border-blue-500/60 hover:shadow-md hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 transition-all duration-150 min-h-[58px]"
               >
                 <div className="flex items-center space-x-3 min-w-0 flex-1">
                   <div
@@ -424,15 +424,15 @@ export const HomePage: React.FC = () => {
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 group-hover:text-blue-600 transition truncate leading-snug">
+                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition truncate leading-snug">
                       {isKhmer ? cat.name_km : cat.name_en}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium leading-none mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-medium leading-none mt-0.5">
                       {cat.jobs_count || 0} {t('jobs.vacancies')}
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                <ChevronRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
               </Link>
             )
           })}
@@ -472,10 +472,10 @@ export const HomePage: React.FC = () => {
               return (
                 <div
                   key={job.id}
-                  className="group flex flex-col justify-between bg-white rounded-2xl border border-slate-200/90 hover:border-blue-500/80 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-200 overflow-hidden relative"
+                  className="group flex flex-col justify-between bg-white dark:bg-slate-900/95 rounded-2xl border border-slate-200/90 dark:border-slate-800 hover:border-blue-500/80 dark:hover:border-blue-500/60 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-200 overflow-hidden relative"
                 >
                   {/* 1. Top Row: Compact Post Thumbnail Banner */}
-                  <div className="relative w-full h-24 sm:h-28 bg-slate-100 shrink-0">
+                  <div className="relative w-full h-24 sm:h-28 bg-slate-100 dark:bg-slate-800 shrink-0">
                     <div className="w-full h-full overflow-hidden relative">
                       <Link to={`/jobs/${job.slug}`} className="block w-full h-full">
                         <img
@@ -491,7 +491,7 @@ export const HomePage: React.FC = () => {
 
                     {/* Floating Category Pill on Top Left */}
                     <div className="absolute top-2 left-2 z-10 pointer-events-none">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/95 text-slate-800 shadow-xs backdrop-blur-md border border-white/50">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-white/95 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100 shadow-xs backdrop-blur-md border border-white/50 dark:border-slate-700/80">
                         {categoryLabel}
                       </span>
                     </div>
@@ -503,16 +503,16 @@ export const HomePage: React.FC = () => {
                       className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md backdrop-blur-md cursor-pointer ${
                         isSaved
                           ? 'bg-blue-600 text-white shadow-blue-500/40 ring-2 ring-white/60 scale-105'
-                          : 'bg-white/90 text-slate-700 hover:bg-white hover:text-blue-600 hover:scale-105'
+                          : 'bg-white/90 dark:bg-slate-900/85 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 border border-white/50 dark:border-slate-700/80 hover:scale-105'
                       }`}
                       title={isSaved ? (isKhmer ? 'ដកការរក្សាទុក' : 'Remove bookmark') : (isKhmer ? 'រក្សាទុកការងារ' : 'Save job')}
                     >
                       <Bookmark className={`w-3 h-3 ${isSaved ? 'fill-white text-white' : ''}`} />
                     </button>
 
-                    {/* Overlapping Company Logo Avatar Badge (z-index above white background) */}
+                    {/* Overlapping Company Logo Avatar Badge */}
                     <div className="absolute -bottom-3 left-3 z-20">
-                      <div className="w-9 h-9 rounded-full bg-white p-0.5 shadow-md ring-2 ring-white overflow-hidden flex items-center justify-center">
+                      <div className="w-9 h-9 rounded-full bg-white dark:bg-slate-800 p-0.5 shadow-md ring-2 ring-white dark:ring-slate-800 overflow-hidden flex items-center justify-center">
                         <img
                           src={
                             job.company_logo ||
@@ -526,54 +526,54 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {/* 2. Middle Section: Listed Information (Compact) */}
-                  <div className="p-3 pt-4 flex-1 flex flex-col justify-between relative z-10 bg-white">
+                  <div className="p-3 pt-4 flex-1 flex flex-col justify-between relative z-10 bg-white dark:bg-slate-900/95">
                     <div>
                       {/* Company Name & Location row */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                        <span className="font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors pr-2">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+                        <span className="font-bold text-slate-700 dark:text-slate-300 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors pr-2">
                           {job.company_name}
                         </span>
-                        <div className="flex items-center text-[10px] text-slate-400 font-medium shrink-0">
-                          <MapPin className="w-2.5 h-2.5 mr-0.5 text-slate-400 shrink-0" />
+                        <div className="flex items-center text-[10px] text-slate-400 dark:text-slate-500 font-medium shrink-0">
+                          <MapPin className="w-2.5 h-2.5 mr-0.5 text-slate-400 dark:text-slate-500 shrink-0" />
                           <span>{job.province || 'Phnom Penh'}</span>
                         </div>
                       </div>
 
                       {/* Job Title */}
                       <Link to={`/jobs/${job.slug}`} className="block">
-                        <h3 className="text-[13px] sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate leading-tight tracking-tight">
+                        <h3 className="text-[13px] sm:text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate leading-tight tracking-tight">
                           {isKhmer && job.title_km ? job.title_km : job.title}
                         </h3>
                       </Link>
 
                       {/* Job Description (Compact 1 line snippet) */}
                       {job.description && (
-                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-1 leading-snug font-normal">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-1 leading-snug font-normal">
                           {job.description.replace(/<[^>]*>?/gm, '')}
                         </p>
                       )}
 
                       {/* Meta Badges (rounded-full) */}
                       <div className="flex flex-wrap gap-1 mt-2">
-                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-blue-50/80 text-blue-700 border border-blue-200/50">
+                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-blue-50/80 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40">
                           {getEmploymentLabel(job.employment_type)}
                         </span>
-                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200/60">
+                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/50">
                           {getWorkplaceLabel(job.workplace_type)}
                         </span>
-                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-emerald-50/80 text-emerald-700 border border-emerald-200/50">
+                        <span className="px-2.5 py-0.5 text-[9px] font-semibold rounded-full bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/40">
                           {getExperienceLabel(job.experience_level)}
                         </span>
                       </div>
                     </div>
 
                     {/* Salary & Action Buttons */}
-                    <div className="mt-2.5 pt-2 border-t border-slate-100">
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400">
+                        <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">
                           {isKhmer ? 'ប្រាក់បៀវត្ស' : 'Salary'}
                         </span>
-                        <span className="text-xs font-black text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">
+                        <span className="text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors tracking-tight">
                           {formatSalaryRange(
                             job.salary_min,
                             job.salary_max,
@@ -588,15 +588,15 @@ export const HomePage: React.FC = () => {
                       <div className="flex items-center gap-1.5">
                         <Link
                           to={`/jobs/${job.slug}`}
-                          className="flex-1 py-1.5 px-3 rounded-full border border-slate-200 hover:border-slate-300 bg-slate-50/90 hover:bg-slate-100 text-slate-700 font-bold text-[11px] flex items-center justify-center gap-1 transition-all text-center cursor-pointer shadow-2xs"
+                          className="flex-1 py-1.5 px-3 rounded-full border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/90 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center justify-center gap-1 transition-all text-center cursor-pointer shadow-2xs"
                         >
-                          <Eye className="w-3 h-3 text-slate-500" />
+                          <Eye className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                           <span>{isKhmer ? 'មើលលម្អិត' : 'View'}</span>
                         </Link>
 
                         <Link
                           to={`/jobs/${job.slug}`}
-                          className="flex-1 py-1.5 px-3 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-sm shadow-blue-600/20 hover:shadow-md transition-all text-center cursor-pointer"
+                          className="flex-1 py-1.5 px-3 rounded-full bg-blue-600 hover:bg-blue-500 active:scale-98 text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-sm shadow-blue-600/30 hover:shadow-md transition-all text-center cursor-pointer"
                         >
                           <span>{isKhmer ? 'ដាក់ពាក្យ' : 'Apply'}</span>
                           <ArrowRight className="w-3 h-3" />

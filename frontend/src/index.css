@@ -215,43 +215,43 @@ html.dark body {
 
 /* Base Dark Overrides */
 html.dark header,
-html.dark .bg-white {
-  background-color: #111827 !important;
+html.dark .bg-white:not([class*="dark:bg-"]) {
+  background-color: #111827;
 }
 
-html.dark .bg-slate-50,
-html.dark .bg-slate-50\/70,
-html.dark .bg-slate-50\/50,
-html.dark .bg-slate-100 {
-  background-color: #0b0f19 !important;
+html.dark .bg-slate-50:not([class*="dark:bg-"]),
+html.dark .bg-slate-50\/70:not([class*="dark:bg-"]),
+html.dark .bg-slate-50\/50:not([class*="dark:bg-"]),
+html.dark .bg-slate-100:not([class*="dark:bg-"]) {
+  background-color: #0b0f19;
 }
 
-html.dark .text-slate-900,
-html.dark .text-slate-800 {
-  color: #f8fafc !important;
+html.dark .text-slate-900:not([class*="dark:text-"]),
+html.dark .text-slate-800:not([class*="dark:text-"]) {
+  color: #f8fafc;
 }
 
-html.dark .text-slate-700,
-html.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+html.dark .text-slate-700:not([class*="dark:text-"]),
+html.dark .text-slate-600:not([class*="dark:text-"]) {
+  color: #cbd5e1;
 }
 
-html.dark .text-slate-500,
-html.dark .text-slate-400 {
-  color: #94a3b8 !important;
+html.dark .text-slate-500:not([class*="dark:text-"]),
+html.dark .text-slate-400:not([class*="dark:text-"]) {
+  color: #94a3b8;
 }
 
-html.dark .border-slate-100,
-html.dark .border-slate-200,
-html.dark .border-slate-200\/80,
-html.dark .border-slate-200\/90,
-html.dark .border-slate-300 {
-  border-color: #1e293b !important;
+html.dark .border-slate-100:not([class*="dark:border-"]),
+html.dark .border-slate-200:not([class*="dark:border-"]),
+html.dark .border-slate-200\/80:not([class*="dark:border-"]),
+html.dark .border-slate-200\/90:not([class*="dark:border-"]),
+html.dark .border-slate-300:not([class*="dark:border-"]) {
+  border-color: #1e293b;
 }
 
 html.dark .hover\:bg-slate-50:hover,
 html.dark .hover\:bg-slate-100:hover {
-  background-color: #1e293b !important;
+  background-color: #1e293b;
 }
 
 /* Glass cards in dark mode */

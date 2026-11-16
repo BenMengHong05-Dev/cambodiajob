@@ -25,12 +25,12 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative inline-flex items-center justify-center rounded-xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40 select-none ${
+      className={`relative inline-flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/40 select-none ${
         variant === 'glass'
           ? 'bg-white/40 dark:bg-slate-800/60 border border-white/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 hover:bg-white/70 dark:hover:bg-slate-800/90 shadow-2xs'
           : isDark
-          ? 'bg-slate-800 border border-slate-700 text-amber-400 hover:bg-slate-700 shadow-2xs'
-          : 'bg-white border border-slate-200/90 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs'
+          ? 'bg-slate-800/90 border border-slate-700/90 text-amber-400 hover:bg-slate-800 hover:border-amber-400/40 shadow-sm hover:scale-105 active:scale-95'
+          : 'bg-white/90 border border-slate-200/90 text-slate-600 hover:text-blue-600 hover:border-blue-400/40 hover:bg-white shadow-2xs hover:scale-105 active:scale-95'
       } ${sizeClasses} ${className}`}
       title={
         isDark
