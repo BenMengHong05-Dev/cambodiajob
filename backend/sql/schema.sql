@@ -321,8 +321,8 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
     `price` DECIMAL(12, 2) NOT NULL,
     `currency` VARCHAR(10) NOT NULL DEFAULT 'USD',
     `status` VARCHAR(50) NOT NULL DEFAULT 'active',
-    `starts_at` TIMESTAMP NOT NULL,
-    `ends_at` TIMESTAMP NOT NULL,
+    `starts_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `ends_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_subscriptions_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

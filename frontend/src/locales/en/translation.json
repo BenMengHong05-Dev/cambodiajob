@@ -13,7 +13,10 @@
     "companyProfile": "Company Profile",
     "manageJobs": "Manage Vacancies",
     "adminPanel": "Admin Portal",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "toggleTheme": "Toggle Theme"
   },
   "home": {
     "heroTitle": "Find Your Dream Job in Cambodia",

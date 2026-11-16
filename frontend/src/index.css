@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* =========================================================================
    1. Official Google Sans & Noto Sans Khmer Direct Font-Face
    ========================================================================= */
@@ -196,4 +198,120 @@ code, pre, kbd, samp {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+/* =========================================================================
+   3. Complete Dark Mode System
+   ========================================================================= */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b0f19 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Base Dark Overrides */
+html.dark header,
+html.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-100 {
+  background-color: #0b0f19 !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/90,
+html.dark .border-slate-300 {
+  border-color: #1e293b !important;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
+}
+
+/* Glass cards in dark mode */
+html.dark .glass-card,
+html.dark .glass-card-hover,
+html.dark .card-clear,
+html.dark .card-clear-hover,
+html.dark .workspace-layout main .bg-white.rounded-2xl,
+html.dark .workspace-layout main .bg-white.rounded-xl,
+html.dark .workspace-layout main .card-clear {
+  background-color: rgba(17, 24, 39, 0.85) !important;
+  border-color: rgba(30, 41, 59, 0.9) !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .glass-sidebar {
+  background: rgba(11, 15, 25, 0.92) !important;
+  border-right-color: rgba(30, 41, 59, 0.85) !important;
+}
+
+html.dark .glass-topbar {
+  background: rgba(11, 15, 25, 0.92) !important;
+  border-bottom-color: rgba(30, 41, 59, 0.85) !important;
+}
+
+html.dark .glass-dropdown {
+  background: rgba(17, 24, 39, 0.95) !important;
+  border-color: rgba(30, 41, 59, 0.9) !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+html.dark table thead th {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark table tbody tr {
+  border-bottom-color: #1e293b !important;
+}
+
+html.dark table tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

@@ -1,0 +1,41 @@
+# Environment variables
+.env
+.env.*
+*.env
+backend/.env
+frontend/.env
+
+# Python Virtual Environments & Caches
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node & Frontend Build
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+*.local
+
+# Media & Uploads
+media/
+backend/media/
+backend/media/resumes/*
+!backend/media/resumes/.gitkeep
+
+# IDEs & System files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

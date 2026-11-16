@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth, useToast } from '../../app/providers'
 import { Button } from '../ui/Button'
 import { LanguageDropdown } from './LanguageDropdown'
+import { ThemeToggle } from './ThemeToggle'
 import {
   Briefcase,
   Building,
@@ -92,6 +93,7 @@ export const Navbar: React.FC = () => {
           {/* Right Header Controls */}
           <div className="hidden lg:flex items-center space-x-3">
             <LanguageDropdown variant="light" />
+            <ThemeToggle variant="light" />
 
             {/* Logged-in Profile Avatar vs Guest Buttons */}
             {user ? (
@@ -260,7 +262,8 @@ export const Navbar: React.FC = () => {
 
           {/* Mobile Right Controls: Language Dropdown + Menu Toggle */}
           <div className="flex lg:hidden items-center space-x-2">
-            <LanguageDropdown variant="light" className="w-32 sm:w-36" />
+            <LanguageDropdown variant="light" className="w-28 sm:w-36" />
+            <ThemeToggle variant="light" size="sm" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"

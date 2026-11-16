@@ -26,11 +26,16 @@ interface AuthContextType {
   refreshUser: () => Promise<void>
 }
 
+export type ThemeMode = 'light' | 'dark'
+
 interface PreferencesContextType {
   currency: Currency
   setCurrency: (c: Currency) => void
   language: string
   setLanguage: (lang: string) => void
+  theme: ThemeMode
+  setTheme: (t: ThemeMode) => void
+  toggleTheme: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -49,10 +54,41 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     return localStorage.getItem('app_language') || 'en'
   })
 
+  const [theme, setThemeState] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('app_theme') as ThemeMode
+    if (saved === 'dark' || saved === 'light') return saved
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark'
+    }
+    return 'light'
+  })
+
   const setCurrency = (c: Currency) => {
     setCurrencyState(c)
     localStorage.setItem('app_currency', c)
   }
+
+  const setTheme = (t: ThemeMode) => {
+    setThemeState(t)
+    localStorage.setItem('app_theme', t)
+    if (t === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [theme])
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang)
@@ -169,7 +205,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     : '/seeker/dashboard'
 
   return (
-    <PreferencesContext.Provider value={{ currency, setCurrency, language, setLanguage }}>
+    <PreferencesContext.Provider value={{ currency, setCurrency, language, setLanguage, theme, setTheme, toggleTheme }}>
       <AuthContext.Provider
         value={{
           user,

@@ -3,6 +3,7 @@ import { Outlet, Navigate, Link, useLocation, useNavigate } from 'react-router-d
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../app/providers'
 import { LanguageDropdown } from '../components/layout/LanguageDropdown'
+import { ThemeToggle } from '../components/layout/ThemeToggle'
 import { NotificationDropdown } from '../components/layout/NotificationDropdown'
 import {
   Shield,
@@ -117,6 +118,7 @@ export const AdminLayout: React.FC = () => {
             <Globe className="w-4 h-4 text-blue-600" />
           </Link>
           <LanguageDropdown />
+          <ThemeToggle size="sm" />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-slate-600 hover:text-slate-900 rounded-xl bg-white/80 border border-white/80 hover:bg-white transition shadow-2xs"
@@ -251,6 +253,7 @@ export const AdminLayout: React.FC = () => {
 
             <NotificationDropdown role="admin" />
             <LanguageDropdown />
+          <ThemeToggle size="sm" />
 
             {/* Profile Avatar Trigger */}
             <div className="relative">
