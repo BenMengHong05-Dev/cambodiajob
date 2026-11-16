@@ -307,72 +307,7 @@ export const EmployerDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Visual Recruitment Pipeline Strip */}
-      <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/90 shadow-sm relative overflow-hidden">
-        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-blue-600" />
-            <h3 className="text-xs font-bold text-slate-800">
-              {isKhmer ? 'ចរន្តជ្រើសរើសបុគ្គលិកសកម្ម' : 'Recruitment Pipeline Overview'}
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-400 font-medium">
-            {isKhmer ? 'តាមដានបេក្ខជនតាមដំណាក់កាលនីមួយៗ' : 'Candidate flow through hiring stages'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div className="p-2.5 rounded-xl border border-blue-400/30 bg-blue-500/10 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                1. {isKhmer ? 'ការងារសកម្ម' : 'Active Jobs'}
-              </span>
-              <span className="text-sm font-extrabold text-blue-700">{activeJobsCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'កំពុងទទួលពាក្យ' : 'Live vacancies accepting CVs'}
-            </p>
-          </div>
-
-          <div className="p-2.5 rounded-xl border border-amber-400/30 bg-amber-500/10 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">
-                2. {isKhmer ? 'បេក្ខជនសរុប' : 'Applicants'}
-              </span>
-              <span className="text-sm font-extrabold text-amber-700">{totalApplicationsCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'ពាក្យសុំបានទទួល' : 'Applications received'}
-            </p>
-          </div>
-
-          <div className="p-2.5 rounded-xl border border-indigo-400/30 bg-indigo-500/10 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">
-                3. {isKhmer ? 'សម្ភាសន៍' : 'Interviewing'}
-              </span>
-              <span className="text-sm font-extrabold text-indigo-700">{interviewApplicantsCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'បានកំណត់កាលវិភាគ' : 'Scheduled meetings'}
-            </p>
-          </div>
-
-          <div className="p-2.5 rounded-xl border border-emerald-400/30 bg-emerald-500/10 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                4. {isKhmer ? 'ផ្តល់ការងារ' : 'Hired / Offered'}
-              </span>
-              <span className="text-sm font-extrabold text-emerald-700">{hiredApplicantsCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'ជោគជ័យ' : 'Job offers extended'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Glassmorphic 4-Column Metric Cards */}
+      {/* Glassmorphic 4-Column Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Published Vacancies */}
         <Link

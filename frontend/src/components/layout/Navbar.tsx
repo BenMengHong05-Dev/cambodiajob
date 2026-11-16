@@ -102,24 +102,6 @@ export const Navbar: React.FC = () => {
             <NavLink to="/companies" className={navLinkClass}>
               {t('nav.companies')}
             </NavLink>
-            {user && (
-              <NavLink
-                to={getDashboardPath()}
-                className={({ isActive }) =>
-                  `px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
-                    isActive ||
-                    location.pathname.includes('/seeker/') ||
-                    location.pathname.includes('/employer/') ||
-                    location.pathname.includes('/admin/')
-                      ? 'text-blue-600 bg-blue-50/90 font-extrabold ring-1 ring-blue-500/20'
-                      : 'text-blue-700 bg-blue-50/60 hover:bg-blue-100/70 hover:text-blue-800'
-                  }`
-                }
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
-                <span>{t('nav.dashboard')}</span>
-              </NavLink>
-            )}
           </nav>
 
           {/* Right Header Controls */}
@@ -129,14 +111,6 @@ export const Navbar: React.FC = () => {
             {/* Logged-in Profile Avatar vs Guest Buttons */}
             {user ? (
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <Link
-                  to={getDashboardPath()}
-                  className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/60 transition shadow-2xs"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-blue-600" />
-                  <span>{t('nav.dashboard')}</span>
-                </Link>
-
                 <div className="hidden sm:flex flex-col text-right leading-tight">
                   <span className="text-xs font-bold text-slate-800 truncate max-w-[120px]">
                     {user.full_name}
