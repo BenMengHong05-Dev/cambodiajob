@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   CheckCircle,
   ArrowRight,
-  Sparkles,
   Clock,
   DollarSign,
   Calculator,
@@ -378,16 +377,9 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-blue-600 mb-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Trending Sectors</span>
-            </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               {t('home.popularCategories')}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Explore opportunities across key sectors in Cambodia
-            </p>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -454,9 +446,6 @@ export const HomePage: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               {t('home.featuredJobs')}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Hand-picked and verified career vacancies updated daily
-            </p>
           </div>
           <Link
             to="/jobs"

@@ -288,259 +288,220 @@ export const JobsPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 font-sans space-y-6">
-      {/* 1. Header Section with Integrated Job Count Pill */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      {/* 1. Header Section: Title on Left, Button Filter & Header Controls on Right */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {t('jobs.title')}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            {isKhmer
-              ? 'ស្វែងរក និងដាក់ពាក្យការងារល្អបំផុតនៅទូទាំងប្រទេសកម្ពុជា'
-              : 'Find and apply for top career opportunities across Cambodia'}
-          </p>
         </div>
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 text-xs font-semibold text-slate-600 shrink-0 self-start sm:self-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>
-            {isKhmer ? 'មានការងារសរុប' : 'Total Opportunities:'}{' '}
-            <strong className="text-slate-900 font-extrabold">{totalCount}</strong>
-          </span>
-        </div>
-      </div>
 
-      {/* 2. Unified Search Capsule */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all p-1.5 sm:p-2">
-        <form onSubmit={handleApplyFilters} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
-          {/* Keyword Search Input */}
-          <div className="flex-1 relative flex items-center min-w-0">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-            <input
-              type="text"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={
-                isKhmer
-                  ? 'ស្វែងរកតាមចំណងជើងការងារ ក្រុមហ៊ុន ឬជំនាញ...'
-                  : 'Search by job title, company, or skills...'
-              }
-              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 font-medium outline-none bg-transparent"
-            />
-            {q && (
-              <button
-                type="button"
-                onClick={() => setQ('')}
-                className="absolute right-3 text-slate-400 hover:text-slate-600 p-0.5 transition cursor-pointer"
-                title={isKhmer ? 'សម្អាត' : 'Clear'}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="hidden lg:block w-px h-7 bg-slate-200 shrink-0" />
-
-          {/* Location / Province Select */}
-          <div className="w-full lg:w-56 shrink-0 relative focus-within:z-50">
-            <Select
-              value={province}
-              onChange={(e) => {
-                setProvince(e.target.value)
-                setPage(1)
-              }}
-              placeholder={t('home.allLocations')}
-              searchPlaceholder={isKhmer ? 'ស្វែងរកខេត្ត/រាជធានី...' : 'Search locations...'}
-              noResultsText={isKhmer ? 'រកមិនឃើញខេត្ត/រាជធានី' : 'No matching locations'}
-              searchable={true}
-              leftIcon={<MapPin className="w-4 h-4 text-slate-400" />}
-              size="sm"
-              variant="light"
-            >
-              <option value="">{t('home.allLocations')}</option>
-              {provinces
-                .filter((p) => (p.jobs_count ?? 0) > 0)
-                .map((p) => (
-                  <option key={p.province_en} value={p.province_en}>
-                    {isKhmer ? p.province_km : p.province_en}
-                  </option>
-                ))}
-            </Select>
-          </div>
-
-          {/* Divider */}
-          <div className="hidden lg:block w-px h-7 bg-slate-200 shrink-0" />
-
-          {/* Category Select */}
-          <div className="w-full lg:w-56 shrink-0 relative focus-within:z-50">
-            <Select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value)
-                setPage(1)
-              }}
-              placeholder={t('home.allCategories')}
-              searchPlaceholder={isKhmer ? 'ស្វែងរកផ្នែកការងារ...' : 'Search categories...'}
-              noResultsText={isKhmer ? 'រកមិនឃើញផ្នែកការងារ' : 'No matching categories'}
-              searchable={true}
-              leftIcon={<Briefcase className="w-4 h-4 text-slate-400" />}
-              size="sm"
-              variant="light"
-            >
-              <option value="">{t('home.allCategories')}</option>
-              {categories
-                .filter((c) => (c.jobs_count ?? 0) > 0)
-                .map((c) => (
-                  <option key={c.id} value={c.id.toString()}>
-                    {isKhmer ? c.name_km : c.name_en}
-                  </option>
-                ))}
-            </Select>
-          </div>
-
-          {/* Search Button */}
+        {/* Right of Title Page: Button Filter (More Filters) + Actions + Count */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Button Filter (More Filters toggle) */}
           <button
-            type="submit"
-            className="w-full lg:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm shadow-blue-600/20 transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+            type="button"
+            onClick={() => setIsMoreFiltersOpen(!isMoreFiltersOpen)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${
+              isMoreFiltersOpen || extraFiltersCount > 0
+                ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 shadow-2xs'
+            }`}
           >
-            <Search className="w-4 h-4" />
-            <span>{isKhmer ? 'ស្វែងរក' : 'Search'}</span>
+            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+            <span>{isKhmer ? 'តម្រងបន្ថែម' : 'More Filters'}</span>
+            {extraFiltersCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center">
+                {extraFiltersCount}
+              </span>
+            )}
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                isMoreFiltersOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
+              }`}
+            />
           </button>
-        </form>
-      </div>
 
-      {/* 3. Streamlined Filter Toolbar */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Quick Essential Filters (Left) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            {[
-              { id: 'all', label: isKhmer ? 'ទាំងអស់' : 'All', active: !employmentType && !workplaceType },
-              { id: 'full_time', label: isKhmer ? 'ពេញម៉ោង' : 'Full-time', active: employmentType === 'full_time' },
-              { id: 'remote', label: isKhmer ? 'ពីចម្ងាយ' : 'Remote', active: workplaceType === 'remote' },
-              { id: 'internship', label: isKhmer ? 'កម្មសិក្សា' : 'Internship', active: employmentType === 'internship' },
-            ].map((pill) => (
-              <button
-                key={pill.id}
-                type="button"
-                onClick={() => {
-                  if (pill.id === 'all') {
-                    setEmploymentType('')
-                    setWorkplaceType('')
-                  } else if (pill.id === 'remote') {
-                    setWorkplaceType(workplaceType === 'remote' ? '' : 'remote')
-                  } else {
-                    setEmploymentType(employmentType === pill.id ? '' : pill.id)
-                  }
-                  setPage(1)
-                }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                  pill.active
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-900 shadow-2xs'
-                }`}
-              >
-                {pill.label}
-              </button>
-            ))}
+          {/* Create Job Alert Button */}
+          <button
+            type="button"
+            onClick={() => setIsJobAlertOpen(true)}
+            className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-700 text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
+            title={isKhmer ? 'បង្កើតការជូនដំណឹងការងារថ្មីៗ' : 'Create Job Alert'}
+          >
+            <Bell className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden sm:inline">{isKhmer ? 'ជូនដំណឹងការងារ' : 'Job Alert'}</span>
+          </button>
 
-            {/* More Filters Toggle Button */}
+          {/* View Mode Toggle: Grid 4 vs List */}
+          <div className="flex items-center p-0.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
             <button
               type="button"
-              onClick={() => setIsMoreFiltersOpen(!isMoreFiltersOpen)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${
-                isMoreFiltersOpen || extraFiltersCount > 0
-                  ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50 shadow-2xs'
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-400 hover:text-slate-700'
               }`}
+              title={isKhmer ? 'ទិដ្ឋភាពក្រឡា (Grid 4)' : 'Grid View (4 Columns)'}
+              aria-label="Grid view"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{isKhmer ? 'តម្រងបន្ថែម' : 'More Filters'}</span>
-              {extraFiltersCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center">
-                  {extraFiltersCount}
-                </span>
-              )}
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  isMoreFiltersOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
-                }`}
-              />
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-400 hover:text-slate-700'
+              }`}
+              title={isKhmer ? 'ទិដ្ឋភាពបញ្ជី (List)' : 'List View'}
+              aria-label="List view"
+            >
+              <List className="w-4 h-4" />
             </button>
           </div>
 
-          {/* View Mode & Sort Selector (Right) */}
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-            {/* Create Job Alert Button */}
+          {/* Sort Selector */}
+          <div className="w-32 sm:w-36 shrink-0 relative focus-within:z-40">
+            <Select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              size="sm"
+              variant="light"
+              align="right"
+            >
+              <option value="newest">{isKhmer ? 'ថ្មីបំផុត' : 'Newest'}</option>
+              <option value="highest_salary">{isKhmer ? 'ប្រាក់បៀវត្សខ្ពស់' : 'Highest Salary'}</option>
+              <option value="lowest_salary">{isKhmer ? 'ប្រាក់បៀវត្សទាប' : 'Lowest Salary'}</option>
+            </Select>
+          </div>
+
+          {/* Reset All Filters Button */}
+          {(q || province || category || employmentType || workplaceType || experienceLevel) && (
             <button
               type="button"
-              onClick={() => setIsJobAlertOpen(true)}
-              className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-700 text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
-              title={isKhmer ? 'បង្កើតការជូនដំណឹងការងារថ្មីៗ' : 'Create Job Alert'}
+              onClick={handleResetFilters}
+              className="text-xs font-bold text-slate-500 hover:text-red-600 flex items-center px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:bg-red-50 hover:border-red-200 transition cursor-pointer"
+              title={isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset All'}
             >
-              <Bell className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">{isKhmer ? 'ជូនដំណឹងការងារ' : 'Job Alert'}</span>
+              <RotateCcw className="w-3.5 h-3.5 mr-1" />
+              <span>{isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset'}</span>
             </button>
+          )}
 
-            {/* View Mode Toggle: Grid 4 vs List */}
-            <div className="flex items-center p-0.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-blue-600 text-white shadow-xs font-bold'
-                    : 'text-slate-400 hover:text-slate-700'
-                }`}
-                title={isKhmer ? 'ទិដ្ឋភាពក្រឡា (Grid 4)' : 'Grid View (4 Columns)'}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-blue-600 text-white shadow-xs font-bold'
-                    : 'text-slate-400 hover:text-slate-700'
-                }`}
-                title={isKhmer ? 'ទិដ្ឋភាពបញ្ជី (List)' : 'List View'}
-                aria-label="List view"
-              >
-                <List className="w-4 h-4" />
-              </button>
+          {/* Total Opportunities Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 text-xs font-semibold text-slate-600 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>
+              {isKhmer ? 'មានការងារសរុប' : 'Total Opportunities:'}{' '}
+              <strong className="text-slate-900 font-extrabold">{totalCount}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Search & Filters Bar (Bottom of Title) */}
+      <div className="w-full">
+        <form onSubmit={handleApplyFilters} className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-4">
+          {/* Left: Compact, Well-Proportioned Search Input + Search Button */}
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <div className="relative flex items-center w-full sm:w-72 md:w-80 lg:w-96">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              <input
+                type="text"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={
+                  isKhmer
+                    ? 'ស្វែងរកតាមចំណងជើងការងារ ក្រុមហ៊ុន ឬជំនាញ...'
+                    : 'Search by job title, company, or skills...'
+                }
+                className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 font-medium outline-none bg-white border border-slate-200 rounded-xl min-h-[38px] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 shadow-2xs transition-all"
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setQ('')}
+                  className="absolute right-3 text-slate-400 hover:text-slate-600 p-0.5 transition cursor-pointer"
+                  title={isKhmer ? 'សម្អាត' : 'Clear'}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Sort Selector */}
-            <div className="w-36 shrink-0 relative focus-within:z-40">
+            {/* Search Button (Beside Input on the Left) */}
+            <button
+              type="submit"
+              className="px-4.5 py-2 min-h-[38px] bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-600/20 transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+              <span>{isKhmer ? 'ស្វែងរក' : 'Search'}</span>
+            </button>
+          </div>
+
+          {/* Right: Two Filter Dropdowns (Location & Category) */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+            {/* Location / Province Select */}
+            <div className="w-full sm:w-44 lg:w-48 shrink-0 relative focus-within:z-50">
               <Select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
+                value={province}
+                onChange={(e) => {
+                  setProvince(e.target.value)
+                  setPage(1)
+                }}
+                placeholder={t('home.allLocations')}
+                searchPlaceholder={isKhmer ? 'ស្វែងរកខេត្ត/រាជធានី...' : 'Search locations...'}
+                noResultsText={isKhmer ? 'រកមិនឃើញខេត្ត/រាជធានី' : 'No matching locations'}
+                searchable={true}
+                leftIcon={<MapPin className="w-4 h-4 text-slate-400" />}
                 size="sm"
                 variant="light"
-                align="right"
               >
-                <option value="newest">{isKhmer ? 'ថ្មីបំផុត' : 'Newest'}</option>
-                <option value="highest_salary">{isKhmer ? 'ប្រាក់បៀវត្សខ្ពស់' : 'Highest Salary'}</option>
-                <option value="lowest_salary">{isKhmer ? 'ប្រាក់បៀវត្សទាប' : 'Lowest Salary'}</option>
+                <option value="">{t('home.allLocations')}</option>
+                {provinces
+                  .filter((p) => (p.jobs_count ?? 0) > 0)
+                  .map((p) => (
+                    <option key={p.province_en} value={p.province_en}>
+                      {isKhmer ? p.province_km : p.province_en}
+                    </option>
+                  ))}
               </Select>
             </div>
 
-            {/* Reset All Filters Button */}
-            {(q || province || category || employmentType || workplaceType || experienceLevel) && (
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="text-xs font-bold text-slate-500 hover:text-red-600 flex items-center px-2.5 py-1.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:bg-red-50 hover:border-red-200 transition cursor-pointer"
-                title={isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset All'}
+            {/* Category Select */}
+            <div className="w-full sm:w-44 lg:w-48 shrink-0 relative focus-within:z-50">
+              <Select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value)
+                  setPage(1)
+                }}
+                placeholder={t('home.allCategories')}
+                searchPlaceholder={isKhmer ? 'ស្វែងរកផ្នែកការងារ...' : 'Search categories...'}
+                noResultsText={isKhmer ? 'រកមិនឃើញផ្នែកការងារ' : 'No matching categories'}
+                searchable={true}
+                leftIcon={<Briefcase className="w-4 h-4 text-slate-400" />}
+                size="sm"
+                variant="light"
               >
-                <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                <span>{isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset'}</span>
-              </button>
-            )}
+                <option value="">{t('home.allCategories')}</option>
+                {categories
+                  .filter((c) => (c.jobs_count ?? 0) > 0)
+                  .map((c) => (
+                    <option key={c.id} value={c.id.toString()}>
+                      {isKhmer ? c.name_km : c.name_en}
+                    </option>
+                  ))}
+              </Select>
+            </div>
           </div>
-        </div>
+        </form>
+      </div>
+
+      {/* 3. Collapsible More Filters Panel (Opens below search & badge filters) */}
 
         {/* Collapsible More Filters Panel */}
         {isMoreFiltersOpen && (
@@ -640,7 +601,6 @@ export const JobsPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
 
       {/* 4. Jobs List / 4-Column Grid View */}
       {isLoading ? (

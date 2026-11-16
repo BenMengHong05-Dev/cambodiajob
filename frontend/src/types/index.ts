@@ -270,6 +270,7 @@ export interface AISalaryBenchmarkItem {
   avg: number
   max: number
   count?: number
+  company?: string
 }
 
 export interface AIChartData {

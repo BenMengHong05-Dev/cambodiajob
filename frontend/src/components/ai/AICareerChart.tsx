@@ -44,7 +44,7 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
 
         {/* Salary Bars */}
         <div className="space-y-2.5">
-          {items.slice(0, 4).map((item, idx) => {
+          {items.slice(0, 6).map((item, idx) => {
             const label = isKhmer && item.label_km ? item.label_km : item.label
             const minPercent = Math.max(5, (item.min / maxVal) * 100)
             const maxPercent = Math.min(100, Math.max(minPercent + 10, (item.max / maxVal) * 100))
@@ -52,10 +52,21 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
             return (
               <div key={idx} className="group">
                 <div className="flex items-center justify-between text-[11px] mb-0.5">
-                  <span className="font-semibold text-slate-200 truncate max-w-[60%]">
-                    {label}
-                  </span>
-                  <div className="flex items-center gap-1 text-[10px] text-indigo-200 font-mono">
+                  <div className="truncate max-w-[62%]">
+                    <span className="font-semibold text-slate-200 block truncate">
+                      {label}
+                    </span>
+                    {item.company ? (
+                      <span className="text-[9.5px] text-indigo-300 block truncate">
+                        {item.company}
+                      </span>
+                    ) : item.count !== undefined && item.count > 0 ? (
+                      <span className="text-[9.5px] text-slate-400 block truncate">
+                        {item.count} {isKhmer ? 'ការងារ' : item.count === 1 ? 'vacancy' : 'vacancies'}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-indigo-200 font-mono shrink-0">
                     <span className="text-slate-400">{formatVal(item.min)}</span>
                     <span className="text-slate-500">-</span>
                     <span className="text-emerald-400 font-bold">{formatVal(item.max)}</span>
@@ -78,7 +89,7 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
 
         <div className="mt-2.5 pt-2 border-t border-indigo-900/40 flex items-center justify-between text-[9px] text-indigo-300">
           <span>{isKhmer ? 'ប្រាក់ខែជាមធ្យមប្រចាំខែ' : 'Average monthly salary ranges'}</span>
-          <span className="text-slate-400 font-mono">USD / Mo</span>
+          <span className="text-slate-400 font-mono">{currency === 'KHR' ? 'KHR / Mo' : 'USD / Mo'}</span>
         </div>
       </div>
     )

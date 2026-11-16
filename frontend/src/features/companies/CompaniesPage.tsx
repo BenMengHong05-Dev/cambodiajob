@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Users,
   X,
-  Sparkles,
+  RotateCcw,
 } from 'lucide-react'
 
 const FALLBACK_BANNERS = [
@@ -72,88 +72,106 @@ export const CompaniesPage: React.FC = () => {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 font-sans">
-      {/* Clean Header: Title & Search */}
-      <div className="space-y-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6 font-sans">
+      {/* 1. Header Section: Title on Left, Total Count Badge on Right (Similar to Jobs Page) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold border border-blue-100 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'ក្រុមហ៊ុនឈានមុខនៅកម្ពុជា' : 'Top Verified Employers'}</span>
-          </div>
-
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {isKhmer ? 'ស្វែងរកស្ថាប័ន និងក្រុមហ៊ុនឈានមុខនៅកម្ពុជា' : 'Top Employers & Companies in Cambodia'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            {isKhmer
-              ? 'ស្វែងយល់ពីឱកាសការងារ វប្បធម៌ការងារ និងតួនាទីបើកជ្រើសរើសបុគ្គលិកពីបណ្តាក្រុមហ៊ុនឈានមុខក្នុងប្រទេសកម្ពុជា។'
-              : 'Explore leading enterprises hiring top local and international talent across the Kingdom.'}
-          </p>
         </div>
-
-        {/* Clean Modern Search Bar */}
-        <div className="flex items-center bg-white rounded-2xl p-1.5 shadow-2xs border border-slate-200/90 hover:border-slate-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 max-w-lg transition-all">
-          <div className="pl-3 pr-2 text-slate-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={
-              isKhmer
-                ? 'ស្វែងរកតាមឈ្មោះក្រុមហ៊ុន ឬវិស័យ...'
-                : 'Search company by name or industry...'
-            }
-            className="w-full text-xs sm:text-sm bg-transparent outline-none text-slate-800 placeholder-slate-400 font-normal py-1"
-          />
-          {q && (
-            <button
-              type="button"
-              onClick={() => setQ('')}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg mr-1 transition-colors cursor-pointer"
-              title={isKhmer ? 'សម្អាត' : 'Clear'}
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={fetchCompanies}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs active:scale-95 shrink-0 cursor-pointer"
-          >
-            {isKhmer ? 'ស្វែងរក' : 'Search'}
-          </button>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 text-xs font-semibold text-slate-600 shrink-0 self-start sm:self-auto">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>
+            {isKhmer ? 'មានក្រុមហ៊ុនសរុប' : 'Total Companies:'}{' '}
+            <strong className="text-slate-900 font-extrabold">{companies.length}</strong>
+          </span>
         </div>
       </div>
 
-      {/* Filter Types & Counter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          {industries.map((ind) => {
-            const isActive = selectedIndustry === ind.id
-            return (
-              <button
-                key={ind.id}
-                type="button"
-                onClick={() => setSelectedIndustry(ind.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs transition-all shrink-0 cursor-pointer ${
-                  isActive
-                    ? 'bg-blue-600 text-white font-bold shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'
-                }`}
-              >
-                {isKhmer ? ind.labelKm : ind.labelEn}
-              </button>
-            )
-          })}
-        </div>
+      {/* 2. Search & Industry Filters Bar (Bottom of Title, Similar to Jobs Page) */}
+      <div className="w-full">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            fetchCompanies()
+          }}
+          className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-4"
+        >
+          {/* Left: Compact Search Input + Search Button */}
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <div className="relative flex items-center w-full sm:w-72 md:w-80 lg:w-96">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              <input
+                type="text"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder={
+                  isKhmer
+                    ? 'ស្វែងរកតាមឈ្មោះក្រុមហ៊ុន ឬវិស័យ...'
+                    : 'Search company by name or industry...'
+                }
+                className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 font-medium outline-none bg-white border border-slate-200 rounded-xl min-h-[38px] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 shadow-2xs transition-all"
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setQ('')}
+                  className="absolute right-3 text-slate-400 hover:text-slate-600 p-0.5 transition cursor-pointer"
+                  title={isKhmer ? 'សម្អាត' : 'Clear'}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
-        <div className="text-xs font-semibold text-slate-500 shrink-0">
-          {isKhmer
-            ? `បានឃើញ ${companies.length} ក្រុមហ៊ុន`
-            : `Showing ${companies.length} ${companies.length === 1 ? 'company' : 'companies'}`}
-        </div>
+            {/* Search Button (Beside Input on the Left) */}
+            <button
+              type="submit"
+              className="px-4.5 py-2 min-h-[38px] bg-blue-600 hover:bg-blue-700 active:scale-98 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs shadow-blue-600/20 transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+              <span>{isKhmer ? 'ស្វែងរក' : 'Search'}</span>
+            </button>
+          </div>
+
+          {/* Right: Industry Filter Pills (Companies Page Filter Action) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none shrink-0">
+            {industries.map((ind) => {
+              const isActive = selectedIndustry === ind.id
+              return (
+                <button
+                  key={ind.id}
+                  type="button"
+                  onClick={() => setSelectedIndustry(ind.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                    isActive
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-900 shadow-2xs'
+                  }`}
+                >
+                  {isKhmer ? ind.labelKm : ind.labelEn}
+                </button>
+              )
+            })}
+
+            {/* Reset Filter Button if active */}
+            {(q || selectedIndustry !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQ('')
+                  setSelectedIndustry('all')
+                }}
+                className="text-xs font-bold text-slate-500 hover:text-red-600 flex items-center px-2.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:bg-red-50 hover:border-red-200 transition cursor-pointer shrink-0"
+                title={isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset All'}
+              >
+                <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                <span>{isKhmer ? 'កំណត់ឡើងវិញ' : 'Reset'}</span>
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
       {/* Loading Skeleton: 4 Columns */}
