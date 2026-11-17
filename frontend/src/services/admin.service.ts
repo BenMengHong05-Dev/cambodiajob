@@ -1,7 +1,37 @@
 import { api } from './api'
-import { ApiResponse } from '../types'
+import { ApiResponse, SiteSettings } from '../types'
 
 export const adminService = {
+  async getPublicSettings(): Promise<SiteSettings> {
+    const res = await api.get<ApiResponse<SiteSettings>>('/site-settings/')
+    return res.data.data
+  },
+
+  async getSettings(): Promise<SiteSettings> {
+    const res = await api.get<ApiResponse<SiteSettings>>('/admin/settings/')
+    return res.data.data
+  },
+
+  async updateSettings(data: Partial<SiteSettings>): Promise<{ success: boolean; data: SiteSettings; message: string }> {
+    const res = await api.patch<{ success: boolean; data: SiteSettings; message: string }>('/admin/settings/', data)
+    return res.data
+  },
+
+  async uploadLogo(file: File, type: 'logo' | 'favicon' = 'logo'): Promise<{ success: boolean; url: string; filename: string; message: string }> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', type)
+    const res = await api.post<{ success: boolean; url: string; filename: string; message: string }>(
+      '/admin/settings/upload-logo/',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return res.data
+  },
   async getDashboard(): Promise<any> {
     const res = await api.get<ApiResponse<any>>('/admin/dashboard/')
     return res.data.data
@@ -82,6 +112,26 @@ export const adminService = {
   async getAuditLogs(): Promise<any[]> {
     const res = await api.get<ApiResponse<any[]>>('/admin/audit/')
     return res.data.data
+  },
+
+  async getCategories(params?: { has_jobs?: boolean }): Promise<any[]> {
+    const res = await api.get<ApiResponse<any[]>>('/admin/categories/', { params })
+    return res.data.data
+  },
+
+  async createCategory(data: { name_en: string; name_km: string; slug?: string; icon?: string }): Promise<any> {
+    const res = await api.post<ApiResponse<any>>('/admin/categories/', data)
+    return res.data
+  },
+
+  async updateCategory(categoryId: number, data: { name_en?: string; name_km?: string; slug?: string; icon?: string }): Promise<any> {
+    const res = await api.put<ApiResponse<any>>(`/admin/categories/${categoryId}/`, data)
+    return res.data
+  },
+
+  async deleteCategory(categoryId: number): Promise<any> {
+    const res = await api.delete<ApiResponse<any>>(`/admin/categories/${categoryId}/`)
+    return res.data
   },
 }
 

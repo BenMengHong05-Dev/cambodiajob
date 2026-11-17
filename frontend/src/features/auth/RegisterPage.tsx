@@ -15,10 +15,9 @@ import {
   CheckCircle2,
   Sparkles,
   Briefcase,
-  Check,
 } from 'lucide-react'
 import { useAuth, useToast } from '../../app/providers'
-import { triggerGoogleOAuth } from '../../utils/googleOAuth'
+import { redirectToGoogleOAuth } from '../../utils/googleOAuth'
 
 export const RegisterPage: React.FC = () => {
   const { t, i18n } = useTranslation()
@@ -128,147 +127,34 @@ export const RegisterPage: React.FC = () => {
     }
   }
 
-  const handleGoogleSignUp = async () => {
+  const handleGoogleSignUp = () => {
     setError(null)
     setIsGoogleLoading(true)
-
-    const loadingToastId = toast.loading(
-      isKhmer ? 'កំពុងបើកផ្ទាំង Google...' : 'Connecting to Google...',
-      isKhmer ? 'សូមជ្រើសរើសគណនី Google របស់អ្នក' : 'Please select your Google account'
+    toast.loading(
+      isKhmer ? 'កំពុងបញ្ជូនទៅកាន់ Google...' : 'Redirecting to Google...',
+      isKhmer ? 'សូមរង់ចាំបន្តិច...' : 'Please wait...'
     )
-
-    try {
-      const googleUser = await triggerGoogleOAuth()
-      const user = await oauthLogin({
-        provider: 'google',
-        email: googleUser.email,
-        full_name: googleUser.name,
-        avatar_url: googleUser.picture,
-        role: role,
-      })
-      toast.dismiss(loadingToastId)
-      toast.success(
-        isKhmer ? 'ចុះឈ្មោះជោគជ័យ!' : 'Account created with Google!',
-        isKhmer
-          ? `សូមស្វាគមន៍ ${user.full_name || googleUser.name} មកកាន់ CambodiaJobs!`
-          : `Welcome, ${user.full_name || googleUser.name}!`
-      )
-      handleSuccessfulAuth(user)
-    } catch (err: any) {
-      toast.dismiss(loadingToastId)
-      console.error('Google Sign-Up Error:', err)
-      const errorMsg =
-        err.message === 'MISSING_CLIENT_ID'
-          ? isKhmer
-            ? 'មិនទាន់កំណត់ Google Client ID នៅក្នុងប្រព័ន្ធឡើយ។'
-            : 'Google Client ID is missing. Please check .env configuration.'
-          : isKhmer
-          ? 'ការចុះឈ្មោះតាមរយៈ Google ត្រូវបានបោះបង់ ឬមានបញ្ហាផ្ទៀងផ្ទាត់។'
-          : err.message || 'Google sign-up was cancelled or encountered an issue.'
-      setError(errorMsg)
-      toast.error(isKhmer ? 'Google Sign-Up បរាជ័យ' : 'Google Sign-Up Failed', errorMsg)
-    } finally {
-      setIsGoogleLoading(false)
-    }
+    // Directly redirect to backend Google OAuth callback flow with selected role
+    redirectToGoogleOAuth(role)
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="w-full max-w-4xl bg-white rounded-3xl border border-gray-200 shadow-xl shadow-slate-900/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
-        {/* Left Column: Visual Showcase (Royal Blue Gradient) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
-          {/* Ambient Glows */}
-          <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Top Brand Block */}
-          <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-blue-100">
-              <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-              <span>{isKhmer ? 'ចូលរួមជាមួយសហគមន៍ការងារ' : 'Join CambodiaJobs Today'}</span>
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                {isKhmer ? 'ចាប់ផ្តើមដំណើរការងារថ្មី' : 'Start Your Journey'}
-              </h1>
-              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-normal">
-                {isKhmer
-                  ? 'បង្កើតគណនីតែមួយ ដើម្បីស្វែងរកការងារដែលស័ក្តិសម ឬជ្រើសរើសបុគ្គលិកឆ្នើមសម្រាប់អាជីវកម្មរបស់អ្នក។'
-                  : 'A single account to explore verified career opportunities or discover top talent across Cambodia.'}
-              </p>
-            </div>
-
-            {/* Benefits List */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'ប្រព័ន្ធមានសុវត្ថិភាព និងការអនុម័តច្បាស់លាស់' : 'Safe & Admin-Approved Platform'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'មានតែក្រុមហ៊ុនដែលបានផ្ទៀងផ្ទាត់ប៉ុណ្ណោះដែលអាចផ្សាយការងារ' : 'Strict verification prevents duplicate & fake posts'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <Briefcase className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'ប្រវត្តិរូបសង្ខេបស្ដង់ដារ (Modern CV)' : 'Smart Portfolio & Resumes'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'ភ្ជាប់ជំនាញ ការសិក្សា និងបទពិសោធន៍' : 'Showcase your skills & experience effectively'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'ទិន្នន័យជាក់ស្ដែង និងលឿនរហ័ស' : 'Real-Time Recruitment'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'ទទួលដំណឹងភ្លាមៗនៅពេលមានការឆ្លើយតប' : 'Instant status updates on applications'}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/5 p-6 sm:p-10 space-y-4 transition-all">
+        {/* Header */}
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mb-2.5 shadow-2xs mx-auto">
+            <UserPlus className="w-6 h-6" />
           </div>
-
-          {/* Bottom Card */}
-          <div className="relative z-10 mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-blue-100">
-            <span className="font-medium">{isKhmer ? 'ឥតគិតថ្លៃ ១០០% សម្រាប់បេក្ខជន' : '100% Free for Candidates'}</span>
-            <span className="font-mono text-[11px] text-blue-300">CambodiaJobs Platform</span>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {t('auth.registerTitle')}
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5 max-w-sm mx-auto">
+            {isKhmer
+              ? 'ជ្រើសរើសប្រភេទគណនីរបស់អ្នក ហើយបំពេញព័ត៌មានខាងក្រោម'
+              : 'Select your account role and fill in your credentials to get started'}
+          </p>
         </div>
-
-        {/* Right Column: Modern Registration Form */}
-        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center bg-white">
-          <div className="max-w-md w-full mx-auto space-y-4">
-            {/* Header */}
-            <div>
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mb-2.5 shadow-2xs">
-                <UserPlus className="w-5 h-5" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {t('auth.registerTitle')}
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {isKhmer
-                  ? 'ជ្រើសរើសប្រភេទគណនីរបស់អ្នក ហើយបំពេញព័ត៌មានខាងក្រោម'
-                  : 'Select your account role and fill in your credentials to get started'}
-              </p>
-            </div>
 
             {/* Error Message */}
             {error && (
@@ -278,90 +164,38 @@ export const RegisterPage: React.FC = () => {
               </div>
             )}
 
-            {/* Interactive Role Switcher Tabs (Small, Clear & Beautiful) */}
+            {/* Interactive Role Switcher Tabs (Small, Clean & Modern) */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-800">
+              <label className="block text-xs font-semibold text-slate-700">
                 {isKhmer ? 'ប្រភេទគណនីរបស់អ្នក៖' : t('auth.accountType', 'Account Type:')}
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 grid grid-cols-2 gap-1.5">
                 {/* Option 1: Job Seeker */}
                 <button
                   type="button"
                   onClick={() => setRole('job_seeker')}
-                  className={`p-3 sm:p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer relative border flex flex-col justify-between ${
+                  className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all duration-150 cursor-pointer ${
                     role === 'job_seeker'
-                      ? 'border-2 border-blue-500 bg-blue-50/20 ring-4 ring-blue-500/10 shadow-xs'
-                      : 'border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 shadow-2xs'
+                      ? 'bg-white text-blue-600 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div
-                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        role === 'job_seeker'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-500'
-                      }`}
-                    >
-                      <User className="w-4 h-4" />
-                    </div>
-                    {role === 'job_seeker' && (
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs animate-in zoom-in-75 duration-150">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className={`text-xs sm:text-sm font-bold leading-tight ${
-                      role === 'job_seeker' ? 'text-slate-900' : 'text-slate-800'
-                    }`}>
-                      {isKhmer ? 'បេក្ខជនស្វែងរកការងារ' : t('auth.roleJobSeeker', 'Job Seeker')}
-                    </h4>
-                    <p className={`text-[10px] sm:text-[11px] leading-normal mt-0.5 ${
-                      role === 'job_seeker' ? 'text-blue-700/80 font-medium' : 'text-slate-500'
-                    }`}>
-                      {isKhmer ? 'ស្វែងរកការងារ & ដាក់ពាក្យ' : t('auth.seekerDesc', 'Find jobs & apply')}
-                    </p>
-                  </div>
+                  <User className={`w-4 h-4 ${role === 'job_seeker' ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span>{isKhmer ? 'បេក្ខជនស្វែងរកការងារ' : 'Job Seeker'}</span>
                 </button>
 
                 {/* Option 2: Employer */}
                 <button
                   type="button"
                   onClick={() => setRole('employer')}
-                  className={`p-3 sm:p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer relative border flex flex-col justify-between ${
+                  className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all duration-150 cursor-pointer ${
                     role === 'employer'
-                      ? 'border-2 border-blue-500 bg-blue-50/20 ring-4 ring-blue-500/10 shadow-xs'
-                      : 'border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60 shadow-2xs'
+                      ? 'bg-white text-blue-600 shadow-xs border border-slate-200/90'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2.5">
-                    <div
-                      className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center transition-all duration-200 ${
-                        role === 'employer'
-                          ? 'bg-blue-600 text-white rounded-full shadow-xs'
-                          : 'bg-slate-100 text-slate-500 rounded-xl'
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4" />
-                    </div>
-                    {role === 'employer' && (
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs animate-in zoom-in-75 duration-150">
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className={`text-xs sm:text-sm font-bold leading-tight ${
-                      role === 'employer' ? 'text-slate-900' : 'text-slate-800'
-                    }`}>
-                      {isKhmer ? 'និយោជក / ក្រុមហ៊ុន' : t('auth.roleEmployer', 'Employer / Company')}
-                    </h4>
-                    <p className={`text-[10px] sm:text-[11px] leading-normal mt-0.5 ${
-                      role === 'employer' ? 'text-blue-700/80 font-medium' : 'text-slate-500'
-                    }`}>
-                      {isKhmer ? 'ផ្សាយការងារ & រើសបុគ្គលិក' : t('auth.employerDesc', 'Post jobs & hire talent')}
-                    </p>
-                  </div>
+                  <Building2 className={`w-4 h-4 ${role === 'employer' ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span>{isKhmer ? 'និយោជក / ក្រុមហ៊ុន' : 'Employer / HR'}</span>
                 </button>
               </div>
             </div>
@@ -618,8 +452,6 @@ export const RegisterPage: React.FC = () => {
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-          </div>
-        </div>
       </div>
     </div>
   )

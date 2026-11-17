@@ -11,6 +11,8 @@ from apps.notifications.email_service import (
     send_application_received_email,
     send_application_rejected_email,
     send_job_offer_email,
+    send_new_application_to_employer_email,
+    send_candidate_shortlisted_email,
     attach_calendar_urls,
 )
 
@@ -110,6 +112,35 @@ class JobApplyView(APIView):
                 )
             except Exception as email_err:
                 print(f"[Application Submit] Failed to send email confirmation: {email_err}")
+
+        # Send email alert to company recruiters
+        try:
+            company = fetch_one("SELECT name FROM companies WHERE id = %s", [job["company_id"]])
+            company_name = company["name"] if company else "Employer"
+            recruiter_rows = fetch_all(
+                """
+                SELECT u.email, u.full_name 
+                FROM employer_members em
+                INNER JOIN users u ON u.id = em.user_id
+                WHERE em.company_id = %s
+                """,
+                [job["company_id"]],
+            )
+            for rec in recruiter_rows:
+                if rec.get("email"):
+                    send_new_application_to_employer_email(
+                        recruiter_email=rec["email"],
+                        recruiter_name=rec["full_name"] or "Hiring Team",
+                        candidate_name=request.user.full_name or "Candidate",
+                        candidate_email=request.user.email or "N/A",
+                        candidate_phone=getattr(request.user, "phone_number", None) or "N/A",
+                        job_title=job["title"],
+                        company_name=company_name,
+                        job_id=pk,
+                        application_id=app_id,
+                    )
+        except Exception as rec_err:
+            print(f"[Application Submit] Failed to alert recruiters by email: {rec_err}")
 
         return Response(
             {
@@ -366,7 +397,17 @@ class EmployerApplicationStatusUpdateView(APIView):
 
         # Trigger automated email notifications based on status
         if app.get("seeker_email"):
-            if new_status == "rejected":
+            if new_status == "shortlisted":
+                try:
+                    send_candidate_shortlisted_email(
+                        candidate_email=app["seeker_email"],
+                        candidate_name=app.get("seeker_name") or "Candidate",
+                        job_title=app["job_title"],
+                        company_name=app.get("company_name") or "Employer",
+                    )
+                except Exception as email_err:
+                    print(f"[Status Update] Failed to dispatch shortlist email: {email_err}")
+            elif new_status == "rejected":
                 try:
                     send_application_rejected_email(
                         candidate_email=app["seeker_email"],

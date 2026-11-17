@@ -6,21 +6,26 @@ from rest_framework.permissions import AllowAny
 from django.conf import settings
 
 from common.permissions import IsAuthenticatedCustom
-from .agent_service import process_ai_agent_chat, get_market_chart_data, find_matching_jobs, get_seeker_profile_data
+from .agent_service import (
+    process_ai_agent_chat,
+    get_market_chart_data,
+    find_matching_jobs,
+    get_seeker_profile_data,
+    resolve_ai_config,
+)
 
 
 class AIChatView(APIView):
-    """
-    General AI Platform Agent conversational endpoint powered by Google Gemini.
-    Accepts natural language queries from seekers, employers, and visitors.
-    Matches live jobs, generates salary charts, and responds via Gemini API.
-    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
         message = request.data.get("message", "").strip()
         history = request.data.get("history", [])
         api_key = request.data.get("api_key")
+        provider = request.data.get("provider")
+        model = request.data.get("model")
+        base_url = request.data.get("base_url")
 
         if not message:
             return Response(
@@ -37,6 +42,9 @@ class AIChatView(APIView):
             user_id=user_id,
             history=history,
             api_key=api_key,
+            provider=provider,
+            model=model,
+            base_url=base_url,
         )
 
         return Response({
@@ -47,22 +55,21 @@ class AIChatView(APIView):
 
 class AIStatusView(APIView):
     """
-    Check AI Agent status and whether Google Gemini is configured.
+    Check Universal AI Gateway status and active provider (Gemini, ChatGPT, DeepSeek, etc.).
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        has_key = bool(
-            getattr(settings, "GEMINI_API_KEY", "").strip()
-            or os.getenv("GEMINI_API_KEY", "").strip()
-        )
+        cfg = resolve_ai_config()
         return Response({
             "success": True,
             "data": {
-                "gemini_configured": has_key,
-                "provider": "google_gemini" if has_key else "built_in_ai",
-                "default_model": "gemini-2.0-flash / gemini-1.5-flash",
-                "platform": "CambodiaJobs AI Platform Agent",
+                "ai_configured": cfg["is_active"],
+                "gemini_configured": cfg["is_active"],
+                "provider": cfg["provider"],
+                "model": cfg["model"] or "built_in_ai",
+                "supported_providers": ["gemini", "openai", "deepseek", "custom"],
+                "platform": "CambodiaJobs Universal AI Platform Agent",
             }
         })
 

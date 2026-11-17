@@ -15,6 +15,10 @@ from common.authentication import (
     get_user_by_id,
 )
 from common.validators import slugify_string
+from apps.notifications.email_service import (
+    send_welcome_email,
+    send_login_notification_email,
+)
 
 
 def register_user(validated_data: dict) -> dict:
@@ -80,6 +84,13 @@ def register_user(validated_data: dict) -> dict:
     refresh_token = generate_refresh_token(user_id)
 
     user_obj = get_user_by_id(user_id)
+
+    # Dispatch welcome email notification asynchronously/safely
+    try:
+        send_welcome_email(user_email=email, user_name=full_name, role=role_name)
+    except Exception as em_err:
+        print(f"[Register] Welcome email notification skipped: {em_err}")
+
     return {
         "user": user_obj.to_dict(),
         "access": access_token,
@@ -123,6 +134,12 @@ def authenticate_user(validated_data: dict) -> dict:
     refresh_token = generate_refresh_token(user_id)
 
     primary_role = "admin" if user_id == 1 or "admin" in roles else (roles[0] if roles else "job_seeker")
+
+    # Dispatch login notification email
+    try:
+        send_login_notification_email(user_email=email, user_name=row["full_name"] or "User")
+    except Exception as em_err:
+        print(f"[Login] Login notification email skipped: {em_err}")
 
     return {
         "user": {
@@ -206,6 +223,11 @@ def oauth_login_or_register(provider: str, email: str, full_name: str, avatar_ur
         roles = [r.strip() for r in (row["role_names"] or "").split(",") if r.strip()]
         if not roles:
             roles = ["job_seeker"]
+        # Dispatch sign-in notification email for returning OAuth user
+        try:
+            send_login_notification_email(user_email=email, user_name=row["full_name"] or "User")
+        except Exception as em_err:
+            print(f"[OAuth Login] Login notification email skipped: {em_err}")
     else:
         target_role = role if role in ["job_seeker", "employer"] else "job_seeker"
         role_row = fetch_one("SELECT id FROM roles WHERE name = %s", [target_role])
@@ -238,6 +260,12 @@ def oauth_login_or_register(provider: str, email: str, full_name: str, avatar_ur
                     [company_id, user_id]
                 )
         roles = [target_role]
+
+        # Dispatch welcome email notification for new OAuth user
+        try:
+            send_welcome_email(user_email=email, user_name=full_name, role=target_role)
+        except Exception as em_err:
+            print(f"[OAuth Register] Welcome email notification skipped: {em_err}")
 
     access_token = generate_access_token(user_id, email, roles)
     refresh_token = generate_refresh_token(user_id)

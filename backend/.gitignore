@@ -47,3 +47,4 @@ logs/
 # Testing
 .coverage
 htmlcov/
+

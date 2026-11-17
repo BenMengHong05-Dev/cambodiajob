@@ -1,10 +1,16 @@
 import json
 import datetime
+import os
+import re
+import time
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny
 
 from common.permissions import IsAdmin
 from common.database import fetch_one, fetch_all, fetch_scalar, execute_sql, execute_insert
@@ -26,6 +32,7 @@ class AdminDashboardView(APIView):
             "published_jobs": fetch_scalar("SELECT COUNT(*) FROM jobs WHERE status = 'published' AND moderation_status = 'approved'") or 0,
             "pending_moderation_jobs": fetch_scalar("SELECT COUNT(*) FROM jobs WHERE moderation_status = 'pending'") or 0,
             "total_applications": fetch_scalar("SELECT COUNT(*) FROM applications") or 0,
+            "total_categories": fetch_scalar("SELECT COUNT(*) FROM job_categories") or 0,
         }
 
         recent_applications = fetch_all(
@@ -683,4 +690,169 @@ class AdminAuditLogsView(APIView):
         """
         logs = fetch_all(sql)
         return Response({"success": True, "data": logs})
+
+
+def get_site_settings_dict() -> dict:
+    """Fetch site settings row, or fallback defaults if table row is absent."""
+    settings_row = fetch_one("SELECT * FROM site_settings WHERE id = 1")
+    if not settings_row:
+        return {
+            "id": 1,
+            "site_name": "CambodiaJobs",
+            "site_name_km": "ការងារកម្ពុជា",
+            "site_title": "Cambodia's Leading Job & Recruitment Platform",
+            "site_title_km": "វេទិកាការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា",
+            "site_subtitle": "Find your dream career or hire top talent across Cambodia",
+            "site_subtitle_km": "ស្វែងរកការងារក្នុងក្តីស្រមៃ ឬជ្រើសរើសបុគ្គលិកឆ្នើមទូទាំងប្រទេសកម្ពុជា",
+            "site_description": "CambodiaJobs is the premier job search and talent acquisition platform in Cambodia. Connecting verified employers with skilled professionals across Phnom Penh and all 25 provinces.",
+            "site_description_km": "CambodiaJobs គឺជាវេទិកាស្វែងរកការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា ដែលតភ្ជាប់និយោជកដែលមានការផ្ទៀងផ្ទាត់ជាមួយអ្នកជំនាញឆ្នើមនៅរាជធានីភ្នំពេញ និងគ្រប់ខេត្តក្រុង។",
+            "logo_url": None,
+            "favicon_url": None,
+            "hero_title": "Discover Verified Career Opportunities in Cambodia",
+            "hero_title_km": "ស្វែងរកឱកាសការងារដែលបានផ្ទៀងផ្ទាត់នៅកម្ពុជា",
+            "hero_subtitle": "Connecting talented professionals with top verified companies across Phnom Penh and all 25 provinces. Real salary data and direct hiring.",
+            "hero_subtitle_km": "តភ្ជាប់បេក្ខជនឆ្នើមជាមួយក្រុមហ៊ុនដែលបានផ្ទៀងផ្ទាត់នៅរាជធានីភ្នំពេញ និងគ្រប់ខេត្តក្រុង។ ទិន្នន័យប្រាក់ខែជាក់ស្តែង និងការដាក់ពាក្យផ្ទាល់។",
+            "hero_badge_text": "🇰🇭 #1 Job Platform in Cambodia",
+            "hero_badge_text_km": "🇰🇭 វេទិកាការងារលេខ ១ នៅកម្ពុជា",
+            "contact_email": "support@cambodiajobs.kh",
+            "contact_phone": "+855 23 999 888",
+            "contact_address": "Phnom Penh, Cambodia",
+            "contact_address_km": "រាជធានីភ្នំពេញ, ប្រទេសកម្ពុជា",
+            "footer_text": "Connecting ambitious professionals with reputable employers across Cambodia since 2026.",
+            "footer_text_km": "តភ្ជាប់អ្នកជំនាញដែលមានទេពកោសល្យជាមួយនិយោជកដែលគួរឱ្យទុកចិត្តទូទាំងប្រទេសកម្ពុជា។",
+            "social_facebook": "https://facebook.com",
+            "social_telegram": "https://t.me/CambodiaJobSupportBot",
+            "social_linkedin": "https://linkedin.com",
+            "social_twitter": "",
+            "announcement_enabled": False,
+            "announcement_text": "",
+            "announcement_text_km": "",
+            "announcement_url": "",
+        }
+    settings_row["announcement_enabled"] = bool(settings_row.get("announcement_enabled"))
+    return settings_row
+
+
+class PublicSiteSettingsView(APIView):
+    """Public endpoint to fetch active site settings for Navbar, Footer, SEO, and Home page."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        data = get_site_settings_dict()
+        return Response({"success": True, "data": data})
+
+
+class AdminSiteSettingsView(APIView):
+    """Admin endpoint to retrieve and update website branding, hero content, and metadata."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        data = get_site_settings_dict()
+        return Response({"success": True, "data": data})
+
+    def put(self, request):
+        return self.patch(request)
+
+    def patch(self, request):
+        allowed_keys = [
+            "site_name", "site_name_km", "site_title", "site_title_km",
+            "site_subtitle", "site_subtitle_km", "site_description", "site_description_km",
+            "logo_url", "favicon_url", "hero_title", "hero_title_km",
+            "hero_subtitle", "hero_subtitle_km", "hero_badge_text", "hero_badge_text_km",
+            "contact_email", "contact_phone", "contact_address", "contact_address_km",
+            "footer_text", "footer_text_km", "social_facebook", "social_telegram",
+            "social_linkedin", "social_twitter", "announcement_enabled",
+            "announcement_text", "announcement_text_km", "announcement_url",
+        ]
+
+        # Make sure row 1 exists
+        existing = fetch_one("SELECT id FROM site_settings WHERE id = 1")
+        if not existing:
+            execute_sql("INSERT INTO site_settings (id) VALUES (1)")
+
+        fields = []
+        params = []
+        updated_keys = []
+
+        for key in allowed_keys:
+            if key in request.data:
+                val = request.data[key]
+                if key == "announcement_enabled":
+                    val = 1 if val else 0
+                fields.append(f"`{key}` = %s")
+                params.append(val)
+                updated_keys.append(key)
+
+        if fields:
+            sql = f"UPDATE site_settings SET {', '.join(fields)} WHERE id = 1"
+            execute_sql(sql, params)
+
+            # Record in audit log
+            execute_insert(
+                "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, 'update_site_settings', 'settings', 1, %s)",
+                [request.user.id, json.dumps({"updated_keys": updated_keys})],
+            )
+
+        updated_data = get_site_settings_dict()
+        return Response({
+            "success": True,
+            "data": updated_data,
+            "message": "Website settings updated successfully."
+        })
+
+
+class AdminSiteSettingsUploadLogoView(APIView):
+    """Admin endpoint to upload website logo or favicon."""
+    permission_classes = [IsAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        uploaded_file = (
+            request.FILES.get("file")
+            or request.FILES.get("image")
+            or request.FILES.get("logo")
+            or request.FILES.get("favicon")
+        )
+        if not uploaded_file:
+            raise ValidationError({"file": "No image file provided."})
+
+        allowed_exts = [".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif", ".ico"]
+        file_ext = os.path.splitext(uploaded_file.name)[1].lower()
+        if file_ext not in allowed_exts:
+            raise ValidationError({"file": f"Unsupported format. Allowed formats: {', '.join(allowed_exts)}"})
+
+        if uploaded_file.size > 5 * 1024 * 1024:
+            raise ValidationError({"file": "File size must not exceed 5MB."})
+
+        upload_dir = settings.MEDIA_ROOT / "site"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        upload_type = request.data.get("type", "logo")
+        prefix = "favicon" if upload_type == "favicon" else "logo"
+        clean_name = re.sub(r"[^a-zA-Z0-9_\.-]", "_", uploaded_file.name)
+        saved_filename = f"{prefix}_{int(time.time())}_{clean_name}"
+        file_dest = upload_dir / saved_filename
+
+        with open(file_dest, "wb+") as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        file_url = f"/media/site/{saved_filename}"
+
+        # Update database directly
+        target_column = "favicon_url" if upload_type == "favicon" else "logo_url"
+        execute_sql(f"UPDATE site_settings SET `{target_column}` = %s WHERE id = 1", [file_url])
+
+        execute_insert(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, 'upload_site_logo', 'settings', 1, %s)",
+            [request.user.id, json.dumps({"file_url": file_url, "type": upload_type})],
+        )
+
+        return Response({
+            "success": True,
+            "url": file_url,
+            "filename": saved_filename,
+            "message": f"Website {upload_type} uploaded and updated successfully."
+        })
+
 

@@ -4,6 +4,7 @@ import { useToast } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
 import { exportCompaniesToExcel } from '../../utils/excelExport'
 import { TablePagination } from '../../components/common/TablePagination'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Building,
   Check,
@@ -317,7 +318,7 @@ export const AdminCompaniesPage: React.FC = () => {
                         <div className="flex items-center space-x-2.5">
                           <div className="w-8 h-8 rounded-xl bg-slate-100 border border-gray-200 flex items-center justify-center font-semibold text-slate-700 text-xs shrink-0 shadow-2xs overflow-hidden">
                             {c.logo_url ? (
-                              <img src={c.logo_url} alt={c.name} className="w-full h-full object-cover" />
+                              <img src={getAssetUrl(c.logo_url)} alt={c.name} className="w-full h-full object-cover" />
                             ) : (
                               c.name?.charAt(0) || 'C'
                             )}
@@ -481,7 +482,7 @@ export const AdminCompaniesPage: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-800 font-bold text-base shrink-0 shadow-2xs overflow-hidden">
                   {viewingCompany.logo_url ? (
-                    <img src={viewingCompany.logo_url} alt={viewingCompany.name} className="w-full h-full object-cover" />
+                    <img src={getAssetUrl(viewingCompany.logo_url)} alt={viewingCompany.name} className="w-full h-full object-cover" />
                   ) : (
                     viewingCompany.name?.charAt(0) || 'C'
                   )}

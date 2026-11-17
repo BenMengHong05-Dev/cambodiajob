@@ -4,34 +4,46 @@ import { AIChatResponse, ApiResponse, AIMatchedJob } from '../types'
 export const aiService = {
   /**
    * Send a query to the AI Agent to find jobs, ask questions, or request charts.
-   * Supports Google Gemini API key if provided.
+   * Supports Google Gemini, OpenAI / ChatGPT, DeepSeek, or any custom API key.
    */
   async chat(
     message: string,
     history?: { sender: string; text: string }[],
-    apiKey?: string
-  ): Promise<AIChatResponse & { provider?: string }> {
-    const res = await api.post<ApiResponse<AIChatResponse & { provider?: string }>>('/ai/chat/', {
+    apiKey?: string,
+    provider?: string,
+    model?: string,
+    baseUrl?: string
+  ): Promise<AIChatResponse & { provider?: string; model?: string }> {
+    const res = await api.post<ApiResponse<AIChatResponse & { provider?: string; model?: string }>>('/ai/chat/', {
       message,
       history: history || [],
       api_key: apiKey || undefined,
+      provider: provider || undefined,
+      model: model || undefined,
+      base_url: baseUrl || undefined,
     })
     return res.data.data
   },
 
   /**
-   * Get AI agent and Gemini configuration status.
+   * Get Universal AI gateway and provider configuration status.
    */
   async getStatus(): Promise<{
+    ai_configured?: boolean
     gemini_configured: boolean
     provider: string
-    default_model: string
+    model?: string
+    default_model?: string
+    supported_providers?: string[]
     platform: string
   }> {
     const res = await api.get<ApiResponse<{
+      ai_configured?: boolean
       gemini_configured: boolean
       provider: string
-      default_model: string
+      model?: string
+      default_model?: string
+      supported_providers?: string[]
       platform: string
     }>>('/ai/status/')
     return res.data.data

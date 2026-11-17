@@ -298,7 +298,7 @@ export const EmployerJobsPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap sm:flex-nowrap">
             <button
               type="button"
               onClick={handleExportExcel}
@@ -443,7 +443,9 @@ export const EmployerJobsPage: React.FC = () => {
               return (
                 <div
                   key={job.id}
-                  className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-blue-400 transition"
+                  className={`bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-blue-400 transition ${
+                    isOpenStatus ? 'relative z-30' : 'relative z-0'
+                  }`}
                 >
                   {/* Job Info Section */}
                   <div className="space-y-2 flex-1 min-w-0">
@@ -498,7 +500,7 @@ export const EmployerJobsPage: React.FC = () => {
                   {/* Actions Row - Easy Management & Modify Controls */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                     {/* 1. Status Dropdown Pill (No Text Truncation!) */}
-                    <div className="relative" ref={isOpenStatus ? statusDropdownRef : undefined}>
+                    <div className={`relative ${isOpenStatus ? 'z-40' : ''}`} ref={isOpenStatus ? statusDropdownRef : undefined}>
                       <button
                         type="button"
                         onClick={() => setOpenStatusDropdownId(isOpenStatus ? null : job.id)}
@@ -537,7 +539,7 @@ export const EmployerJobsPage: React.FC = () => {
                       </button>
 
                       {isOpenStatus && (
-                        <div className="absolute left-0 lg:right-0 lg:left-auto mt-1.5 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-40 animate-in fade-in zoom-in-95 duration-100">
+                        <div className="absolute left-0 lg:right-0 lg:left-auto mt-1.5 w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
                           <div className="px-2.5 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-100 mb-1">
                             {isKhmer ? 'ជ្រើសរើសស្ថានភាពការងារ' : 'Select Vacancy Status'}
                           </div>
@@ -639,7 +641,7 @@ export const EmployerJobsPage: React.FC = () => {
 
           {/* Table Pagination */}
           {filteredJobs.length > 0 && (
-            <div className="rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs bg-white">
+            <div className="rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs bg-white relative z-0">
               <TablePagination
                 currentPage={currentPage}
                 pageSize={pageSize}

@@ -353,5 +353,40 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
     CONSTRAINT `fk_audit_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `site_settings` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `site_name` VARCHAR(150) NOT NULL DEFAULT 'CambodiaJobs',
+    `site_name_km` VARCHAR(150) NOT NULL DEFAULT 'ការងារកម្ពុជា',
+    `site_title` VARCHAR(255) NOT NULL DEFAULT 'Cambodia\'s Leading Job & Recruitment Platform',
+    `site_title_km` VARCHAR(255) NOT NULL DEFAULT 'វេទិកាការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា',
+    `site_subtitle` VARCHAR(255) NOT NULL DEFAULT 'Find your dream career or hire top talent across Cambodia',
+    `site_subtitle_km` VARCHAR(255) NOT NULL DEFAULT 'ស្វែងរកការងារក្នុងក្តីស្រមៃ ឬជ្រើសរើសបុគ្គលិកឆ្នើមទូទាំងប្រទេសកម្ពុជា',
+    `site_description` TEXT NULL,
+    `site_description_km` TEXT NULL,
+    `logo_url` VARCHAR(500) NULL,
+    `favicon_url` VARCHAR(500) NULL,
+    `hero_title` VARCHAR(255) NOT NULL DEFAULT 'Discover Verified Career Opportunities in Cambodia',
+    `hero_title_km` VARCHAR(255) NOT NULL DEFAULT 'ស្វែងរកឱកាសការងារដែលបានផ្ទៀងផ្ទាត់នៅកម្ពុជា',
+    `hero_subtitle` TEXT NULL,
+    `hero_subtitle_km` TEXT NULL,
+    `hero_badge_text` VARCHAR(150) NULL DEFAULT '🇰🇭 #1 Job Platform in Cambodia',
+    `hero_badge_text_km` VARCHAR(150) NULL DEFAULT '🇰🇭 វេទិកាការងារលេខ ១ នៅកម្ពុជា',
+    `contact_email` VARCHAR(150) NOT NULL DEFAULT 'support@cambodiajobs.kh',
+    `contact_phone` VARCHAR(100) NOT NULL DEFAULT '+855 23 999 888',
+    `contact_address` VARCHAR(255) NOT NULL DEFAULT 'Phnom Penh, Cambodia',
+    `contact_address_km` VARCHAR(255) NOT NULL DEFAULT 'រាជធានីភ្នំពេញ, ប្រទេសកម្ពុជា',
+    `footer_text` TEXT NULL,
+    `footer_text_km` TEXT NULL,
+    `social_facebook` VARCHAR(255) NULL DEFAULT 'https://facebook.com',
+    `social_telegram` VARCHAR(255) NULL DEFAULT 'https://t.me/CambodiaJobSupportBot',
+    `social_linkedin` VARCHAR(255) NULL DEFAULT 'https://linkedin.com',
+    `social_twitter` VARCHAR(255) NULL,
+    `announcement_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+    `announcement_text` VARCHAR(255) NULL,
+    `announcement_text_km` VARCHAR(255) NULL,
+    `announcement_url` VARCHAR(255) NULL,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 

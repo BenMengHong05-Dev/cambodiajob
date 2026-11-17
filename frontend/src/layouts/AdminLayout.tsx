@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Outlet, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../app/providers'
+import { useAuth, useSiteSettings } from '../app/providers'
 import { LanguageDropdown } from '../components/layout/LanguageDropdown'
 import { NotificationDropdown } from '../components/layout/NotificationDropdown'
 import { AIAgentFloatingButton } from '../components/ai/AIAgentFloatingButton'
@@ -17,10 +17,14 @@ import {
   X,
   LayoutDashboard,
   Globe,
+  Layers,
+  ExternalLink,
+  Settings,
 } from 'lucide-react'
 
 export const AdminLayout: React.FC = () => {
   const { user, isLoading, logout } = useAuth()
+  const { siteName, logoUrl } = useSiteSettings()
   const { i18n } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -69,10 +73,12 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { name: 'Platform Dashboard', nameKm: 'ផ្ទាំងទូទៅ', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Job Categories', nameKm: 'ផ្នែកការងារ & បង្កើត', path: '/admin/categories', icon: Layers },
     { name: 'Company Verifications', nameKm: 'ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន', path: '/admin/companies', icon: Building },
     { name: 'Job Moderation', nameKm: 'ត្រួតពិនិត្យការងារ', path: '/admin/jobs', icon: Briefcase },
     { name: 'User Management', nameKm: 'គ្រប់គ្រងអ្នកប្រើប្រាស់', path: '/admin/users', icon: Users },
     { name: 'System Audit Logs', nameKm: 'កំណត់ត្រាប្រព័ន្ធ', path: '/admin/audit', icon: FileSearch },
+    { name: 'Settings', nameKm: 'ការកំណត់', path: '/admin/settings', icon: Settings },
   ]
 
   const isItemActive = (path: string) => {
@@ -96,72 +102,79 @@ export const AdminLayout: React.FC = () => {
         <div className="absolute -bottom-24 right-10 w-[550px] h-[550px] bg-gradient-to-tl from-indigo-100/30 via-purple-100/20 to-transparent rounded-full blur-3xl" />
       </div>
 
-      {/* Mobile Top Bar (Glassmorphic) */}
-      <div className="md:hidden h-16 flex items-center justify-between px-4 glass-topbar bg-white/80 backdrop-blur-xl border-b border-white/80 shadow-xs shrink-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
-            <Briefcase className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="font-bold text-sm text-slate-900 block leading-tight">
-              Cambodia<span className="text-blue-600">Jobs</span>
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* Mobile Website Button */}
-          <Link
-            to="/"
-            className="p-1.5 text-slate-600 hover:text-blue-600 rounded-xl bg-white/80 border border-white/80 hover:bg-white transition shadow-2xs"
-            title={isKhmer ? 'គេហទំព័រ' : 'Website'}
-          >
-            <Globe className="w-4 h-4 text-blue-600" />
-          </Link>
-          <LanguageDropdown />
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-slate-600 hover:text-slate-900 rounded-xl bg-white/80 border border-white/80 hover:bg-white transition shadow-2xs"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
+      {/* Mobile Drawer Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
-      {/* Admin Desktop Sidebar (Clear Glass Design) */}
+      {/* Admin Desktop & Mobile Sidebar (Clear Glass Design) */}
       <aside
-        className={`${
-          mobileMenuOpen ? 'block' : 'hidden'
-        } md:block fixed md:sticky top-0 z-40 inset-y-0 left-0 ${
+        className={`fixed md:sticky top-0 z-50 md:z-40 inset-y-0 left-0 ${
           isCollapsed ? 'md:w-[56px]' : 'md:w-64'
-        } glass-sidebar bg-white/75 backdrop-blur-2xl border-r border-white/80 flex flex-col justify-between shrink-0 shadow-[4px_0_30px_rgba(15,23,42,0.03)] transition-all duration-300 h-screen overflow-x-hidden`}
+        } w-72 glass-sidebar bg-white/95 md:bg-white/75 backdrop-blur-2xl border-r border-slate-200/80 flex flex-col justify-between shrink-0 shadow-2xl md:shadow-[4px_0_30px_rgba(15,23,42,0.03)] transition-transform md:transition-all duration-300 h-screen overflow-x-hidden ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
       >
         {/* Admin Brand Header */}
         <div
-          className={`h-16 flex items-center border-b border-white/80 bg-white/40 backdrop-blur-md shrink-0 transition-all ${
+          className={`h-16 flex items-center justify-between border-b border-slate-200/80 bg-white/40 backdrop-blur-md shrink-0 transition-all ${
             isCollapsed ? 'justify-center px-1' : 'px-5'
           }`}
         >
           {!isCollapsed ? (
-            <Link to="/" className="flex items-center space-x-3 text-left w-full group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0 group-hover:scale-105 transition-transform">
-                <Briefcase className="w-4 h-4" />
-              </div>
+            <Link to="/" className="flex items-center space-x-3 text-left flex-1 min-w-0 group">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={siteName}
+                  className="w-9 h-9 rounded-xl object-contain shadow-xs shrink-0 bg-white border border-slate-200/80 group-hover:scale-105 transition-transform"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+              )}
               <div className="text-left flex-1 min-w-0">
-                <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight">
-                  Cambodia<span className="text-blue-600">Jobs</span>
+                <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight truncate">
+                  {siteName}
                 </span>
               </div>
             </Link>
           ) : (
             <Link
               to="/"
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 group hover:scale-105 transition-transform"
-              title="CambodiaJobs"
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold group hover:scale-105 transition-transform"
+              title={siteName}
             >
-              <Briefcase className="w-4 h-4" />
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={siteName}
+                  className="w-9 h-9 rounded-xl object-contain shadow-xs bg-white border border-slate-200/80"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+              )}
             </Link>
           )}
+
+          {/* Mobile Close Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-xl transition cursor-pointer"
+            title={isKhmer ? 'បិទ' : 'Close'}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
+
+
 
         {/* Navigation (Scrollable with Frosted Glass Hover) */}
         <div className={`flex flex-col flex-1 overflow-y-auto ${isCollapsed ? 'p-1.5' : 'p-3.5'}`}>
@@ -201,18 +214,32 @@ export const AdminLayout: React.FC = () => {
           </nav>
         </div>
 
-        {/* Footer Admin actions */}
+        {/* Footer Admin actions (System Style) */}
         <div
-          className={`border-t border-white/80 bg-white/30 backdrop-blur-md space-y-1.5 text-left shrink-0 ${
-            isCollapsed ? 'p-1.5' : 'p-3.5'
+          className={`border-t border-slate-200/80 bg-white/40 backdrop-blur-md space-y-1 text-left shrink-0 ${
+            isCollapsed ? 'p-1.5' : 'p-3'
           }`}
         >
+          {/* Public Website Link */}
+          <Link
+            to="/"
+            onClick={() => setMobileMenuOpen(false)}
+            title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
+            className={`w-full flex items-center rounded-xl text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-white/80 border border-transparent hover:border-slate-200 transition-all ${
+              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
+            }`}
+          >
+            <ExternalLink className="w-4 h-4 shrink-0 text-slate-400" />
+            {!isCollapsed && <span className="flex-1 text-left">{isKhmer ? 'មើលគេហទំព័រការងារ' : 'Public Website'}</span>}
+          </Link>
+
+          {/* Sign Out */}
           <button
             type="button"
             onClick={handleLogout}
             title={isKhmer ? 'ចាកចេញ' : 'Sign Out'}
             className={`w-full flex items-center rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-200/50 transition-all cursor-pointer ${
-              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-3 px-3.5 py-2.5 text-left'
+              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
             }`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
@@ -223,27 +250,48 @@ export const AdminLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar Header (Clear Glass Design) */}
-        <header className="sticky top-0 z-30 h-16 glass-topbar bg-white/75 backdrop-blur-2xl border-b border-white/80 px-4 sm:px-6 flex items-center justify-between shadow-xs shrink-0">
-          <div className="flex items-center space-x-2 text-xs font-medium text-slate-500">
+        {/* Top Navbar Header (Unified Mobile & Desktop) */}
+        <header className="sticky top-0 z-30 h-16 glass-topbar bg-white/80 backdrop-blur-2xl border-b border-slate-200/80 px-3.5 sm:px-6 flex items-center justify-between shadow-xs shrink-0">
+          <div className="flex items-center space-x-2.5 text-xs font-medium text-slate-500 min-w-0">
+            {/* Mobile Hamburger Menu Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-slate-700 hover:text-blue-600 transition shadow-2xs cursor-pointer items-center justify-center shrink-0 active:scale-95"
+              title={isKhmer ? 'បើកមឺនុយ' : 'Open Menu'}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Mobile View Title & Portal Badge (System Style) */}
+            <div className="flex items-center space-x-1.5 md:hidden min-w-0">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/70 shrink-0">
+                {isKhmer ? 'អភិបាល' : 'Admin'}
+              </span>
+              <span className="font-bold text-slate-800 text-sm truncate">
+                {isKhmer ? (currentNav?.nameKm || 'ផ្ទាំងគ្រប់គ្រង') : (currentNav?.name || 'Dashboard')}
+              </span>
+            </div>
+
+            {/* Desktop Sidebar Collapse Toggle */}
             <button
               type="button"
               onClick={toggleSidebar}
-              className="hidden md:flex p-2 rounded-xl border border-white/80 bg-white/70 hover:bg-white text-slate-600 hover:text-blue-600 transition shadow-2xs cursor-pointer items-center justify-center mr-1"
+              className="hidden md:flex p-2 rounded-xl border border-slate-200/80 bg-white/70 hover:bg-white text-slate-600 hover:text-blue-600 transition shadow-2xs cursor-pointer items-center justify-center ml-1"
               title={isCollapsed ? (isKhmer ? 'ពង្រីកមឺនុយ' : 'Expand Sidebar') : (isKhmer ? 'បង្រួមមឺនុយ' : 'Collapse Sidebar')}
             >
               <Menu className="w-4.5 h-4.5" />
             </button>
-            <span className="font-bold text-slate-800 text-sm">
+            <span className="hidden md:inline font-bold text-slate-800 text-sm">
               {isKhmer ? (currentNav?.nameKm || 'ផ្ទាំងគ្រប់គ្រង') : (currentNav?.name || 'Dashboard')}
             </span>
           </div>
 
-          <div className="flex items-center space-x-2.5 sm:space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
             {/* Button Go Back to Website */}
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/80 bg-white/80 hover:bg-white text-xs font-semibold text-slate-700 hover:text-blue-600 transition shadow-2xs backdrop-blur-md"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-xs font-semibold text-slate-700 hover:text-blue-600 transition shadow-2xs backdrop-blur-md"
               title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
             >
               <Globe className="w-3.5 h-3.5 text-blue-600" />
@@ -258,7 +306,7 @@ export const AdminLayout: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-700 font-bold border border-blue-400/30 backdrop-blur-md flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition shadow-2xs cursor-pointer"
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-700 font-bold border border-blue-400/30 backdrop-blur-md flex items-center justify-center transition shadow-2xs cursor-pointer active:scale-95"
                 title={user.full_name}
               >
                 {user.full_name?.charAt(0) || 'A'}

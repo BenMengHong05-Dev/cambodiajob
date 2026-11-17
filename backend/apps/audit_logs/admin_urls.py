@@ -10,10 +10,17 @@ from .views import (
     AdminCompanyVerificationView,
     AdminJobsModerationView,
     AdminAuditLogsView,
+    AdminSiteSettingsView,
+    AdminSiteSettingsUploadLogoView,
 )
+from apps.job_categories.views import CategoryListView, CategoryDetailView
 
 urlpatterns = [
     path("dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
+    path("settings/", AdminSiteSettingsView.as_view(), name="admin-settings"),
+    path("settings/upload-logo/", AdminSiteSettingsUploadLogoView.as_view(), name="admin-settings-upload-logo"),
+    path("categories/", CategoryListView.as_view(), name="admin-categories"),
+    path("categories/<int:pk>/", CategoryDetailView.as_view(), name="admin-category-detail"),
     path("users/", AdminUsersView.as_view(), name="admin-users"),
     path("users/<int:pk>/", AdminUserDetailView.as_view(), name="admin-user-detail"),
     path("users/bulk-delete/", AdminUserBulkDeleteView.as_view(), name="admin-user-bulk-delete"),

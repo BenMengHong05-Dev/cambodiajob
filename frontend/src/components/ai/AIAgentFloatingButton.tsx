@@ -16,23 +16,20 @@ export const AIAgentFloatingButton: React.FC = () => {
 
   return (
     <>
-      {/* Floating Action Button (AI Assistant) */}
+      {/* Floating Action Button (Career Assistant) */}
       {!isOpen && (
         <div className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-40 flex flex-col items-center gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          {/* AI Assistant Floating Action Button */}
+          {/* Floating Action Button */}
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group relative w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-600/30 hover:shadow-xl hover:shadow-indigo-600/40 hover:scale-110 active:scale-95 transition-all duration-200 flex items-center justify-center border border-white/20 cursor-pointer"
-            aria-label="Open AI Assistant"
-            title={isKhmer ? 'ជំនួយការ AI' : 'AI Assistant'}
+            className="group relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white text-blue-600 shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border border-slate-200/90 hover:border-blue-300 cursor-pointer"
+            aria-label="Open Career Assistant"
+            title={isKhmer ? 'ជំនួយការការងារ' : 'Career Assistant'}
           >
-            {/* Subtle pulsing background glow */}
-            <span className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-40 blur-xs group-hover:opacity-75 transition-opacity pointer-events-none" />
-
             {/* Bot Icon */}
             <div className="relative flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white transition-transform duration-300 group-hover:rotate-12" />
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 transition-transform duration-300 group-hover:rotate-12" />
             </div>
           </button>
         </div>

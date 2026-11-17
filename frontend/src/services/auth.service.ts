@@ -43,7 +43,7 @@ export const authService = {
   },
 
   async oauthLogin(payload: {
-    provider: 'google' | 'linkedin' | 'telegram'
+    provider: 'google' | 'linkedin'
     email: string
     full_name?: string
     avatar_url?: string

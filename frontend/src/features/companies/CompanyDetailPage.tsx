@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { companiesService } from '../../services/companies.service'
 import { Company } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
+import { getAssetUrl } from '../../utils/assets'
 import { useToast } from '../../app/providers'
 import {
   Building2,
@@ -137,7 +138,7 @@ export const CompanyDetailPage: React.FC = () => {
           <div className="h-36 sm:h-48 md:h-56 bg-slate-900 relative overflow-hidden">
             {company.banner_url ? (
               <img
-                src={company.banner_url}
+                src={getAssetUrl(company.banner_url)}
                 alt={company.name}
                 className="w-full h-full object-cover"
               />
@@ -171,7 +172,7 @@ export const CompanyDetailPage: React.FC = () => {
               <div className="w-22 h-22 sm:w-26 sm:h-26 rounded-full bg-white shadow-xl overflow-hidden shrink-0 flex items-center justify-center p-0.5 border-0 ring-4 ring-white relative z-10">
                 {company.logo_url ? (
                   <img
-                    src={company.logo_url}
+                    src={getAssetUrl(company.logo_url)}
                     alt={company.name}
                     className="w-full h-full object-cover rounded-full border-0"
                   />

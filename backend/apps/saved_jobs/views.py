@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from common.permissions import IsJobSeeker
+from common.permissions import IsAuthenticatedCustom
 from common.database import fetch_one, fetch_all
 
 
 class SeekerSavedJobsView(APIView):
-    permission_classes = [IsJobSeeker]
+    permission_classes = [IsAuthenticatedCustom]
 
     def get(self, request):
         seeker = fetch_one("SELECT id FROM seeker_profiles WHERE user_id = %s", [request.user.id])

@@ -259,14 +259,19 @@ class JobDetailView(APIView):
 
 class JobSaveToggleView(APIView):
     """
-    Save or unsave a job for an authenticated user. Only job seekers can bookmark vacancies.
+    Save or unsave a job for an authenticated user.
     """
-    permission_classes = [IsJobSeeker]
+    permission_classes = [IsAuthenticatedCustom]
 
     def post(self, request, pk):
         seeker = fetch_one("SELECT id FROM seeker_profiles WHERE user_id = %s", [request.user.id])
         if not seeker:
-            raise ValidationError("Unable to find candidate profile to save job.")
+            # Auto-create basic seeker_profile so any authenticated user (seeker, employer, or admin) can bookmark vacancies
+            seeker_id = execute_insert(
+                "INSERT INTO seeker_profiles (user_id, salary_currency, created_at, updated_at) VALUES (%s, 'USD', NOW(), NOW())",
+                [request.user.id]
+            )
+            seeker = {"id": seeker_id}
 
         job = fetch_one("SELECT id FROM jobs WHERE id = %s", [pk])
         if not job:

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { companiesService } from '../../services/companies.service'
 import { Company } from '../../types'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Search,
   Building2,
@@ -253,7 +254,7 @@ export const CompaniesPage: React.FC = () => {
                 <div>
                   <div className="relative h-28 w-full overflow-hidden bg-slate-100">
                     <img
-                      src={bannerImg}
+                      src={getAssetUrl(bannerImg)}
                       alt={`${company.name} banner`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -283,7 +284,7 @@ export const CompaniesPage: React.FC = () => {
                     <div className="w-14 h-14 rounded-full bg-white shadow-md overflow-hidden shrink-0 flex items-center justify-center p-0.5 border-0 ring-0 group-hover:scale-105 group-hover:shadow-lg transition-transform duration-300">
                       {company.logo_url ? (
                         <img
-                          src={company.logo_url}
+                          src={getAssetUrl(company.logo_url)}
                           alt={company.name}
                           className="w-full h-full object-cover rounded-full border-0"
                         />

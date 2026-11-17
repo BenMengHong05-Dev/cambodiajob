@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { jobsService } from '../../services/jobs.service'
 import { seekerService } from '../../services/seeker.service'
 import { Job, JobCategory, ProvinceItem } from '../../types'
-import { useAuth, usePreferences, useToast } from '../../app/providers'
+import { useAuth, usePreferences, useToast, useSiteSettings } from '../../app/providers'
 import { formatSalaryRange } from '../../utils/currency'
+import { getAssetUrl } from '../../utils/assets'
 import { Button, Input, Select } from '../../components/ui'
 import {
   Search,
@@ -13,23 +14,13 @@ import {
   Briefcase,
   Building2,
   TrendingUp,
-  Code2,
   Users,
   ShieldCheck,
   CheckCircle,
   ArrowRight,
   Clock,
   DollarSign,
-  Calculator,
-  Compass,
-  GraduationCap,
-  Utensils,
-  Headphones,
-  Palette,
-  HeartPulse,
-  Truck,
   ChevronRight,
-  ChevronDown,
   Bookmark,
   Eye,
 } from 'lucide-react'
@@ -52,6 +43,7 @@ export const HomePage: React.FC = () => {
   const { user } = useAuth()
   const { toast } = useToast()
   const { currency } = usePreferences()
+  const { heroTitle, heroSubtitle } = useSiteSettings()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -72,7 +64,6 @@ export const HomePage: React.FC = () => {
     provinces_with_jobs: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [showAllCategories, setShowAllCategories] = useState(false)
   const [savedJobIds, setSavedJobIds] = useState<number[]>([])
 
   const isKhmer = i18n.language === 'km'
@@ -182,37 +173,6 @@ export const HomePage: React.FC = () => {
     return level.replace('_', ' ')
   }
 
-  const getCategoryIcon = (iconName?: string | null) => {
-    switch (iconName) {
-      case 'Code2':
-        return { Icon: Code2, color: 'text-blue-600 bg-blue-50/90 border-blue-100' }
-      case 'Building2':
-        return { Icon: Building2, color: 'text-emerald-600 bg-emerald-50/90 border-emerald-100' }
-      case 'TrendingUp':
-        return { Icon: TrendingUp, color: 'text-purple-600 bg-purple-50/90 border-purple-100' }
-      case 'Calculator':
-        return { Icon: Calculator, color: 'text-amber-600 bg-amber-50/90 border-amber-100' }
-      case 'Users':
-        return { Icon: Users, color: 'text-rose-600 bg-rose-50/90 border-rose-100' }
-      case 'Compass':
-        return { Icon: Compass, color: 'text-cyan-600 bg-cyan-50/90 border-cyan-100' }
-      case 'GraduationCap':
-        return { Icon: GraduationCap, color: 'text-orange-600 bg-orange-50/90 border-orange-100' }
-      case 'Utensils':
-        return { Icon: Utensils, color: 'text-red-600 bg-red-50/90 border-red-100' }
-      case 'Headphones':
-        return { Icon: Headphones, color: 'text-indigo-600 bg-indigo-50/90 border-indigo-100' }
-      case 'Palette':
-        return { Icon: Palette, color: 'text-fuchsia-600 bg-fuchsia-50/90 border-fuchsia-100' }
-      case 'HeartPulse':
-        return { Icon: HeartPulse, color: 'text-teal-600 bg-teal-50/90 border-teal-100' }
-      case 'Truck':
-        return { Icon: Truck, color: 'text-slate-700 bg-slate-100 border-slate-200' }
-      default:
-        return { Icon: Briefcase, color: 'text-blue-600 bg-blue-50/90 border-blue-100' }
-    }
-  }
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -256,12 +216,12 @@ export const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
         </div>
         <div className="relative max-w-5xl mx-auto text-center space-y-6">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-            {t('home.heroTitle')}
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+            {heroTitle || t('home.heroTitle')}
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 leading-relaxed">
-            {t('home.heroSubtitle')}
+            {heroSubtitle || t('home.heroSubtitle')}
           </p>
 
           {/* Search Box */}
@@ -373,72 +333,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Popular Categories (Compact, Modern Micro-Cards) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              {t('home.popularCategories')}
-            </h2>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {categories.length > 8 && (
-              <button
-                type="button"
-                onClick={() => setShowAllCategories(!showAllCategories)}
-                className="text-xs font-bold text-slate-700 hover:text-blue-600 bg-slate-100/80 hover:bg-slate-200/80 px-3 py-1.5 rounded-xl transition flex items-center"
-              >
-                <span>{showAllCategories ? (isKhmer ? 'បង្រួម' : 'Show Less') : (isKhmer ? 'បង្ហាញទាំងអស់' : `Show All (${categories.length})`)}</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 ${
-                    showAllCategories ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-            )}
-            <Link
-              to="/jobs"
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center transition"
-            >
-              {t('home.viewAllJobs')}
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Compact Micro-Bento Grid: Height is small and sleek, not tall */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3">
-          {categories.slice(0, showAllCategories ? categories.length : 8).map((cat) => {
-            const { Icon, color } = getCategoryIcon(cat.icon)
-            return (
-              <Link
-                key={cat.id}
-                to={`/jobs?category=${cat.id}`}
-                className="group flex items-center justify-between p-3 bg-white hover:bg-slate-50/70 rounded-2xl border border-slate-200/90 hover:border-blue-500/80 hover:shadow-md hover:shadow-blue-500/10 transition-all duration-150 min-h-[58px]"
-              >
-                <div className="flex items-center space-x-3 min-w-0 flex-1">
-                  <div
-                    className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-2xs ${color}`}
-                  >
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-900 group-hover:text-blue-600 transition truncate leading-snug">
-                      {isKhmer ? cat.name_km : cat.name_en}
-                    </h3>
-                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium leading-none mt-0.5">
-                      {cat.jobs_count || 0} {t('jobs.vacancies')}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-              </Link>
-            )
-          })}
-        </div>
-      </section>
-
       {/* Featured Jobs */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
@@ -479,7 +373,7 @@ export const HomePage: React.FC = () => {
                     <div className="w-full h-full overflow-hidden relative">
                       <Link to={`/jobs/${job.slug}`} className="block w-full h-full">
                         <img
-                          src={thumbnail}
+                          src={getAssetUrl(thumbnail)}
                           alt={job.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
                           loading="lazy"
@@ -515,7 +409,7 @@ export const HomePage: React.FC = () => {
                       <div className="w-9 h-9 rounded-full bg-white p-0.5 shadow-md ring-2 ring-white overflow-hidden flex items-center justify-center">
                         <img
                           src={
-                            job.company_logo ||
+                            getAssetUrl(job.company_logo) ||
                             'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=80&h=80&fit=crop'
                           }
                           alt={job.company_name}

@@ -6,6 +6,7 @@ import { Application, Job } from '../../types'
 import { Select } from '../../components/ui/Select'
 import { useToast } from '../../app/providers'
 import { exportApplicantsToExcel } from '../../utils/excelExport'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Users,
   FileText,
@@ -429,7 +430,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                     <div className="w-11 h-11 rounded-full bg-blue-50 text-blue-700 border border-gray-200 font-semibold flex items-center justify-center text-sm shrink-0 shadow-2xs">
                       {app.applicant_avatar ? (
                         <img
-                          src={app.applicant_avatar}
+                          src={getAssetUrl(app.applicant_avatar)}
                           alt={app.applicant_name}
                           className="w-full h-full object-cover rounded-full"
                         />
@@ -724,7 +725,7 @@ export const EmployerApplicationsPage: React.FC = () => {
 
                   {app.resume_path ? (
                     <a
-                      href={app.resume_path}
+                      href={getAssetUrl(app.resume_path)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-gray-200 font-semibold transition shadow-2xs"

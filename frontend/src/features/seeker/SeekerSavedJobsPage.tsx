@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
 import { formatSalaryRange } from '../../utils/currency'
+import { getAssetUrl } from '../../utils/assets'
 import { Bookmark, MapPin, Trash2, ArrowRight, Search } from 'lucide-react'
 import { TablePagination } from '../../components/common/TablePagination'
 
@@ -104,7 +105,7 @@ export const SeekerSavedJobsPage: React.FC = () => {
               <div className="flex items-start space-x-3.5">
                 <img
                   src={
-                    job.company_logo ||
+                    getAssetUrl(job.company_logo) ||
                     'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=80&h=80&fit=crop'
                   }
                   alt={job.company_name}

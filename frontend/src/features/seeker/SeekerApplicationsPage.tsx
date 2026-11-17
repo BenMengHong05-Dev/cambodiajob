@@ -16,6 +16,7 @@ import {
   Video,
 } from 'lucide-react'
 import { TablePagination } from '../../components/common/TablePagination'
+import { getAssetUrl } from '../../utils/assets'
 
 export const SeekerApplicationsPage: React.FC = () => {
   const { i18n } = useTranslation()
@@ -294,7 +295,7 @@ export const SeekerApplicationsPage: React.FC = () => {
                 <div className="flex items-start space-x-3.5 flex-1 min-w-0">
                   <img
                     src={
-                      app.company_logo ||
+                      getAssetUrl(app.company_logo) ||
                       'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=80&h=80&fit=crop'
                     }
                     alt={app.company_name}

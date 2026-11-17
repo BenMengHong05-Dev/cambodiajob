@@ -5,6 +5,7 @@ import { jobsService } from '../../services/jobs.service'
 import { Company } from '../../types'
 import { Select } from '../../components/ui/Select'
 import { useToast } from '../../app/providers'
+import { getAssetUrl } from '../../utils/assets'
 import { Editor } from '@tinymce/tinymce-react'
 import {
   Building2,
@@ -304,7 +305,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <div className="relative w-14 h-14 rounded-xl bg-slate-50 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                     {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                      <img src={getAssetUrl(logoUrl)} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <Building2 className="w-6 h-6 text-slate-300" />
                     )}
@@ -376,7 +377,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
 
                 <div className="relative w-full h-20 rounded-xl bg-slate-50 border border-gray-200 overflow-hidden flex items-center justify-center shadow-2xs">
                   {bannerUrl ? (
-                    <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                    <img src={getAssetUrl(bannerUrl)} alt="Banner" className="w-full h-full object-cover" />
                   ) : (
                     <div className="flex items-center space-x-1.5 text-slate-400 text-xs">
                       <ImageIcon className="w-4 h-4 text-slate-300" />
@@ -450,7 +451,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                 {/* Banner */}
                 <div className="relative h-20 w-full overflow-hidden bg-slate-100">
                   <img
-                    src={previewBanner}
+                    src={getAssetUrl(previewBanner)}
                     alt="Preview Banner"
                     className="w-full h-full object-cover"
                   />
@@ -465,7 +466,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                 <div className="px-3 -mt-6 relative z-10 flex items-end">
                   <div className="w-12 h-12 rounded-full bg-white p-0.5 border border-gray-200 shadow-2xs overflow-hidden shrink-0">
                     {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="w-full h-full object-cover rounded-full" />
+                      <img src={getAssetUrl(logoUrl)} alt="Logo" className="w-full h-full object-cover rounded-full" />
                     ) : (
                       <div className="w-full h-full rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
                         {getInitials(name || 'Company')}

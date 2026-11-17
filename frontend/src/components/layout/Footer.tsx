@@ -1,10 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Briefcase, MapPin, Mail, Phone } from 'lucide-react'
+import { useSiteSettings } from '../../app/providers'
+import { Briefcase, MapPin, Mail, Phone, Bell } from 'lucide-react'
 
 export const Footer: React.FC = () => {
   const { t, i18n } = useTranslation()
+  const { siteName, logoUrl, footerText, contactEmail, contactPhone, contactAddress, settings } = useSiteSettings()
   const isKhmer = i18n.language === 'km'
 
   const regions = [
@@ -25,40 +27,46 @@ export const Footer: React.FC = () => {
           {/* Brand & Overview */}
           <div className="md:col-span-1">
             <div className="flex items-center space-x-2.5 mb-3.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/30">
-                <Briefcase className="w-4.5 h-4.5" />
-              </div>
-              <span className="font-black text-xl text-white tracking-tight">
-                Cambodia<span className="text-blue-500">Jobs</span>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={siteName}
+                  className="h-9 w-auto max-w-[160px] object-contain shrink-0 brightness-110"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/30 shrink-0">
+                  <Briefcase className="w-4.5 h-4.5" />
+                </div>
+              )}
+              <span className="font-black text-xl text-white tracking-tight truncate">
+                {siteName}
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              {t('footer.tagline')}
+              {footerText || t('footer.tagline')}
             </p>
             <div className="space-y-2.5 text-xs text-slate-400">
               <div className="flex items-center">
                 <MapPin className="w-4 h-4 mr-2.5 text-blue-500 shrink-0" />
-                <span>{t('footer.location')}</span>
+                <span>{contactAddress || t('footer.location')}</span>
               </div>
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2.5 text-blue-500 shrink-0" />
-                <a href="mailto:support@cambodiajobs.kh" className="hover:text-blue-400 transition">
-                  support@cambodiajobs.kh
+                <a href={`mailto:${contactEmail}`} className="hover:text-blue-400 transition truncate">
+                  {contactEmail}
                 </a>
               </div>
               <div className="flex items-center">
                 <Phone className="w-4 h-4 mr-2.5 text-blue-500 shrink-0" />
-                <a href="tel:+85523999888" className="hover:text-blue-400 transition">
-                  +855 23 999 888
+                <a href={`tel:${contactPhone.replace(/\s+/g, '')}`} className="hover:text-blue-400 transition">
+                  {contactPhone}
                 </a>
               </div>
               <div className="flex items-center">
-                <svg className="w-4 h-4 mr-2.5 fill-current text-sky-400 shrink-0" viewBox="0 0 24 24">
-                  <path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42 10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701h-.002l-.002.001-.314 4.692c.46 0 .663-.211.921-.46l2.211-2.15 4.599 3.397c.848.467 1.457.227 1.668-.785l3.019-14.228c.309-1.239-.473-1.8-1.282-1.434z" />
-                </svg>
-                <a href="https://t.me/CambodiaJobSupportBot" target="_blank" rel="noopener noreferrer" className="hover:text-sky-400 transition">
-                  Telegram: @CambodiaJobSupportBot
-                </a>
+                <Bell className="w-4 h-4 mr-2.5 text-blue-400 shrink-0" />
+                <span className="text-slate-400">
+                  {isKhmer ? 'ការជូនដំណឹងតាម Email ភ្លាមៗ' : 'Real-time Email Alerts'}
+                </span>
               </div>
             </div>
           </div>
@@ -146,7 +154,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Clean copyright and workforce notice without heart icon */}
         <div className="border-t border-slate-800/80 pt-5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
           <p>
-            © {new Date().getFullYear()} CambodiaJobs Platform. {t('footer.copyright')}
+            © {new Date().getFullYear()} {siteName}. {t('footer.copyright')}
           </p>
           <p className="mt-2 sm:mt-0 font-medium text-slate-400">
             {t('footer.crafted')}

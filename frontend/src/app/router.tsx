@@ -14,6 +14,7 @@ import { CompaniesPage } from '../features/companies/CompaniesPage'
 import { CompanyDetailPage } from '../features/companies/CompanyDetailPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
+import { AuthCallbackPage } from '../features/auth/AuthCallbackPage'
 
 // Seeker Pages
 import { SeekerDashboardPage } from '../features/seeker/SeekerDashboardPage'
@@ -31,10 +32,12 @@ import { EmployerCompanyProfilePage } from '../features/employer/EmployerCompany
 
 // Admin Pages
 import { AdminDashboardPage } from '../features/admin/AdminDashboardPage'
+import { AdminCategoriesPage } from '../features/admin/AdminCategoriesPage'
 import { AdminCompaniesPage } from '../features/admin/AdminCompaniesPage'
 import { AdminJobsPage } from '../features/admin/AdminJobsPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { AdminAuditPage } from '../features/admin/AdminAuditPage'
+import { AdminSettingsPage } from '../features/admin/AdminSettingsPage'
 
 // Smart router: 3 Cases for Dashboard based on 3 Roles
 const RoleDashboardRedirect: React.FC = () => {
@@ -69,6 +72,8 @@ export const router = createBrowserRouter([
       { path: 'companies/:slug', element: <CompanyDetailPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'auth/callback', element: <AuthCallbackPage /> },
+      { path: 'auth/google/callback', element: <AuthCallbackPage /> },
     ],
   },
 
@@ -95,6 +100,7 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <EmployerDashboardPage /> },
       { path: 'jobs', element: <EmployerJobsPage /> },
       { path: 'jobs/new', element: <EmployerJobCreatePage /> },
+      { path: 'jobs/:id/edit', element: <EmployerJobCreatePage /> },
       { path: 'jobs/:id/applications', element: <EmployerApplicationsPage /> },
       { path: 'company', element: <EmployerCompanyProfilePage /> },
     ],
@@ -107,10 +113,12 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
       { path: 'dashboard', element: <AdminDashboardPage /> },
+      { path: 'categories', element: <AdminCategoriesPage /> },
       { path: 'companies', element: <AdminCompaniesPage /> },
       { path: 'jobs', element: <AdminJobsPage /> },
       { path: 'users', element: <AdminUsersPage /> },
       { path: 'audit', element: <AdminAuditPage /> },
+      { path: 'settings', element: <AdminSettingsPage /> },
     ],
   },
 

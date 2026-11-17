@@ -61,34 +61,36 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ className = 
 
   return (
     <div
-      className={`inline-flex items-center p-0.5 rounded-full bg-white/80 backdrop-blur-md border border-white/80 shadow-2xs gap-0.5 ${className}`}
+      className={`inline-flex items-center p-0.5 rounded-full bg-slate-100/90 border border-slate-200/90 shadow-2xs gap-0.5 shrink-0 ${className}`}
     >
       <button
         type="button"
         onClick={() => setLanguage('en')}
-        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
           language === 'en'
-            ? 'bg-white shadow-xs scale-105 ring-1 ring-blue-500/25'
-            : 'opacity-50 hover:opacity-100 hover:bg-white/60'
+            ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200'
+            : 'text-slate-500 hover:text-slate-800 opacity-60 hover:opacity-100'
         }`}
         title="English"
         aria-label="Switch to English"
       >
-        <UKFlagIcon className="w-5 h-5" />
+        <UKFlagIcon className="w-4 h-4" />
+        <span className="leading-none">EN</span>
       </button>
 
       <button
         type="button"
         onClick={() => setLanguage('km')}
-        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
           language === 'km'
-            ? 'bg-white shadow-xs scale-105 ring-1 ring-blue-500/25'
-            : 'opacity-50 hover:opacity-100 hover:bg-white/60'
+            ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200'
+            : 'text-slate-500 hover:text-slate-800 opacity-60 hover:opacity-100'
         }`}
         title="ភាសាខ្មែរ"
         aria-label="ប្តូរទៅជាភាសាខ្មែរ"
       >
-        <KhmerFlagIcon className="w-5 h-5" />
+        <KhmerFlagIcon className="w-4 h-4" />
+        <span className="leading-none">ខ្មែរ</span>
       </button>
     </div>
   )

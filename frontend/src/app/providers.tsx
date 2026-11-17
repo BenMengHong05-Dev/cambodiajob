@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User, Currency } from '../types'
+import { User, Currency, SiteSettings } from '../types'
 import { authService } from '../services/auth.service'
+import { adminService } from '../services/admin.service'
 import { useTranslation } from 'react-i18next'
 import { ToastProvider, useToast } from '../components/ui/Toast'
+import { getAssetUrl } from '../utils/assets'
 
 interface AuthContextType {
   user: User | null
@@ -16,7 +18,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<User>
   register: (payload: any) => Promise<User>
   oauthLogin: (payload: {
-    provider: 'google' | 'linkedin' | 'telegram'
+    provider: 'google' | 'linkedin'
     email: string
     full_name?: string
     avatar_url?: string
@@ -33,13 +35,58 @@ interface PreferencesContextType {
   setLanguage: (lang: string) => void
 }
 
+export interface SiteSettingsContextType {
+  settings: SiteSettings | null
+  isLoading: boolean
+  refreshSettings: () => Promise<void>
+  updateLocalSettings: (newSettings: SiteSettings) => void
+  siteName: string
+  siteTitle: string
+  siteSubtitle: string
+  siteDescription: string
+  logoUrl?: string | null
+  faviconUrl?: string | null
+  heroTitle: string
+  heroSubtitle: string
+  heroBadgeText?: string | null
+  contactEmail: string
+  contactPhone: string
+  contactAddress: string
+  footerText: string
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined)
+const SiteSettingsContext = createContext<SiteSettingsContextType | undefined>(undefined)
 
 export const Providers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const { i18n } = useTranslation()
+
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null)
+  const [isSettingsLoading, setIsSettingsLoading] = useState<boolean>(true)
+
+  const refreshSettings = async () => {
+    try {
+      const data = await adminService.getPublicSettings()
+      if (data) {
+        setSiteSettings(data)
+      }
+    } catch (err) {
+      console.warn('Failed to fetch public site settings:', err)
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }
+
+  const updateLocalSettings = (newSettings: SiteSettings) => {
+    setSiteSettings(newSettings)
+  }
+
+  useEffect(() => {
+    refreshSettings()
+  }, [])
 
   const [currency, setCurrencyState] = useState<Currency>(() => {
     return (localStorage.getItem('app_currency') as Currency) || 'USD'
@@ -127,7 +174,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
   }
 
   const oauthLogin = async (payload: {
-    provider: 'google' | 'linkedin' | 'telegram'
+    provider: 'google' | 'linkedin'
     email: string
     full_name?: string
     avatar_url?: string
@@ -168,29 +215,79 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     ? '/employer/dashboard'
     : '/seeker/dashboard'
 
+  const isKm = language === 'km'
+  const siteName = (isKm ? siteSettings?.site_name_km : siteSettings?.site_name) || siteSettings?.site_name || 'CambodiaJobs'
+  const siteTitle = (isKm ? siteSettings?.site_title_km : siteSettings?.site_title) || siteSettings?.site_title || "Cambodia's Leading Job & Recruitment Platform"
+  const siteSubtitle = (isKm ? siteSettings?.site_subtitle_km : siteSettings?.site_subtitle) || siteSettings?.site_subtitle || 'Find your dream career or hire top talent across Cambodia'
+  const siteDescription = (isKm ? siteSettings?.site_description_km : siteSettings?.site_description) || siteSettings?.site_description || ''
+  const heroTitle = (isKm ? siteSettings?.hero_title_km : siteSettings?.hero_title) || siteSettings?.hero_title || 'Discover Verified Career Opportunities in Cambodia'
+  const heroSubtitle = (isKm ? siteSettings?.hero_subtitle_km : siteSettings?.hero_subtitle) || siteSettings?.hero_subtitle || 'Connecting talented professionals with top verified companies across Phnom Penh and all 25 provinces.'
+  const heroBadgeText = (isKm ? siteSettings?.hero_badge_text_km : siteSettings?.hero_badge_text) || siteSettings?.hero_badge_text || '🇰🇭 #1 Job Platform in Cambodia'
+  const contactEmail = siteSettings?.contact_email || 'support@cambodiajobs.kh'
+  const contactPhone = siteSettings?.contact_phone || '+855 23 999 888'
+  const contactAddress = (isKm ? siteSettings?.contact_address_km : siteSettings?.contact_address) || siteSettings?.contact_address || 'Phnom Penh, Cambodia'
+  const footerText = (isKm ? siteSettings?.footer_text_km : siteSettings?.footer_text) || siteSettings?.footer_text || 'Connecting ambitious professionals with reputable employers across Cambodia since 2026.'
+  const logoUrl = siteSettings?.logo_url ? getAssetUrl(siteSettings.logo_url) : null
+  const faviconUrl = siteSettings?.favicon_url ? getAssetUrl(siteSettings.favicon_url) : null
+
+  // Update document title and favicon dynamically
+  useEffect(() => {
+    if (siteTitle) {
+      document.title = `${siteName} | ${siteTitle}`
+    }
+    if (faviconUrl) {
+      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement
+      if (link) {
+        link.href = faviconUrl
+      }
+    }
+  }, [siteName, siteTitle, faviconUrl])
+
   return (
     <PreferencesContext.Provider value={{ currency, setCurrency, language, setLanguage }}>
-      <AuthContext.Provider
+      <SiteSettingsContext.Provider
         value={{
-          user,
-          isLoading,
-          role,
-          isJobSeeker,
-          isEmployer,
-          isAdmin,
-          isSuperAdmin,
-          dashboardPath,
-          login,
-          register,
-          oauthLogin,
-          logout,
-          refreshUser,
+          settings: siteSettings,
+          isLoading: isSettingsLoading,
+          refreshSettings,
+          updateLocalSettings,
+          siteName,
+          siteTitle,
+          siteSubtitle,
+          siteDescription,
+          logoUrl,
+          faviconUrl,
+          heroTitle,
+          heroSubtitle,
+          heroBadgeText,
+          contactEmail,
+          contactPhone,
+          contactAddress,
+          footerText,
         }}
       >
-        <ToastProvider>
-          {children}
-        </ToastProvider>
-      </AuthContext.Provider>
+        <AuthContext.Provider
+          value={{
+            user,
+            isLoading,
+            role,
+            isJobSeeker,
+            isEmployer,
+            isAdmin,
+            isSuperAdmin,
+            dashboardPath,
+            login,
+            register,
+            oauthLogin,
+            logout,
+            refreshUser,
+          }}
+        >
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </AuthContext.Provider>
+      </SiteSettingsContext.Provider>
     </PreferencesContext.Provider>
   )
 }
@@ -204,6 +301,12 @@ export const useAuth = () => {
 export const usePreferences = () => {
   const context = useContext(PreferencesContext)
   if (!context) throw new Error('usePreferences must be used within Providers')
+  return context
+}
+
+export const useSiteSettings = () => {
+  const context = useContext(SiteSettingsContext)
+  if (!context) throw new Error('useSiteSettings must be used within Providers')
   return context
 }
 

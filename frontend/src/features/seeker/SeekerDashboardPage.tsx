@@ -8,7 +8,8 @@ import { Application, Job, SeekerProfile, AIChartData } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
 import { AICareerChart } from '../../components/ai/AICareerChart'
-import { TelegramConnectButton } from '../../components/layout/TelegramConnectButton'
+import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Briefcase,
   FileText,
@@ -264,7 +265,7 @@ export const SeekerDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
-          <TelegramConnectButton variant="button" role="job_seeker" />
+          <EmailNotificationCard variant="pill" role="job_seeker" />
           <button
             type="button"
             onClick={() => loadDashboardData(true)}
@@ -654,7 +655,7 @@ export const SeekerDashboardPage: React.FC = () => {
                           <div className="flex items-center space-x-3">
                             <div className="w-9 h-9 rounded-xl bg-white/90 border border-white/90 shadow-2xs p-1 shrink-0 flex items-center justify-center overflow-hidden">
                               {app.company_logo ? (
-                                <img src={app.company_logo} alt={app.company_name} className="w-full h-full object-contain rounded-lg" />
+                                <img src={getAssetUrl(app.company_logo)} alt={app.company_name} className="w-full h-full object-contain rounded-lg" />
                               ) : (
                                 <Building className="w-4 h-4 text-slate-400" />
                               )}
@@ -906,8 +907,8 @@ export const SeekerDashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Connect with Telegram Bot Card for Job Seeker */}
-          <TelegramConnectButton variant="card" role="job_seeker" />
+          {/* Email Notification Alerts Status Card for Job Seeker */}
+          <EmailNotificationCard variant="card" role="job_seeker" />
         </div>
       </div>
     </div>

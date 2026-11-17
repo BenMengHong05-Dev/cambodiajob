@@ -1,7 +1,16 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
+import json
+import logging
+import urllib.error
+import urllib.parse
+import urllib.request
+from django.conf import settings
+from django.http import HttpResponseRedirect
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+logger = logging.getLogger(__name__)
 
 from common.permissions import IsAuthenticatedCustom
 from common.database import fetch_one
@@ -70,6 +79,29 @@ class OAuthLoginView(APIView):
         full_name = (data.get("full_name") or "").strip()
         avatar_url = (data.get("avatar_url") or "").strip()
         token = (data.get("token") or "").strip()
+        code = (data.get("code") or "").strip()
+
+        # If a Google OAuth authorization code is provided, exchange it for access token
+        if code and not token and (not email or not full_name):
+            try:
+                import json
+                import urllib.parse
+                import urllib.request
+                token_url = "https://oauth2.googleapis.com/token"
+                post_data = urllib.parse.urlencode({
+                    "code": code,
+                    "client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
+                    "client_secret": getattr(settings, "GOOGLE_CLIENT_SECRET", ""),
+                    "redirect_uri": getattr(settings, "GOOGLE_REDIRECT_URI", "http://localhost:5173/auth/google/callback"),
+                    "grant_type": "authorization_code",
+                }).encode("utf-8")
+                token_req = urllib.request.Request(token_url, data=post_data, method="POST")
+                token_req.add_header("Content-Type", "application/x-www-form-urlencoded")
+                with urllib.request.urlopen(token_req, timeout=8) as t_resp:
+                    t_data = json.loads(t_resp.read().decode("utf-8"))
+                    token = t_data.get("access_token", "")
+            except Exception:
+                pass
 
         # If a Google OAuth access token is provided, verify or fetch profile directly from Google
         if token and (not email or not full_name):
@@ -185,4 +217,138 @@ class MeView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class GoogleLoginRedirectView(APIView):
+    """
+    Initiates Google OAuth 2.0 login by redirecting the user to Google's consent screen.
+    Query param ?role=job_seeker or ?role=employer sets the registering role.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173").rstrip("/")
+        if not client_id:
+            return HttpResponseRedirect(f"{frontend_url}/login?error=missing_google_client_id")
+
+        redirect_uri = getattr(settings, "GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/api/v1/auth/google/callback/")
+        role = request.GET.get("role", "job_seeker")
+        state = f"role:{role}"
+
+        google_auth_url = (
+            f"https://accounts.google.com/o/oauth2/v2/auth?"
+            f"client_id={urllib.parse.quote(client_id)}&"
+            f"redirect_uri={urllib.parse.quote(redirect_uri)}&"
+            f"response_type=code&"
+            f"scope={urllib.parse.quote('openid email profile')}&"
+            f"access_type=offline&"
+            f"prompt=select_account&"
+            f"state={urllib.parse.quote(state)}"
+        )
+
+        # If client requested JSON (e.g. mobile or SPA wanting the URL)
+        if request.GET.get("format") == "json" or request.headers.get("Accept") == "application/json":
+            return Response({"success": True, "data": {"url": google_auth_url}})
+
+        return HttpResponseRedirect(google_auth_url)
+
+
+class GoogleCallbackView(APIView):
+    """
+    Handles Google OAuth 2.0 authorization code callback on the backend.
+    Exchanges code for tokens with Google, verifies profile, logs in or registers user,
+    then redirects to frontend /auth/callback with JWT access and refresh tokens.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        error = request.GET.get("error")
+        code = request.GET.get("code")
+        state = request.GET.get("state", "")
+        frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+        if error:
+            logger.warning(f"Google OAuth returned error: {error}")
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?error={urllib.parse.quote(error)}")
+
+        if not code:
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=missing_authorization_code")
+
+        client_id = getattr(settings, "GOOGLE_CLIENT_ID", "")
+        client_secret = getattr(settings, "GOOGLE_CLIENT_SECRET", "")
+        if not client_secret:
+            logger.error("GOOGLE_CLIENT_SECRET is missing in backend settings/.env")
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=missing_google_client_secret")
+
+        redirect_uri = getattr(settings, "GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/api/v1/auth/google/callback/")
+
+        try:
+            # 1. Exchange authorization code for tokens
+            token_url = "https://oauth2.googleapis.com/token"
+            post_data = urllib.parse.urlencode({
+                "code": code,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+            }).encode("utf-8")
+
+            token_req = urllib.request.Request(token_url, data=post_data, method="POST")
+            token_req.add_header("Content-Type", "application/x-www-form-urlencoded")
+            with urllib.request.urlopen(token_req, timeout=10) as t_resp:
+                t_data = json.loads(t_resp.read().decode("utf-8"))
+                access_token = t_data.get("access_token")
+
+            if not access_token:
+                logger.error("No access_token returned in Google token exchange")
+                return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=token_exchange_failed")
+
+            # 2. Fetch verified user profile from Google UserInfo endpoint
+            userinfo_req = urllib.request.Request(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            with urllib.request.urlopen(userinfo_req, timeout=8) as u_resp:
+                profile = json.loads(u_resp.read().decode("utf-8"))
+
+            email = profile.get("email")
+            full_name = profile.get("name") or profile.get("given_name") or (email.split("@")[0] if email else "")
+            avatar_url = profile.get("picture", "")
+
+            if not email:
+                logger.error("No email in Google profile payload")
+                return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=missing_email")
+
+            role = "job_seeker"
+            if "role:employer" in state:
+                role = "employer"
+
+            # 3. Create or login user in MySQL database
+            result = oauth_login_or_register(
+                provider="google",
+                email=email,
+                full_name=full_name,
+                avatar_url=avatar_url,
+                role=role,
+            )
+
+            # 4. Redirect user to frontend with tokens
+            query = urllib.parse.urlencode({
+                "access": result["access"],
+                "refresh": result["refresh"],
+                "name": result["user"].get("full_name", full_name),
+                "email": result["user"].get("email", email),
+            })
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?{query}")
+
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode("utf-8") if e.fp else str(e)
+            logger.error(f"Google token exchange HTTPError: {e.code} - {err_body}")
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=google_token_error")
+        except Exception as e:
+            logger.error(f"Google OAuth callback unexpected error: {e}", exc_info=True)
+            return HttpResponseRedirect(f"{frontend_url}/auth/callback?error=auth_internal_error")
 

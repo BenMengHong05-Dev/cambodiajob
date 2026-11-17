@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / ".env", override=True)
 
 SECRET_KEY = os.getenv("SECRET_KEY", "cambodia_recruitment_platform_jwt_key_2026")
 
@@ -123,8 +123,16 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "CambodiaJobs <no-reply@cambodiajobs.kh>")
 
-# Google Gemini API Configuration
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+# AI Configuration (Options: 'gemini' or 'deepseek')
+AI_MODEL = os.getenv("AI_MODEL", "gemini")
+AI_API_KEY = os.getenv("AI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "") or os.getenv("DEEPSEEK_API_KEY", "")
+AI_BASE_URL = os.getenv("AI_BASE_URL", "")
+
+# Google OAuth 2.0 Credentials
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/api/v1/auth/google/callback/")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # Test Runner for Raw SQL manual schema
 TEST_RUNNER = "common.test_runner.RawSQLTestRunner"

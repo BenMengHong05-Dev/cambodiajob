@@ -6,6 +6,7 @@ import { seekerService } from '../../services/seeker.service'
 import { Job, Resume } from '../../types'
 import { useAuth, usePreferences, useToast } from '../../app/providers'
 import { formatSalaryRange } from '../../utils/currency'
+import { getAssetUrl } from '../../utils/assets'
 import {
   MapPin,
   Building2,
@@ -234,75 +235,39 @@ export const JobDetailPage: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-2xs">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
             
-            {/* Logo + Title + Metadata */}
-            <div className="flex items-start gap-4 sm:gap-5 min-w-0">
-              <img
-                src={
-                  job.company_logo ||
-                  'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=120&h=120&fit=crop'
-                }
-                alt={job.company_name}
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-contain border border-slate-200/70 p-1 bg-white shrink-0 shadow-2xs"
-              />
-
-              <div className="min-w-0 space-y-1">
-                {/* Company Name & Verified */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <Link
-                    to={`/companies/${job.company_slug}`}
-                    className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>{job.company_name}</span>
-                    {job.company_verification === 'verified' && (
-                      <span title="Verified Employer">
-                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      </span>
-                    )}
-                  </Link>
-
-                  {(job.category_name_km || job.category_name_en) && (
-                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
-                      {isKhmer && job.category_name_km ? job.category_name_km : job.category_name_en}
-                    </span>
-                  )}
-                </div>
-
-                {/* Job Title */}
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
-                  {isKhmer && job.title_km ? job.title_km : job.title}
-                </h1>
-
-                {/* Metadata Row */}
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-500">
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{job.province}{job.city ? `, ${job.city}` : ''}</span>
+            {/* Title + Category + Metadata (Clean - No Logo or Company in Main Header) */}
+            <div className="min-w-0 space-y-2 flex-1">
+              {/* Category Badge */}
+              {(job.category_name_km || job.category_name_en) && (
+                <div>
+                  <span className="inline-block text-xs px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold shadow-2xs">
+                    {isKhmer && job.category_name_km ? job.category_name_km : job.category_name_en}
                   </span>
-                  <span>•</span>
-                  <span className="capitalize">{job.employment_type.replace('_', ' ')}</span>
-                  <span>•</span>
-                  <span className="capitalize">{job.workplace_type.replace('_', ' ')}</span>
-                  <span>•</span>
-                  <span className="capitalize">{job.experience_level.replace('_', ' ')}</span>
                 </div>
+              )}
+
+              {/* Job Title */}
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+                {isKhmer && job.title_km ? job.title_km : job.title}
+              </h1>
+
+              {/* Metadata Row */}
+              <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-slate-500">
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{job.province}{job.city ? `, ${job.city}` : ''}</span>
+                </span>
+                <span>•</span>
+                <span className="capitalize">{job.employment_type.replace('_', ' ')}</span>
+                <span>•</span>
+                <span className="capitalize">{job.workplace_type.replace('_', ' ')}</span>
+                <span>•</span>
+                <span className="capitalize">{job.experience_level.replace('_', ' ')}</span>
               </div>
             </div>
 
             {/* Compact Action Buttons */}
             <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto pt-2 sm:pt-0">
-              {/* Telegram Share Button */}
-              <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent((isKhmer && job.title_km ? job.title_km : job.title) + ' | CambodiaJobs')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2.5 rounded-xl border border-sky-200/80 bg-sky-50/70 hover:bg-sky-100 text-[#0088cc] hover:text-[#0077b5] transition cursor-pointer flex items-center justify-center shadow-xs"
-                title={isKhmer ? 'ចែករំលែកទៅ Telegram' : 'Share to Telegram'}
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42 10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701h-.002l-.002.001-.314 4.692c.46 0 .663-.211.921-.46l2.211-2.15 4.599 3.397c.848.467 1.457.227 1.668-.785l3.019-14.228c.309-1.239-.473-1.8-1.282-1.434z" />
-                </svg>
-              </a>
-
               {/* Share Button */}
               <button
                 type="button"
@@ -473,17 +438,24 @@ export const JobDetailPage: React.FC = () => {
               </h3>
 
               <div className="flex items-center gap-3">
-                <img
-                  src={
-                    job.company_logo ||
-                    'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=120&h=120&fit=crop'
-                  }
-                  alt={job.company_name}
-                  className="w-11 h-11 rounded-xl object-contain border border-slate-200/70 p-0.5 shrink-0"
-                />
+                <div className="w-12 h-12 rounded-full border border-slate-200/80 p-0.5 bg-white shrink-0 overflow-hidden shadow-2xs flex items-center justify-center">
+                  <img
+                    src={
+                      getAssetUrl(job.company_logo) ||
+                      'https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?w=120&h=120&fit=crop'
+                    }
+                    alt={job.company_name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    {job.company_name}
+                  <h4 className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                    <span>{job.company_name}</span>
+                    {job.company_verification === 'verified' && (
+                      <span title="Verified Employer">
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      </span>
+                    )}
                   </h4>
                   <p className="text-[11px] text-slate-400 truncate">
                     {job.province || 'Cambodia'}

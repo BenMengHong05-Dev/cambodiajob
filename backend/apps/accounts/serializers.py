@@ -25,13 +25,14 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class OAuthLoginSerializer(serializers.Serializer):
-    provider = serializers.ChoiceField(choices=["google", "linkedin", "telegram"], default="google")
+    provider = serializers.ChoiceField(choices=["google", "linkedin"], default="google")
     email = serializers.EmailField(required=False, allow_blank=True)
     full_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
     avatar_url = serializers.CharField(max_length=500, required=False, allow_blank=True)
     role = serializers.ChoiceField(choices=["job_seeker", "employer"], default="job_seeker")
     token = serializers.CharField(required=False, allow_blank=True)
     id_token = serializers.CharField(required=False, allow_blank=True)
+    code = serializers.CharField(required=False, allow_blank=True)
 
 
 class UserSerializer(serializers.Serializer):

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -17,7 +17,7 @@ import {
   Briefcase,
 } from 'lucide-react'
 import { useAuth, useToast } from '../../app/providers'
-import { triggerGoogleOAuth } from '../../utils/googleOAuth'
+import { redirectToGoogleOAuth } from '../../utils/googleOAuth'
 
 export const LoginPage: React.FC = () => {
   const { t, i18n } = useTranslation()
@@ -35,6 +35,27 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const urlError = params.get('error')
+    if (urlError) {
+      let desc = urlError
+      if (urlError === 'google_token_error' || urlError === 'token_exchange_failed') {
+        desc = isKhmer
+          ? 'GOOGLE_CLIENT_SECRET ក្នុង backend/.env មិនត្រឹមត្រូវ។ សូមពិនិត្យ backend/.env'
+          : 'Invalid Google Client Secret. Please verify GOOGLE_CLIENT_SECRET in backend/.env.'
+      } else if (urlError === 'missing_google_client_secret') {
+        desc = isKhmer
+          ? 'មិនទាន់កំណត់ GOOGLE_CLIENT_SECRET ក្នុង backend/.env ឡើយ។'
+          : 'GOOGLE_CLIENT_SECRET is missing in backend/.env.'
+      } else if (urlError === 'access_denied') {
+        desc = isKhmer ? 'ការអនុញ្ញាត Google ត្រូវបានបោះបង់។' : 'Google sign-in was cancelled.'
+      }
+      setError(desc)
+      toast.error(isKhmer ? 'Google Sign-In បរាជ័យ' : 'Google Sign-In Failed', desc)
+    }
+  }, [location.search, isKhmer])
 
   const from = (location.state as any)?.from?.pathname || '/'
 
@@ -83,147 +104,34 @@ export const LoginPage: React.FC = () => {
     }
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setError(null)
     setIsGoogleLoading(true)
-
-    const loadingToastId = toast.loading(
-      isKhmer ? 'កំពុងបើកផ្ទាំង Google...' : 'Connecting to Google...',
-      isKhmer ? 'សូមជ្រើសរើសគណនី Google របស់អ្នក' : 'Please select your Google account'
+    toast.loading(
+      isKhmer ? 'កំពុងបញ្ជូនទៅកាន់ Google...' : 'Redirecting to Google...',
+      isKhmer ? 'សូមរង់ចាំបន្តិច...' : 'Please wait...'
     )
-
-    try {
-      const googleUser = await triggerGoogleOAuth()
-      const user = await oauthLogin({
-        provider: 'google',
-        email: googleUser.email,
-        full_name: googleUser.name,
-        avatar_url: googleUser.picture,
-        role: 'job_seeker',
-      })
-      toast.dismiss(loadingToastId)
-      toast.success(
-        isKhmer ? 'ចូលប្រើប្រាស់ជោគជ័យ!' : 'Signed in with Google!',
-        isKhmer
-          ? `សូមស្វាគមន៍ ${user.full_name || googleUser.name}`
-          : `Welcome, ${user.full_name || googleUser.name}!`
-      )
-      handleSuccessfulAuth(user)
-    } catch (err: any) {
-      toast.dismiss(loadingToastId)
-      console.error('Google Sign-In Error:', err)
-      const errorMsg =
-        err.message === 'MISSING_CLIENT_ID'
-          ? isKhmer
-            ? 'មិនទាន់កំណត់ Google Client ID នៅក្នុងប្រព័ន្ធឡើយ។'
-            : 'Google Client ID is missing. Please check .env configuration.'
-          : isKhmer
-          ? 'ការចូលតាមរយៈ Google ត្រូវបានបោះបង់ ឬមានបញ្ហាផ្ទៀងផ្ទាត់។'
-          : err.message || 'Google sign-in was cancelled or encountered an issue.'
-      setError(errorMsg)
-      toast.error(isKhmer ? 'Google Sign-In បរាជ័យ' : 'Google Sign-In Failed', errorMsg)
-    } finally {
-      setIsGoogleLoading(false)
-    }
+    // Directly redirect to backend Google OAuth callback flow
+    redirectToGoogleOAuth('job_seeker')
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="w-full max-w-4xl bg-white rounded-3xl border border-gray-200 shadow-xl shadow-slate-900/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
-        {/* Left Column: Visual Showcase & Brand Highlights (Royal Blue Gradient) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 text-white p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
-          {/* Subtle Ambient Background Glows */}
-          <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Top Brand Block */}
-          <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-blue-100">
-              <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-              <span>{isKhmer ? 'វេទិកាការងារឈានមុខគេ' : '#1 Career & Hiring Platform'}</span>
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                Cambodia<span className="text-blue-300">Jobs</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-normal">
-                {isKhmer
-                  ? 'ច្រកផ្លូវឆ្ពោះទៅកាន់ឱកាសការងារល្អបំផុត និងការជ្រើសរើសបុគ្គលិកប្រកបដោយទំនុកចិត្តនៅកម្ពុជា។'
-                  : 'Connect with verified employers, explore top career openings, and recruit the best talent in Cambodia.'}
-              </p>
-            </div>
-
-            {/* Feature Highlights List */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'ក្រុមហ៊ុនត្រូវបានត្រួតពិនិត្យ និងអនុម័ត' : 'Admin-Verified Employers'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'ធានាសុវត្ថិភាពខ្ពស់ គ្មានការក្លែងបន្លំ' : 'Safe & authentic job vacancies guaranteed'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'ដាក់ពាក្យ និងតាមដានផ្ទាល់' : 'Direct Application & Tracking'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'តាមដានដំណាក់កាលជ្រើសរើសជាក់ស្ដែង' : 'Real-time candidate pipeline transparency'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 mt-0.5">
-                  <Briefcase className="w-3.5 h-3.5 text-blue-300" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">
-                    {isKhmer ? 'គ្រប់គ្រងតាមតួនាទីជាក់លាក់' : 'Role-Specific Workspaces'}
-                  </h4>
-                  <p className="text-[11px] text-blue-200/80 leading-normal">
-                    {isKhmer ? 'សម្រាប់បេក្ខជន, និយោជក និង Admin' : 'Tailored for Seekers, Employers & Admins'}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/5 p-6 sm:p-10 space-y-5 transition-all">
+        {/* Form Header */}
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mb-3 shadow-2xs mx-auto">
+            <LogIn className="w-6 h-6" />
           </div>
-
-          {/* Bottom Trust Stat / Card */}
-          <div className="relative z-10 mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-blue-100">
-            <span className="font-medium">{isKhmer ? 'សហគ្រាសសកម្មជាង ៨៥០+' : '850+ Active Companies'}</span>
-            <span className="font-mono text-[11px] text-blue-300">Phnom Penh • Cambodia</span>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {t('auth.loginTitle')}
+          </h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+            {isKhmer
+              ? 'បញ្ចូលព័ត៌មានគណនីរបស់អ្នកដើម្បីចូលប្រើប្រាស់ប្រព័ន្ធ'
+              : 'Enter your account details to access your dashboard and recruitment tools'}
+          </p>
         </div>
-
-        {/* Right Column: Clean Modern Form */}
-        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center bg-white">
-          <div className="max-w-md w-full mx-auto space-y-5">
-            {/* Form Header */}
-            <div>
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mb-3 shadow-2xs">
-                <LogIn className="w-5 h-5" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {t('auth.loginTitle')}
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                {isKhmer
-                  ? 'បញ្ចូលព័ត៌មានគណនីរបស់អ្នកដើម្បីចូលប្រើប្រាស់ប្រព័ន្ធ'
-                  : 'Enter your account details to access your dashboard and recruitment tools'}
-              </p>
-            </div>
 
             {/* Error Message */}
             {error && (
@@ -399,8 +307,6 @@ export const LoginPage: React.FC = () => {
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-          </div>
-        </div>
       </div>
     </div>
   )

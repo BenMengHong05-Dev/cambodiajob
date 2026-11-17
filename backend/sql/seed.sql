@@ -147,8 +147,8 @@ INSERT INTO `jobs` (`id`, `company_id`, `category_id`, `title`, `title_km`, `slu
 'full_time', 'on_site', 'fresh_graduate', 'Bachelor Degree in Banking/Finance/Business', 'Siem Reap', 'Krong Siem Reap', 'ABA Bank Siem Reap Central Branch', 2000000.00, 3500000.00, 'KHR', FALSE, 4, 'published', 'approved', NOW(), 3),
 
 (4, 1, 3, 'Digital Marketing & Content Specialist', 'អ្នកឯកទេសទីផ្សារឌីជីថល និងមាតិកា', 'digital-marketing-content-specialist',
-'Lead creative campaigns across TikTok, Facebook, Telegram, and digital channels to connect Cambodians with high-speed internet and digital lifestyle offerings.',
-'ដឹកនាំយុទ្ធនាការច្នៃប្រឌិតនៅលើបណ្តាញសង្គម TikTok, Facebook, Telegram ដើម្បីភ្ជាប់ប្រជាជនកម្ពុជាជាមួយសេវាកម្មអ៊ីនធឺណិត និងឌីជីថល។',
+'Lead creative campaigns across TikTok, Facebook, Instagram, and digital channels to connect Cambodians with high-speed internet and digital lifestyle offerings.',
+'ដឹកនាំយុទ្ធនាការច្នៃប្រឌិតនៅលើបណ្តាញសង្គម TikTok, Facebook, Instagram ដើម្បីភ្ជាប់ប្រជាជនកម្ពុជាជាមួយសេវាកម្មអ៊ីនធឺណិត និងឌីជីថល។',
 '- 2+ years experience in social media management and digital campaigns\n- Experience with Adobe Photoshop, Premiere, or Canva\n- Strong creative copywriting skills in Khmer and English',
 'full_time', 'hybrid', 'mid', 'Bachelor Degree in Marketing or Media', 'Phnom Penh', 'Khan Doun Penh', 'Smart Axiata HQ', 700.00, 1200.00, 'USD', FALSE, 1, 'published', 'approved', NOW(), 2),
 

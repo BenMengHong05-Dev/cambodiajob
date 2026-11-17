@@ -353,3 +353,159 @@ def send_job_offer_email(candidate_email: str, candidate_name: str, job_title: s
 
     html = get_html_email_template(subject, preheader, body_html, action_btn)
     return send_html_email(candidate_email, candidate_name, subject, html, "job_offer")
+
+
+# =========================================================================
+# 5. ដំណឹងបេក្ខជនដាក់ពាក្យថ្មីផ្ញើទៅនិយោជក (New Candidate Application to Recruiter)
+# =========================================================================
+def send_new_application_to_employer_email(
+    recruiter_email: str,
+    recruiter_name: str,
+    candidate_name: str,
+    candidate_email: str,
+    candidate_phone: str,
+    job_title: str,
+    company_name: str,
+    job_id: int,
+    application_id: int,
+    expected_salary: str = None,
+):
+    subject = f"[CambodiaJobs] New Applicant: {candidate_name} applied for {job_title}"
+    preheader = f"A new candidate application has arrived for {job_title}"
+
+    salary_info = f"<li><strong>Expected Salary:</strong> ${expected_salary}/mo</li>" if expected_salary else ""
+
+    body_html = f"""
+    <p>Dear <strong>{recruiter_name}</strong>,</p>
+    <p>Great news! A new candidate has just submitted an application for your active opening: <strong>{job_title}</strong> at <strong>{company_name}</strong>.</p>
+    
+    <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <h4 style="margin: 0 0 10px 0; color: #166534; font-size: 13px;">Applicant Overview</h4>
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #14532D; line-height: 1.8;">
+            <li><strong>Candidate Name:</strong> {candidate_name}</li>
+            <li><strong>Email:</strong> <a href="mailto:{candidate_email}" style="color: #2563EB;">{candidate_email}</a></li>
+            <li><strong>Phone:</strong> {candidate_phone or 'Not provided'}</li>
+            <li><strong>Vacancy:</strong> {job_title}</li>
+            {salary_info}
+            <li><strong>Application ID:</strong> #{application_id}</li>
+        </ul>
+    </div>
+
+    <p>You can review their profile, CV, and schedule an interview directly from your Employer Workspace.</p>
+    """
+
+    action_btn = {
+        "text": "Review Applicant in Workspace",
+        "url": f"http://127.0.0.1:5173/employer/jobs/{job_id}/applications",
+    }
+
+    html = get_html_email_template(subject, preheader, body_html, action_btn)
+    return send_html_email(recruiter_email, recruiter_name, subject, html, "new_applicant_alert")
+
+
+# =========================================================================
+# 6. លិខិតជូនដំណឹងជាប់សម្រាំង (Candidate Shortlisted Notification)
+# =========================================================================
+def send_candidate_shortlisted_email(candidate_email: str, candidate_name: str, job_title: str, company_name: str):
+    subject = f"[Application Shortlisted] {job_title} at {company_name}"
+    preheader = f"Congratulations! Your application has advanced to Shortlisted stage"
+
+    body_html = f"""
+    <p>Dear <strong>{candidate_name}</strong>,</p>
+    <p>We are pleased to inform you that your application for <strong>{job_title}</strong> has impressed the hiring team at <strong>{company_name}</strong> and has been moved to the <strong>Shortlisted</strong> stage!</p>
+    
+    <div style="background-color: #F0FDFA; border: 1px solid #99F6E4; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #0F766E; font-size: 13px;">What Happens Next?</h4>
+        <p style="margin: 0; color: #115E59; font-size: 13px; line-height: 1.6;">
+            The recruitment team is finalizing interview slots. You will receive an invitation email and portal notification as soon as an interview session is scheduled.
+        </p>
+    </div>
+
+    <p>Please keep an eye on your email inbox and portal dashboard for upcoming meeting details.</p>
+    <p style="margin-top: 18px;">Best regards,<br><strong>Recruiting Team at {company_name}</strong></p>
+    """
+
+    action_btn = {
+        "text": "View Application Stage",
+        "url": "http://127.0.0.1:5173/seeker/applications",
+    }
+
+    html = get_html_email_template(subject, preheader, body_html, action_btn)
+    return send_html_email(candidate_email, candidate_name, subject, html, "candidate_shortlisted")
+
+
+# =========================================================================
+# 7. ដំណឹងសុវត្ថិភាពនៅពេលចូលគណនី (Sign-in Security Alert Email)
+# =========================================================================
+def send_login_notification_email(user_email: str, user_name: str):
+    subject = f"[CambodiaJobs] Account Sign-in Notification"
+    preheader = "Security notification: Your account was accessed"
+    now_str = datetime.datetime.now().strftime("%A, %B %d, %Y at %I:%M %p")
+
+    body_html = f"""
+    <p>Dear <strong>{user_name}</strong>,</p>
+    <p>Your CambodiaJobs account (<strong>{user_email}</strong>) was successfully signed in on <strong>{now_str}</strong>.</p>
+    
+    <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin: 18px 0; font-size: 13px; color: #475569;">
+        <p style="margin: 0 0 6px 0;"><strong>Security Notice:</strong></p>
+        <p style="margin: 0;">If this was you, you can safely ignore this automated message. If you did not initiate this login, please secure your account by changing your password immediately.</p>
+    </div>
+
+    <p>Thank you for using CambodiaJobs!</p>
+    """
+
+    action_btn = {
+        "text": "Open Dashboard",
+        "url": "http://127.0.0.1:5173/",
+    }
+
+    html = get_html_email_template(subject, preheader, body_html, action_btn)
+    return send_html_email(user_email, user_name, subject, html, "login_alert")
+
+
+# =========================================================================
+# 8. លិខិតស្វាគមន៍ការចុះឈ្មោះគណនីថ្មី (Welcome Registration Email)
+# =========================================================================
+def send_welcome_email(user_email: str, user_name: str, role: str):
+    role_label = "Employer & Recruiter" if role == "employer" else "Job Seeker"
+    subject = f"Welcome to CambodiaJobs, {user_name}!"
+    preheader = f"Your {role_label} account has been created successfully"
+
+    if role == "employer":
+        guide_html = """
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #1E3A8A; line-height: 1.8;">
+            <li>Complete your <strong>Company Profile</strong> with official logo and description</li>
+            <li>Post your first job vacancy to reach qualified professionals nationwide</li>
+            <li>Review candidate CVs and schedule video interviews directly</li>
+        </ul>
+        """
+        dashboard_url = "http://127.0.0.1:5173/employer/dashboard"
+    else:
+        guide_html = """
+        <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #1E3A8A; line-height: 1.8;">
+            <li>Complete your professional profile and upload your CV/Resume</li>
+            <li>Explore hundreds of verified vacancies in IT, Banking, Sales, and Accounting</li>
+            <li>Receive real-time email updates on your application status</li>
+        </ul>
+        """
+        dashboard_url = "http://127.0.0.1:5173/seeker/dashboard"
+
+    body_html = f"""
+    <p>Dear <strong>{user_name}</strong>,</p>
+    <p>Welcome to <strong>CambodiaJobs</strong> — Cambodia's premier digital recruitment platform. We are delighted to have you onboard as a <strong>{role_label}</strong>!</p>
+    
+    <div style="background-color: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 18px; margin: 20px 0;">
+        <h4 style="margin: 0 0 10px 0; color: #1E40AF; font-size: 13px;">Quick Steps to Get Started:</h4>
+        {guide_html}
+    </div>
+
+    <p>If you ever need any assistance, our support team is always here to help you succeed.</p>
+    """
+
+    action_btn = {
+        "text": "Go to My Dashboard",
+        "url": dashboard_url,
+    }
+
+    html = get_html_email_template(subject, preheader, body_html, action_btn)
+    return send_html_email(user_email, user_name, subject, html, "welcome_registration")

@@ -300,3 +300,40 @@ export interface AIChatResponse {
   total_matches: number
 }
 
+// Global Website Settings & Branding
+export interface SiteSettings {
+  id?: number
+  site_name: string
+  site_name_km: string
+  site_title: string
+  site_title_km: string
+  site_subtitle: string
+  site_subtitle_km: string
+  site_description: string
+  site_description_km: string
+  logo_url?: string | null
+  favicon_url?: string | null
+  hero_title: string
+  hero_title_km: string
+  hero_subtitle: string
+  hero_subtitle_km: string
+  hero_badge_text?: string | null
+  hero_badge_text_km?: string | null
+  contact_email: string
+  contact_phone: string
+  contact_address: string
+  contact_address_km: string
+  footer_text: string
+  footer_text_km: string
+  social_facebook?: string | null
+  social_telegram?: string | null
+  social_linkedin?: string | null
+  social_twitter?: string | null
+  announcement_enabled?: boolean
+  announcement_text?: string | null
+  announcement_text_km?: string | null
+  announcement_url?: string | null
+  updated_at?: string
+}
+
+

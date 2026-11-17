@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
 import { AdminLineChart } from './AdminLineChart'
-import { TelegramConnectButton } from '../../components/layout/TelegramConnectButton'
+import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Users,
   Building2,
@@ -18,6 +19,8 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
+  Layers,
+  Plus,
 } from 'lucide-react'
 
 export const AdminDashboardPage: React.FC = () => {
@@ -165,7 +168,14 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
-          <TelegramConnectButton variant="button" role="admin" />
+          <EmailNotificationCard variant="pill" role="admin" />
+          <Link
+            to="/admin/categories"
+            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-600" />
+            <span>{isKhmer ? 'ផ្នែកការងារ' : 'Categories'}</span>
+          </Link>
           <Link
             to="/admin/users"
             className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
@@ -309,6 +319,17 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <Link
+            to="/admin/categories"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-600" />
+            <span>{isKhmer ? 'ផ្នែកការងារ & បង្កើត' : 'Job Categories'}</span>
+            <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.2 rounded-full font-bold">
+              {stats.total_categories || 12}
+            </span>
+          </Link>
+
+          <Link
             to="/admin/users"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
           >
@@ -339,8 +360,6 @@ export const AdminDashboardPage: React.FC = () => {
             <History className="w-3.5 h-3.5 text-slate-500" />
             <span>{isKhmer ? 'កំណត់ហេតុ Audit' : 'Audit Trail'}</span>
           </Link>
-
-          <TelegramConnectButton variant="pill" role="admin" />
         </div>
 
         <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
@@ -477,8 +496,46 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* Right Column (5 cols): Enterprises + Audit Trail */}
         <div className="lg:col-span-5 space-y-4 sm:space-y-5">
-          {/* Card: Connect Telegram Bot for Admin Alerts */}
-          <TelegramConnectButton variant="card" role="admin" />
+          {/* Card: Email Notification Alerts for Admin */}
+          <EmailNotificationCard variant="card" role="admin" />
+
+          {/* Card: Job Categories Management */}
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-white/90 via-blue-50/20 to-white/90">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/25 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800">
+                    {isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories'}
+                  </h3>
+                  <p className="text-[10px] text-slate-400">
+                    {isKhmer ? 'ប្រភេទមុខរបរ & កាតទំព័រដើម' : 'Organize & create job sectors'}
+                  </p>
+                </div>
+              </div>
+
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                {stats.total_categories || 12} {isKhmer ? 'ប្រភេទ' : 'Total'}
+              </span>
+            </div>
+
+            <div className="pt-3 flex items-center justify-between gap-3">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {isKhmer
+                  ? 'បង្កើតផ្នែកការងារថ្មី ឬកែសម្រួលរូបតំណាង និងឈ្មោះភាសាខ្មែរ/អង់គ្លេស'
+                  : 'Add new industry sectors or customize category icons & translations'}
+              </p>
+              <Link
+                to="/admin/categories"
+                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1 shrink-0 transition"
+              >
+                <Plus className="w-3.5 h-3.5 text-white" />
+                <span>{isKhmer ? 'បង្កើតថ្មី' : 'Manage'}</span>
+              </Link>
+            </div>
+          </div>
 
           {/* Card: Recently Registered Companies */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
@@ -530,7 +587,7 @@ export const AdminDashboardPage: React.FC = () => {
                           <td className="py-2.5 px-3">
                             <div className="flex items-center space-x-2.5">
                               {comp.logo_url ? (
-                                <img src={comp.logo_url} alt={comp.name} className="w-7 h-7 rounded-lg object-contain border border-white/90 shadow-2xs shrink-0 bg-white" />
+                                <img src={getAssetUrl(comp.logo_url)} alt={comp.name} className="w-7 h-7 rounded-lg object-contain border border-white/90 shadow-2xs shrink-0 bg-white" />
                               ) : (
                                 <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 border border-blue-400/25 flex items-center justify-center shrink-0">
                                   <Building2 className="w-3.5 h-3.5" />
