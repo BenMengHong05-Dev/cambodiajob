@@ -112,17 +112,14 @@ export const AdminLayout: React.FC = () => {
 
       {/* Admin Desktop & Mobile Sidebar (Clear Glass Design) */}
       <aside
-        className={`fixed md:sticky top-0 z-50 md:z-40 inset-y-0 left-0 ${
-          isCollapsed ? 'md:w-[56px]' : 'md:w-64'
-        } w-72 glass-sidebar bg-white/95 md:bg-white/75 backdrop-blur-2xl border-r border-slate-200/80 flex flex-col justify-between shrink-0 shadow-2xl md:shadow-[4px_0_30px_rgba(15,23,42,0.03)] transition-transform md:transition-all duration-300 h-screen overflow-x-hidden ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:sticky top-0 z-50 md:z-40 inset-y-0 left-0 ${isCollapsed ? 'md:w-[56px]' : 'md:w-64'
+          } w-72 glass-sidebar bg-white/95 md:bg-white/75 backdrop-blur-2xl border-r border-slate-200/80 flex flex-col justify-between shrink-0 shadow-2xl md:shadow-[4px_0_30px_rgba(15,23,42,0.03)] transition-transform md:transition-all duration-300 h-screen overflow-x-hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Admin Brand Header */}
         <div
-          className={`h-16 flex items-center justify-between border-b border-slate-200/80 bg-white/40 backdrop-blur-md shrink-0 transition-all ${
-            isCollapsed ? 'justify-center px-1' : 'px-5'
-          }`}
+          className={`h-16 flex items-center justify-between border-b border-slate-200/80 bg-white/40 backdrop-blur-md shrink-0 transition-all ${isCollapsed ? 'justify-center px-1' : 'px-5'
+            }`}
         >
           {!isCollapsed ? (
             <Link to="/" className="flex items-center space-x-3 text-left flex-1 min-w-0 group">
@@ -194,15 +191,13 @@ export const AdminLayout: React.FC = () => {
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   title={isKhmer ? item.nameKm : item.name}
-                  className={`flex items-center rounded-xl text-xs transition-all duration-150 ${
-                    isCollapsed
-                      ? 'justify-center w-10 h-10 mx-auto'
-                      : 'space-x-3 px-3.5 py-2.5 text-left'
-                  } ${
-                    isActive
+                  className={`flex items-center rounded-xl text-xs transition-all duration-150 ${isCollapsed
+                    ? 'justify-center w-10 h-10 mx-auto'
+                    : 'space-x-3 px-3.5 py-2.5 text-left'
+                    } ${isActive
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/20'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 border border-transparent hover:border-white/80 font-medium hover:shadow-2xs'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-slate-400'}`} />
                   {!isCollapsed && (
@@ -216,18 +211,16 @@ export const AdminLayout: React.FC = () => {
 
         {/* Footer Admin actions (System Style) */}
         <div
-          className={`border-t border-slate-200/80 bg-white/40 backdrop-blur-md space-y-1 text-left shrink-0 ${
-            isCollapsed ? 'p-1.5' : 'p-3'
-          }`}
+          className={`border-t border-slate-200/80 bg-white/40 backdrop-blur-md space-y-1 text-left shrink-0 ${isCollapsed ? 'p-1.5' : 'p-3'
+            }`}
         >
           {/* Public Website Link */}
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
             title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
-            className={`w-full flex items-center rounded-xl text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-white/80 border border-transparent hover:border-slate-200 transition-all ${
-              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
-            }`}
+            className={`w-full flex items-center rounded-xl text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-white/80 border border-transparent hover:border-slate-200 transition-all ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
+              }`}
           >
             <ExternalLink className="w-4 h-4 shrink-0 text-slate-400" />
             {!isCollapsed && <span className="flex-1 text-left">{isKhmer ? 'មើលគេហទំព័រការងារ' : 'Public Website'}</span>}
@@ -238,9 +231,8 @@ export const AdminLayout: React.FC = () => {
             type="button"
             onClick={handleLogout}
             title={isKhmer ? 'ចាកចេញ' : 'Sign Out'}
-            className={`w-full flex items-center rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-200/50 transition-all cursor-pointer ${
-              isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
-            }`}
+            className={`w-full flex items-center rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-200/50 transition-all cursor-pointer ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
+              }`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
             {!isCollapsed && <span className="flex-1 text-left">{isKhmer ? 'ចាកចេញ' : 'Sign Out'}</span>}

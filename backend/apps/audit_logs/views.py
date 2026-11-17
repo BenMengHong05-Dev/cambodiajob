@@ -839,6 +839,12 @@ class AdminSiteSettingsUploadLogoView(APIView):
 
         file_url = f"/media/site/{saved_filename}"
 
+        # Make sure the singleton settings row exists, otherwise the UPDATE
+        # below silently affects 0 rows and the URL is never saved.
+        existing = fetch_one("SELECT id FROM site_settings WHERE id = 1")
+        if not existing:
+            execute_insert("INSERT INTO site_settings (id) VALUES (1)")
+
         # Update database directly
         target_column = "favicon_url" if upload_type == "favicon" else "logo_url"
         execute_sql(f"UPDATE site_settings SET `{target_column}` = %s WHERE id = 1", [file_url])

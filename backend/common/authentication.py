@@ -4,6 +4,7 @@ Validates tokens and loads user data directly from the raw SQL database layer.
 """
 
 from datetime import datetime, timedelta, timezone
+import uuid
 import jwt
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
@@ -112,12 +113,15 @@ def generate_access_token(user_id: int, email: str, roles: list[str]) -> str:
 def generate_refresh_token(user_id: int) -> str:
     """
     Generate and store a signed JWT refresh token in MySQL.
+    A random jti guarantees token uniqueness even when two tokens are
+    issued for the same user within the same second (e.g. token rotation).
     """
     now = datetime.now(timezone.utc)
     expiration = now + timedelta(days=settings.JWT_REFRESH_EXPIRATION_DAYS)
     payload = {
         "user_id": user_id,
         "token_type": "refresh",
+        "jti": uuid.uuid4().hex,
         "iat": int(now.timestamp()),
         "exp": int(expiration.timestamp()),
     }

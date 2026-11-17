@@ -2,6 +2,17 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
+// Tokens can live in localStorage ("remember me") or sessionStorage (this session only).
+export const getStoredToken = (key: string): string | null =>
+  localStorage.getItem(key) || sessionStorage.getItem(key)
+
+const clearStoredTokens = () => {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  sessionStorage.removeItem('access_token')
+  sessionStorage.removeItem('refresh_token')
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -20,7 +31,7 @@ api.interceptors.request.use(
       config.url?.includes('/auth/oauth')
 
     if (!isPublicAuthUrl) {
-      const token = localStorage.getItem('access_token')
+      const token = getStoredToken('access_token')
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -77,14 +88,16 @@ api.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('refresh_token')
+      const refreshToken = getStoredToken('refresh_token')
       if (!refreshToken) {
         isRefreshing = false
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        clearStoredTokens()
         window.dispatchEvent(new Event('auth:logout'))
         return Promise.reject(error)
       }
+
+      // Keep the refreshed tokens in the same storage the user originally chose.
+      const tokenStorage = localStorage.getItem('refresh_token') ? localStorage : sessionStorage
 
       try {
         const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
@@ -92,9 +105,9 @@ api.interceptors.response.use(
         })
 
         const { access, refresh } = refreshResponse.data.data
-        localStorage.setItem('access_token', access)
+        tokenStorage.setItem('access_token', access)
         if (refresh) {
-          localStorage.setItem('refresh_token', refresh)
+          tokenStorage.setItem('refresh_token', refresh)
         }
 
         processQueue(null, access)
@@ -104,8 +117,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        clearStoredTokens()
         window.dispatchEvent(new Event('auth:logout'))
         return Promise.reject(refreshError)
       } finally {

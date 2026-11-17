@@ -8,6 +8,8 @@ import { Job, Company, Application } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
 import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
+import { StatCard } from '../../components/dashboard/StatCard'
+import { QuickActions } from '../../components/dashboard/QuickActions'
 import {
   Briefcase,
   Users,
@@ -25,17 +27,12 @@ import {
   Plus,
   RefreshCw,
   X,
-  TrendingUp,
   UserCheck,
-  FileText,
   Video,
-  Sparkles,
   Pencil,
   Calendar,
   Phone,
   Mail,
-  Download,
-  Check,
   Sun,
   Moon,
   Sunrise,
@@ -210,14 +207,14 @@ export const EmployerDashboardPage: React.FC = () => {
     switch (status) {
       case 'published':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span>{isKhmer ? 'ផ្សាយផ្ទាល់' : 'Published'}</span>
           </span>
         )
       case 'closed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
             <span>{isKhmer ? 'បានបិទ' : 'Closed'}</span>
           </span>
@@ -225,7 +222,7 @@ export const EmployerDashboardPage: React.FC = () => {
       case 'draft':
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>{isKhmer ? 'សេចក្តីព្រាង' : 'Draft'}</span>
           </span>
@@ -237,7 +234,7 @@ export const EmployerDashboardPage: React.FC = () => {
     switch (status) {
       case 'submitted':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             <span>{isKhmer ? 'បានដាក់' : 'Submitted'}</span>
           </span>
@@ -245,42 +242,43 @@ export const EmployerDashboardPage: React.FC = () => {
       case 'screening':
       case 'reviewing':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>{isKhmer ? 'កំពុងពិនិត្យ' : 'Reviewing'}</span>
           </span>
         )
       case 'shortlisted':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-700 border border-purple-400/25 backdrop-blur-md shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
             <span>{isKhmer ? 'សម្រាំង' : 'Shortlisted'}</span>
           </span>
         )
       case 'interview':
       case 'interview_scheduled':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-700 border border-indigo-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
             <span>{isKhmer ? 'សម្ភាសន៍' : 'Interview'}</span>
           </span>
         )
       case 'offered':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-400/25 backdrop-blur-md shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             <span>{isKhmer ? 'ផ្តល់ការងារ' : 'Offered'}</span>
           </span>
         )
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-400/25 backdrop-blur-md shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
             <span>{isKhmer ? 'បដិសេធ' : 'Rejected'}</span>
           </span>
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 capitalize">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100/80 text-slate-700 border border-slate-200/70 backdrop-blur-md capitalize">
             {status}
           </span>
         )
@@ -299,10 +297,22 @@ export const EmployerDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full space-y-4 sm:space-y-5 font-sans pb-16">
-      {/* 1. Header Bar: Personalized Greeting, Enterprise Brand & Quick Actions */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5 min-w-0">
+    <div className="relative w-full space-y-4 sm:space-y-5 font-sans pb-16">
+      {/* Ambient glowing mesh backdrop for glassmorphism refraction */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div
+          className="absolute -top-24 right-1/4 w-[480px] h-[480px] bg-gradient-to-br from-blue-200/40 via-indigo-200/25 to-transparent rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: '8s' }}
+        />
+        <div className="absolute top-[380px] -left-20 w-[420px] h-[420px] bg-gradient-to-tr from-sky-200/35 via-blue-100/25 to-transparent rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-tl from-indigo-100/35 via-purple-100/20 to-transparent rounded-full blur-3xl" />
+      </div>
+
+      {/* 1. Glassmorphic Header Bar: Greeting, Enterprise Brand & Quick Actions */}
+      <div className="glass-header p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-bl from-blue-400/15 via-indigo-300/10 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-center space-x-3.5 min-w-0 relative z-10">
           <div className="w-12 h-12 rounded-2xl border border-gray-200 bg-slate-50 p-1.5 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs">
             {company?.logo_url ? (
               <img src={getAssetUrl(company.logo_url)} alt={company.name} className="w-full h-full object-contain rounded-xl" />
@@ -343,12 +353,12 @@ export const EmployerDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap sm:flex-nowrap w-full md:w-auto">
+        <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap sm:flex-nowrap w-full md:w-auto relative z-10">
           <button
             type="button"
             onClick={() => fetchDashboardData(true)}
             disabled={isRefreshing}
-            className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-blue-600 border border-gray-200 text-xs font-medium transition shadow-2xs cursor-pointer"
+            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
             title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh'}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
@@ -356,15 +366,15 @@ export const EmployerDashboardPage: React.FC = () => {
 
           <Link
             to="/employer/jobs"
-            className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-blue-600 border border-gray-200 text-xs font-semibold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
-            <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+            <Briefcase className="w-3.5 h-3.5 text-slate-400" />
             <span>{isKhmer ? 'ការងារទាំងអស់' : 'All Jobs'}</span>
           </Link>
 
           <Link
             to="/employer/jobs/new"
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white text-xs font-semibold transition-all duration-200 shadow-md shadow-blue-500/20 flex items-center space-x-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
@@ -377,9 +387,9 @@ export const EmployerDashboardPage: React.FC = () => {
 
       {/* Company Verification Guard Banner (if pending) */}
       {company && company.verification_status !== 'verified' && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+        <div className="p-4 rounded-2xl bg-amber-500/10 backdrop-blur-xl border border-amber-400/30 text-amber-950 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div className="flex items-start space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-700 flex items-center justify-center shrink-0 shadow-inner">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
@@ -395,7 +405,7 @@ export const EmployerDashboardPage: React.FC = () => {
           </div>
           <Link
             to="/employer/company"
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-amber-300 text-xs font-semibold text-amber-900 transition shadow-2xs shrink-0 self-start sm:self-auto"
+            className="px-3.5 py-1.5 rounded-xl bg-white/90 hover:bg-white border border-amber-300 text-xs font-semibold text-amber-900 transition shadow-2xs shrink-0 self-start sm:self-auto"
           >
             {isKhmer ? 'ពិនិត្យប្រវត្តិក្រុមហ៊ុន' : 'Review Profile'}
           </Link>
@@ -405,102 +415,77 @@ export const EmployerDashboardPage: React.FC = () => {
       {/* 2. Four Interactive KPI Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Metric 1: Active Vacancies */}
-        <Link
+        <StatCard
           to="/employer/jobs"
-          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 hover:border-blue-400 transition shadow-2xs group block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition">
-              {isKhmer ? 'ការងារកំពុងផ្សាយ' : 'Active Vacancies'}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-              <Briefcase className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-slate-900 group-hover:text-blue-600 transition">
-              {activeJobsCount}
-            </span>
-            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-              {isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ការងារកំពុងផ្សាយ' : 'Active Vacancies'}
+          value={activeJobsCount}
+          icon={Briefcase}
+          accent="blue"
+          badge={isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live'}
+          tone="success"
+        />
 
         {/* Metric 2: Total Candidates */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 hover:border-indigo-400 transition shadow-2xs group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition">
-              {isKhmer ? 'បេក្ខជនសរុប' : 'Total Candidates'}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-slate-900 group-hover:text-indigo-600 transition">
-              {totalApplicationsCount}
-            </span>
-            <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
-              {isKhmer ? 'ពាក្យសុំ' : 'Applicants'}
-            </span>
-          </div>
-        </div>
+        <StatCard
+          to="/employer/jobs"
+          label={isKhmer ? 'បេក្ខជនសរុប' : 'Total Candidates'}
+          value={totalApplicationsCount}
+          icon={Users}
+          accent="indigo"
+          badge={isKhmer ? 'ពាក្យសុំ' : 'Applicants'}
+          tone="info"
+        />
 
         {/* Metric 3: Interviews Scheduled */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 hover:border-purple-400 transition shadow-2xs group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition">
-              {isKhmer ? 'សម្ភាសន៍ដែលបានកំណត់' : 'Interviews'}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition">
-              <Video className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-slate-900 group-hover:text-purple-600 transition">
-              {interviewApplicantsCount}
-            </span>
-            <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
-              {upcomingInterviews.length} {isKhmer ? 'ជិតមកដល់' : 'Upcoming'}
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label={isKhmer ? 'សម្ភាសន៍ដែលបានកំណត់' : 'Interviews'}
+          value={interviewApplicantsCount}
+          icon={Video}
+          accent="purple"
+          badge={`${upcomingInterviews.length} ${isKhmer ? 'ជិតមកដល់' : 'Upcoming'}`}
+          tone="info"
+        />
 
         {/* Metric 4: Hired / Offered */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 hover:border-emerald-400 transition shadow-2xs group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition">
-              {isKhmer ? 'ផ្តល់ការងារជោគជ័យ' : 'Job Offers'}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition">
-              <UserCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-slate-900 group-hover:text-emerald-600 transition">
-              {hiredApplicantsCount}
-            </span>
-            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-              {isKhmer ? 'សម្រេចចិត្ត' : 'Accepted'}
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label={isKhmer ? 'ផ្តល់ការងារជោគជ័យ' : 'Job Offers'}
+          value={hiredApplicantsCount}
+          icon={UserCheck}
+          accent="emerald"
+          badge={isKhmer ? 'សម្រេចចិត្ត' : 'Accepted'}
+          tone="success"
+        />
       </div>
+
+      {/* Quick action rail */}
+      <QuickActions
+        hint={isKhmer ? `${activeJobsCount} ការងារកំពុងផ្សាយ` : `${activeJobsCount} live vacancies`}
+        actions={[
+          { to: '/employer/jobs/new', label: isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy', icon: Plus },
+          {
+            to: '/employer/jobs',
+            label: isKhmer ? 'គ្រប់គ្រងការងារ' : 'Manage Vacancies',
+            icon: Briefcase,
+            badge: jobs.length,
+          },
+          { to: '/employer/company', label: isKhmer ? 'ព័ត៌មានក្រុមហ៊ុន' : 'Company Profile', icon: Building },
+          { to: '/jobs', label: isKhmer ? 'ស្វែងរកការងារ' : 'Explore Jobs', icon: Search },
+        ]}
+      />
 
       {/* 3. NEW FEATURE: Upcoming Candidate Interviews Widget */}
       {upcomingInterviews.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2.5 border-b border-gray-100">
+        <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3">
+          <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border border-purple-400/25 text-purple-600 flex items-center justify-center shrink-0 shadow-inner">
                 <Calendar className="w-4 h-4" />
               </div>
               <h2 className="text-xs sm:text-sm font-bold text-slate-900">
                 {isKhmer ? 'កាលវិភាគសម្ភាសន៍បេក្ខជនដែលជិតមកដល់' : 'Upcoming Candidate Interviews'}
               </h2>
             </div>
-            <span className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+            <span className="text-[10px] text-purple-700 font-semibold bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-400/25 backdrop-blur-md shadow-2xs">
               {upcomingInterviews.length} {isKhmer ? 'កិច្ចសម្ភាសន៍' : 'Scheduled'}
             </span>
           </div>
@@ -509,7 +494,7 @@ export const EmployerDashboardPage: React.FC = () => {
             {upcomingInterviews.slice(0, 4).map((iv: any, idx: number) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl border border-gray-200 bg-slate-50/70 hover:bg-white hover:border-purple-300 transition flex items-start justify-between gap-3 shadow-2xs"
+                className="p-3.5 rounded-xl border border-white/90 bg-white/60 backdrop-blur-md hover:bg-white hover:border-purple-300/70 transition flex items-start justify-between gap-3 shadow-2xs"
               >
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -557,10 +542,10 @@ export const EmployerDashboardPage: React.FC = () => {
         {/* Left Column (2/3): Recent Applicants & Job Openings */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-5">
           {/* SECTION A: Recent Applicants Across All Vacancies */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/10 to-blue-500/10 border border-indigo-400/25 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
                   <UserCheck className="w-4 h-4" />
                 </div>
                 <div>
@@ -587,8 +572,8 @@ export const EmployerDashboardPage: React.FC = () => {
                     onClick={() => setApplicantFilter(tab.id as any)}
                     className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold transition shrink-0 cursor-pointer ${
                       applicantFilter === tab.id
-                        ? 'bg-indigo-600 text-white shadow-2xs'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-gray-200'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white/70 hover:bg-white text-slate-600 border border-white/80 shadow-2xs'
                     }`}
                   >
                     {tab.label} ({tab.count})
@@ -608,7 +593,7 @@ export const EmployerDashboardPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-gray-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr className="bg-slate-50/70 border-b border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wider backdrop-blur-xs">
                       <th className="py-2.5 px-4">{isKhmer ? 'បេក្ខជន' : 'Applicant'}</th>
                       <th className="py-2.5 px-4">{isKhmer ? 'ការងារដាក់ពាក្យ' : 'Applied Position'}</th>
                       <th className="py-2.5 px-4 hidden sm:table-cell">{isKhmer ? 'ប្រាក់ខែរំពឹង' : 'Expected'}</th>
@@ -616,9 +601,9 @@ export const EmployerDashboardPage: React.FC = () => {
                       <th className="py-2.5 px-4 text-right">{isKhmer ? 'សកម្មភាព' : 'Action'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs">
+                  <tbody className="divide-y divide-slate-100 text-xs">
                     {filteredApplicants.slice(0, 6).map((app: any) => (
-                      <tr key={app.id} className="hover:bg-slate-50/60 transition group">
+                      <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
                         <td className="py-2.5 px-4">
                           <div className="flex items-center space-x-2.5">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
@@ -682,9 +667,9 @@ export const EmployerDashboardPage: React.FC = () => {
           </div>
 
           {/* SECTION B: Job Vacancies Table (with Direct Edit Links!) */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm overflow-hidden">
             {/* Header + Tabs */}
-            <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xs sm:text-sm font-bold text-slate-900">
                   {isKhmer ? 'ការងារដែលបានផ្សាយ និងបេក្ខជន' : 'Job Openings & Candidate Pipeline'}
@@ -708,8 +693,8 @@ export const EmployerDashboardPage: React.FC = () => {
                     onClick={() => setFilterStatus(tab.id as any)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition shrink-0 cursor-pointer ${
                       filterStatus === tab.id
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-gray-200'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white/70 hover:bg-white text-slate-600 border border-white/80 shadow-2xs'
                     }`}
                   >
                     {tab.label} ({tab.count})
@@ -719,7 +704,7 @@ export const EmployerDashboardPage: React.FC = () => {
             </div>
 
             {/* Quick Search */}
-            <div className="px-4 sm:px-5 py-2.5 bg-slate-50/60 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="px-4 sm:px-5 py-2.5 bg-slate-50/50 backdrop-blur-xs border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="relative flex-1 max-w-md">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -727,7 +712,7 @@ export const EmployerDashboardPage: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={isKhmer ? 'ស្វែងរកតាមចំណងជើងការងារ ឬទីតាំង...' : 'Search by job title or location...'}
-                  className="w-full pl-9 pr-7 py-1.5 bg-white border border-gray-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+                  className="w-full pl-9 pr-7 py-1.5 bg-white/80 border border-white/90 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
                 />
                 {searchQuery && (
                   <button
@@ -766,7 +751,7 @@ export const EmployerDashboardPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-gray-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr className="bg-slate-50/70 border-b border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wider backdrop-blur-xs">
                       <th className="py-2.5 px-4">{isKhmer ? 'តំណែងការងារ' : 'Job Vacancy'}</th>
                       <th className="py-2.5 px-4 hidden md:table-cell">{isKhmer ? 'ទីតាំង' : 'Location'}</th>
                       <th className="py-2.5 px-4 hidden sm:table-cell">{isKhmer ? 'បៀវត្សរ៍' : 'Salary'}</th>
@@ -775,9 +760,9 @@ export const EmployerDashboardPage: React.FC = () => {
                       <th className="py-2.5 px-4 text-right">{isKhmer ? 'សកម្មភាព' : 'Actions'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs">
+                  <tbody className="divide-y divide-slate-100 text-xs">
                     {filteredJobs.slice(0, 6).map((job: any) => (
-                      <tr key={job.id} className="hover:bg-slate-50/60 transition group">
+                      <tr key={job.id} className="hover:bg-blue-50/40 transition-colors group">
                         <td className="py-3 px-4">
                           <div className="space-y-0.5">
                             <Link
@@ -850,16 +835,26 @@ export const EmployerDashboardPage: React.FC = () => {
         {/* Right Column (1/3): Company Profile Strength & Quick Management Shortcuts */}
         <div className="space-y-4 sm:space-y-5">
           {/* Company Profile Strength Card */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs p-4 sm:p-5 space-y-3.5">
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                {isKhmer ? 'កម្រិតបំពេញព័ត៌មានក្រុមហ៊ុន' : 'Profile Strength'}
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/25 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
+                  <Building className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    {isKhmer ? 'កម្រិតបំពេញព័ត៌មានក្រុមហ៊ុន' : 'Profile Strength'}
+                  </h3>
+                  <p className="text-[10px] text-slate-400">
+                    {isKhmer ? 'ភាពពេញលេញនៃម៉ាកសញ្ញាស្ថាប័ន' : 'Brand & company completeness'}
+                  </p>
+                </div>
+              </div>
               <span className="text-xs sm:text-sm font-bold text-blue-600">{companyScore}%</span>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-slate-100 rounded-full h-2.5 p-0.5 overflow-hidden border border-gray-200">
+            <div className="w-full bg-slate-200/50 backdrop-blur-xs rounded-full h-2.5 p-0.5 overflow-hidden border border-white/80">
               <div
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-500 shadow-2xs"
                 style={{ width: `${companyScore}%` }}
@@ -913,9 +908,11 @@ export const EmployerDashboardPage: React.FC = () => {
           </div>
 
           {/* AI Hiring Tip Card */}
-          <div className="bg-gradient-to-br from-indigo-50/70 to-blue-50/70 rounded-2xl border border-indigo-200/80 p-4 sm:p-5 space-y-2.5 shadow-2xs">
+          <div className="bg-gradient-to-br from-indigo-500/10 via-blue-500/5 to-white/80 backdrop-blur-xl rounded-2xl border border-indigo-300/40 p-4 sm:p-5 space-y-2.5 shadow-sm">
             <div className="flex items-center gap-2 text-indigo-800">
-              <Lightbulb className="w-4 h-4 text-indigo-600" />
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-400/30 text-indigo-600 flex items-center justify-center shadow-inner">
+                <Lightbulb className="w-3.5 h-3.5" />
+              </div>
               <h4 className="text-xs font-bold">{isKhmer ? 'គន្លឹះជ្រើសរើសបុគ្គលិកឆ្នើម' : 'Smart Hiring Insights'}</h4>
             </div>
             <p className="text-[11px] text-indigo-900 leading-relaxed font-normal">
@@ -926,7 +923,7 @@ export const EmployerDashboardPage: React.FC = () => {
           </div>
 
           {/* Quick Management Shortcuts */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs p-4 sm:p-5 space-y-1">
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-1">
             <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
               {isKhmer ? 'ផ្លូវកាត់គ្រប់គ្រង' : 'Management Shortcuts'}
             </span>
@@ -979,8 +976,8 @@ export const EmployerDashboardPage: React.FC = () => {
       {/* QUICK CANDIDATE REVIEW MODAL */}
       {selectedApplicant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
-            <div className="flex items-start justify-between pb-3 border-b border-gray-100">
+          <div className="bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/90 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-slate-200/60">
               <div className="flex items-center space-x-3">
                 <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-base flex items-center justify-center shrink-0 border border-indigo-200">
                   {selectedApplicant.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
@@ -1001,7 +998,7 @@ export const EmployerDashboardPage: React.FC = () => {
 
             {/* Applicant details */}
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50 border border-gray-100">
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50/80 border border-white/90">
                 <div className="flex items-center space-x-1.5 text-slate-600">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
                   <span className="truncate">{selectedApplicant.applicant_email || 'No email'}</span>
@@ -1026,7 +1023,7 @@ export const EmployerDashboardPage: React.FC = () => {
                   <span className="font-semibold text-slate-700 block mb-0.5">
                     {isKhmer ? 'ចំណងជើងវិជ្ជាជីវៈ' : 'Professional Headline'}:
                   </span>
-                  <p className="text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed">
+                  <p className="text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-white/90 leading-relaxed">
                     {selectedApplicant.applicant_headline}
                   </p>
                 </div>
@@ -1037,7 +1034,7 @@ export const EmployerDashboardPage: React.FC = () => {
                   <span className="font-semibold text-slate-700 block mb-0.5">
                     {isKhmer ? 'លិខិតអមពាក្យសុំ (Cover Letter)' : 'Cover Letter'}:
                   </span>
-                  <p className="text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed max-h-32 overflow-y-auto">
+                  <p className="text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-white/90 leading-relaxed max-h-32 overflow-y-auto">
                     {selectedApplicant.cover_letter}
                   </p>
                 </div>
@@ -1074,7 +1071,7 @@ export const EmployerDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
               <Link
                 to={`/employer/jobs/${selectedApplicant.job_id}/applications`}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"

@@ -202,6 +202,8 @@ class EmployerCompanyUploadView(APIView):
         upload_dir = settings.MEDIA_ROOT / "companies"
         os.makedirs(upload_dir, exist_ok=True)
 
+        upload_type = request.data.get("type", "logo")
+        prefix = "banner" if upload_type == "banner" else "logo"
         clean_name = re.sub(r"[^a-zA-Z0-9_\.-]", "_", uploaded_file.name)
         saved_filename = f"comp_{request.user.id}_{int(time.time())}_{clean_name}"
         file_dest = upload_dir / saved_filename
@@ -211,11 +213,29 @@ class EmployerCompanyUploadView(APIView):
                 destination.write(chunk)
 
         file_url = f"/media/companies/{saved_filename}"
+
+        # Persist the uploaded image URL immediately so the company profile
+        # actually gets updated even if the employer does not press "Save".
+        em_row = fetch_one(
+            "SELECT company_id FROM employer_members WHERE user_id = %s LIMIT 1",
+            [request.user.id],
+        )
+        saved = False
+        if em_row:
+            target_column = "banner_url" if upload_type == "banner" else "logo_url"
+            execute_sql(
+                f"UPDATE companies SET `{target_column}` = %s WHERE id = %s",
+                [file_url, em_row["company_id"]],
+            )
+            saved = True
+
         return Response({
             "success": True,
             "url": file_url,
             "filename": saved_filename,
-            "message": "Image uploaded successfully."
+            "type": upload_type,
+            "saved": saved,
+            "message": f"Company {prefix} uploaded and saved successfully."
         })
 
 

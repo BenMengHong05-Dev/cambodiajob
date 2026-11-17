@@ -22,10 +22,11 @@ export const companiesService = {
     return res.data.data
   },
 
-  async uploadCompanyImage(file: File): Promise<{ url: string; filename: string }> {
+  async uploadCompanyImage(file: File, type: 'logo' | 'banner' = 'logo'): Promise<{ url: string; filename: string; saved?: boolean }> {
     const formData = new FormData()
     formData.append('file', file)
-    const res = await api.post<ApiResponse<{ url: string; filename: string }>>('/employer/company/upload/', formData, {
+    formData.append('type', type)
+    const res = await api.post<ApiResponse<{ url: string; filename: string; saved?: boolean }>>('/employer/company/upload/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return (res.data as any).data || res.data

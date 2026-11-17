@@ -6,7 +6,8 @@ class RegisterSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, write_only=True)
     full_name = serializers.CharField(max_length=150)
     phone_number = serializers.CharField(max_length=50, required=False, allow_blank=True)
-    role = serializers.ChoiceField(choices=["job_seeker", "employer", "admin"], default="job_seeker")
+    # Public registration must never be allowed to create administrators.
+    role = serializers.ChoiceField(choices=["job_seeker", "employer"], default="job_seeker")
     # For employers, optional initial company name
     company_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
 

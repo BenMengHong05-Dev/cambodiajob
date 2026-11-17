@@ -80,7 +80,7 @@ export const LoginPage: React.FC = () => {
     )
 
     try {
-      const user = await login(email, password)
+      const user = await login(email, password, rememberMe)
       toast.dismiss(loadingToastId)
       toast.success(
         isKhmer ? 'ចូលប្រើប្រាស់ជោគជ័យ!' : 'Signed in successfully!',

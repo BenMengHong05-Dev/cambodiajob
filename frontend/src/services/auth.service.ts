@@ -21,24 +21,34 @@ export interface AuthResponseData {
   refresh: string
 }
 
+const clearStoredTokens = () => {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  sessionStorage.removeItem('access_token')
+  sessionStorage.removeItem('refresh_token')
+}
+
+const persistTokens = (data: AuthResponseData, remember: boolean) => {
+  clearStoredTokens()
+  const storage = remember ? localStorage : sessionStorage
+  storage.setItem('access_token', data.access)
+  storage.setItem('refresh_token', data.refresh)
+}
+
 export const authService = {
-  async login(payload: LoginPayload): Promise<AuthResponseData> {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+  async login(payload: LoginPayload, remember: boolean = true): Promise<AuthResponseData> {
+    clearStoredTokens()
     const res = await api.post<ApiResponse<AuthResponseData>>('/auth/login/', payload)
     const data = res.data.data
-    localStorage.setItem('access_token', data.access)
-    localStorage.setItem('refresh_token', data.refresh)
+    persistTokens(data, remember)
     return data
   },
 
-  async register(payload: RegisterPayload): Promise<AuthResponseData> {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+  async register(payload: RegisterPayload, remember: boolean = true): Promise<AuthResponseData> {
+    clearStoredTokens()
     const res = await api.post<ApiResponse<AuthResponseData>>('/auth/register/', payload)
     const data = res.data.data
-    localStorage.setItem('access_token', data.access)
-    localStorage.setItem('refresh_token', data.refresh)
+    persistTokens(data, remember)
     return data
   },
 
@@ -48,13 +58,11 @@ export const authService = {
     full_name?: string
     avatar_url?: string
     role?: 'job_seeker' | 'employer'
-  }): Promise<AuthResponseData> {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+  }, remember: boolean = true): Promise<AuthResponseData> {
+    clearStoredTokens()
     const res = await api.post<ApiResponse<AuthResponseData>>('/auth/oauth/', payload)
     const data = res.data.data
-    localStorage.setItem('access_token', data.access)
-    localStorage.setItem('refresh_token', data.refresh)
+    persistTokens(data, remember)
     return data
   },
 
@@ -64,7 +72,7 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    const refresh = localStorage.getItem('refresh_token')
+    const refresh = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
     try {
       if (refresh) {
         await api.post('/auth/logout/', { refresh_token: refresh })
@@ -72,8 +80,7 @@ export const authService = {
     } catch {
       // Ignore error during logout
     } finally {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+      clearStoredTokens()
     }
   },
 }

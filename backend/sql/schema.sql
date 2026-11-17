@@ -299,6 +299,19 @@ CREATE TABLE IF NOT EXISTS `notifications` (
     CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `email_logs` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `recipient_email` VARCHAR(255) NOT NULL,
+    `recipient_name` VARCHAR(150) NULL,
+    `subject` VARCHAR(500) NOT NULL,
+    `template_type` VARCHAR(100) NULL,
+    `status` VARCHAR(20) NOT NULL DEFAULT 'sent',
+    `error_message` TEXT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_email_logs_recipient` (`recipient_email`),
+    INDEX `idx_email_logs_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `reports` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `reporter_id` INT NOT NULL,

@@ -36,7 +36,7 @@ export const AdminSettingsPage: React.FC = () => {
   const { i18n } = useTranslation()
   const isKhmer = i18n.language === 'km'
   const { toast } = useToast()
-  const { updateLocalSettings } = useSiteSettings()
+  const { updateLocalSettings, refreshSettings } = useSiteSettings()
 
   const [activeTab, setActiveTab] = useState<'branding' | 'homepage' | 'announcement' | 'contact'>('branding')
   const [isLoading, setIsLoading] = useState(true)
@@ -128,22 +128,53 @@ export const AdminSettingsPage: React.FC = () => {
       const res = await adminService.uploadLogo(file, type)
       if (res && res.url) {
         handleChange(type === 'logo' ? 'logo_url' : 'favicon_url', res.url)
+        // Refresh global site settings so Navbar/Footer/Admin sidebar show
+        // the new image immediately without a full page reload.
+        await refreshSettings()
         toast.success(
           isKhmer
-            ? `បានជ្រើសរើស ${type === 'logo' ? 'រូបសញ្ញា Logo' : 'Favicon'} ពីកុំព្យូទ័រដោយជោគជ័យ!`
-            : `${type === 'logo' ? 'Logo' : 'Favicon'} selected and uploaded from PC!`,
-          isKhmer ? 'កុំភ្លេចចុចរក្សាទុកការកែប្រែ' : 'Remember to save changes to persist settings'
+            ? `បានផ្ទុកឡើង ${type === 'logo' ? 'រូបសញ្ញា Logo' : 'Favicon'} ដោយជោគជ័យ!`
+            : `${type === 'logo' ? 'Logo' : 'Favicon'} uploaded and saved!`,
+          isKhmer
+            ? 'រូបភាពត្រូវបានរក្សាទុកភ្លាមៗ (ការកែប្រែផ្សេងទៀតត្រូវចុចរក្សាទុក)'
+            : 'Image saved automatically (other changes still need Save)'
         )
       }
     } catch (err: any) {
       console.error(`Failed to upload ${type}:`, err)
       toast.error(
         isKhmer ? `បរាជ័យក្នុងការបញ្ចូលរូបភាព ${type}` : `Failed to upload ${type}`,
-        err?.response?.data?.message || 'Error uploading file from PC'
+        err?.response?.data?.details?.file ||
+          err?.response?.data?.error ||
+          'Error uploading file from PC'
       )
     } finally {
       if (type === 'logo') setIsUploadingLogo(false)
       else setIsUploadingFavicon(false)
+    }
+  }
+
+  const handleRemoveImage = async (type: 'logo' | 'favicon') => {
+    const field = type === 'logo' ? 'logo_url' : 'favicon_url'
+    const previous = formData[field]
+
+    handleChange(field, null)
+
+    try {
+      const res = await adminService.updateSettings(
+        type === 'logo' ? { logo_url: null } : { favicon_url: null }
+      )
+      if (res?.data) updateLocalSettings(res.data)
+      toast.success(
+        isKhmer ? 'បានដករូបភាពចេញ' : 'Image Removed',
+        isKhmer ? 'រូបភាពត្រូវបានដកចេញ និងរក្សាទុកដោយជោគជ័យ' : 'The image was removed and saved.'
+      )
+    } catch (err: any) {
+      handleChange(field, previous)
+      toast.error(
+        isKhmer ? 'បរាជ័យ' : 'Remove Failed',
+        err?.response?.data?.message || (isKhmer ? 'មិនអាចដករូបភាពបានទេ' : 'Could not remove the image.')
+      )
     }
   }
 
@@ -486,7 +517,7 @@ export const AdminSettingsPage: React.FC = () => {
                   {formData.logo_url && (
                     <button
                       type="button"
-                      onClick={() => handleChange('logo_url', null)}
+                      onClick={() => handleRemoveImage('logo')}
                       className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition"
                       title={isKhmer ? 'ដករូបចេញ' : 'Remove logo'}
                     >
@@ -668,7 +699,7 @@ export const AdminSettingsPage: React.FC = () => {
                   {formData.favicon_url && (
                     <button
                       type="button"
-                      onClick={() => handleChange('favicon_url', null)}
+                      onClick={() => handleRemoveImage('favicon')}
                       className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition"
                       title={isKhmer ? 'ដករូបចេញ' : 'Remove favicon'}
                     >
@@ -679,7 +710,26 @@ export const AdminSettingsPage: React.FC = () => {
                 </div>
 
                 {/* Favicon Simulation Mockup (Shows what it looks like on real browser tab) */}
-                <div className="p-3 bg-slate-100 rounded-2xl border border-slate-200/80">
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    setIsDragOverFavicon(true)
+                  }}
+                  onDragLeave={() => setIsDragOverFavicon(false)}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    setIsDragOverFavicon(false)
+                    const file = e.dataTransfer.files?.[0]
+                    if (file) handleFileUpload(file, 'favicon')
+                  }}
+                  onClick={() => faviconInputRef.current?.click()}
+                  title={isKhmer ? 'ចុច ឬអូសទម្លាក់ Favicon ពីកុំព្យូទ័រ' : 'Click or drop a favicon file from your computer'}
+                  className={`p-3 rounded-2xl border-2 border-dashed cursor-pointer transition ${
+                    isDragOverFavicon
+                      ? 'border-blue-500 bg-blue-50/80'
+                      : 'border-slate-200/80 bg-slate-100 hover:border-blue-400'
+                  }`}
+                >
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
                     {isKhmer ? 'ការបង្ហាញលើ Browser Tab (Browser Tab Simulation)' : 'Browser Tab Mockup'}
                   </span>

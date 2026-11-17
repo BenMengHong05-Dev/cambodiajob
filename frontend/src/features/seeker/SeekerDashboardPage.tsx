@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { seekerService } from '../../services/seeker.service'
@@ -9,6 +9,8 @@ import { formatSalaryRange } from '../../utils/currency'
 import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
 import { AICareerChart } from '../../components/ai/AICareerChart'
 import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
+import { StatCard } from '../../components/dashboard/StatCard'
+import { QuickActions } from '../../components/dashboard/QuickActions'
 import { getAssetUrl } from '../../utils/assets'
 import {
   Briefcase,
@@ -29,15 +31,12 @@ import {
   ExternalLink,
   MapPin,
   RefreshCw,
-  Award,
   Zap,
-  Filter,
 } from 'lucide-react'
 
 export const SeekerDashboardPage: React.FC = () => {
   const { user } = useAuth()
   const { i18n } = useTranslation()
-  const navigate = useNavigate()
   const isKhmer = i18n.language === 'km'
 
   const [profile, setProfile] = useState<SeekerProfile | null>(null)
@@ -399,101 +398,63 @@ export const SeekerDashboardPage: React.FC = () => {
       {/* 3. Glassmorphic 4-Column Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Total Submitted */}
-        <Link
+        <StatCard
           to="/seeker/applications"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-blue-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'ពាក្យសុំបានដាក់' : 'Applied Jobs'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/20 text-blue-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Briefcase className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">
-              {submittedCount}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'សរុប' : 'Total'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ពាក្យសុំបានដាក់' : 'Applied Jobs'}
+          value={submittedCount}
+          icon={Briefcase}
+          accent="blue"
+          badge={isKhmer ? 'សរុប' : 'Total'}
+        />
 
         {/* Metric 2: Under Review */}
-        <Link
+        <StatCard
           to="/seeker/applications"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'កំពុងត្រួតពិនិត្យ' : 'In Screening'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-400/20 text-amber-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-amber-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors tracking-tight">
-              {inReviewCount}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'ដំណើរការ' : 'Active'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'កំពុងត្រួតពិនិត្យ' : 'In Screening'}
+          value={inReviewCount}
+          icon={Clock}
+          accent="amber"
+          badge={isKhmer ? 'ដំណើរការ' : 'Active'}
+          tone="warning"
+        />
 
         {/* Metric 3: Interviews */}
-        <Link
+        <StatCard
           to="/seeker/applications"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-indigo-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'ការសម្ភាសន៍' : 'Interviews'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-400/20 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
-              {interviewCount}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'ជិតមកដល់' : 'Scheduled'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ការសម្ភាសន៍' : 'Interviews'}
+          value={interviewCount}
+          icon={Calendar}
+          accent="indigo"
+          badge={isKhmer ? 'ជិតមកដល់' : 'Scheduled'}
+          tone="info"
+        />
 
         {/* Metric 4: Saved Jobs */}
-        <Link
+        <StatCard
           to="/seeker/saved"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-sky-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'ការងាររក្សាទុក' : 'Saved Jobs'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 border border-sky-400/20 text-sky-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-sky-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Bookmark className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors tracking-tight">
-              {savedCount}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'កត់ចំណាំ' : 'Bookmarked'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ការងាររក្សាទុក' : 'Saved Jobs'}
+          value={savedCount}
+          icon={Bookmark}
+          accent="sky"
+          badge={isKhmer ? 'កត់ចំណាំ' : 'Bookmarked'}
+        />
       </div>
+
+      {/* Quick action rail */}
+      <QuickActions
+        hint={isKhmer ? `ប្រវត្តិរូបបំពេញ ${profileScore}%` : `Profile ${profileScore}% complete`}
+        actions={[
+          { to: '/jobs', label: isKhmer ? 'ស្វែងរកការងារ' : 'Browse Jobs', icon: Search },
+          {
+            to: '/seeker/applications',
+            label: isKhmer ? 'ពាក្យសុំរបស់ខ្ញុំ' : 'My Applications',
+            icon: FileText,
+            badge: applications.length,
+          },
+          { to: '/seeker/saved', label: isKhmer ? 'ការងាររក្សាទុក' : 'Saved Jobs', icon: Bookmark, badge: savedCount },
+          { to: '/seeker/profile', label: isKhmer ? 'ប្រវត្តិរូបរបស់ខ្ញុំ' : 'Update Profile', icon: User },
+        ]}
+      />
 
       {/* 4. Upcoming Interview Banner (if any) */}
       {upcomingInterviews.length > 0 && (

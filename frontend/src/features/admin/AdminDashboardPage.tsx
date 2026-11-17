@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
 import { AdminLineChart } from './AdminLineChart'
+import { StatCard } from '../../components/dashboard/StatCard'
+import { QuickActions } from '../../components/dashboard/QuickActions'
 import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
 import { getAssetUrl } from '../../utils/assets'
 import {
@@ -17,14 +18,11 @@ import {
   RefreshCw,
   History,
   Shield,
-  Sparkles,
-  TrendingUp,
   Layers,
   Plus,
 } from 'lucide-react'
 
 export const AdminDashboardPage: React.FC = () => {
-  const { user } = useAuth()
   const { i18n } = useTranslation()
   const isKhmer = i18n.language === 'km'
 
@@ -205,167 +203,65 @@ export const AdminDashboardPage: React.FC = () => {
       {/* 2. Glassmorphic Four Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Total Users */}
-        <Link
+        <StatCard
           to="/admin/users"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-blue-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'អ្នកប្រើប្រាស់សរុប' : 'Total Users'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/20 text-blue-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight">
-              {stats.total_users || 0}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'គណនី' : 'Accounts'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'អ្នកប្រើប្រាស់សរុប' : 'Total Users'}
+          value={stats.total_users || 0}
+          icon={Users}
+          accent="blue"
+          badge={isKhmer ? 'គណនី' : 'Accounts'}
+        />
 
         {/* Metric 2: Registered Companies */}
-        <Link
+        <StatCard
           to="/admin/companies"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-indigo-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'ក្រុមហ៊ុនចុះឈ្មោះ' : 'Enterprises'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-400/20 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Building2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors tracking-tight">
-              {stats.total_companies || 0}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'សហគ្រាស' : 'Companies'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ក្រុមហ៊ុនចុះឈ្មោះ' : 'Enterprises'}
+          value={stats.total_companies || 0}
+          icon={Building2}
+          accent="indigo"
+          badge={isKhmer ? 'សហគ្រាស' : 'Companies'}
+        />
 
         {/* Metric 3: Published Live Jobs */}
-        <Link
+        <StatCard
           to="/admin/jobs"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-sky-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'ការងារផ្សាយសកម្ម' : 'Published Jobs'}
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 border border-sky-400/20 text-sky-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-sky-600 group-hover:text-white transition-all duration-200 shadow-inner">
-              <Briefcase className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors tracking-tight">
-              {stats.published_jobs || 0}
-            </span>
-            <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-              {isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live now'}
-            </span>
-          </div>
-        </Link>
+          label={isKhmer ? 'ការងារផ្សាយសកម្ម' : 'Published Jobs'}
+          value={stats.published_jobs || 0}
+          icon={Briefcase}
+          accent="sky"
+          badge={isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live now'}
+          tone="success"
+        />
 
         {/* Metric 4: Moderation Queue */}
-        <Link
+        <StatCard
           to="/admin/companies"
-          className="glass-card-hover p-4 sm:p-5 rounded-2xl relative overflow-hidden group block cursor-pointer"
-        >
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="flex items-center justify-between relative z-10">
-            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-800 transition-colors">
-              {isKhmer ? 'រង់ចាំការត្រួតពិនិត្យ' : 'Pending Review'}
-            </span>
-            <div
-              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-200 shadow-inner ${pendingReviewTotal > 0
-                  ? 'bg-gradient-to-br from-amber-500/15 to-orange-500/15 text-amber-600 border-amber-400/30'
-                  : 'bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-600 border-blue-400/20'
-                }`}
-            >
-              <AlertCircle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3.5 flex items-baseline justify-between relative z-10">
-            <span
-              className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${pendingReviewTotal > 0 ? 'text-amber-600' : 'text-slate-900 group-hover:text-blue-600 transition-colors'
-                }`}
-            >
-              {pendingReviewTotal}
-            </span>
-            {pendingReviewTotal > 0 ? (
-              <span className="text-[10px] sm:text-[11px] font-semibold text-amber-700 bg-amber-500/15 border border-amber-400/30 px-2.5 py-0.5 rounded-full shadow-2xs">
-                {isKhmer ? 'ត្រូវការពិនិត្យ' : 'Queue'}
-              </span>
-            ) : (
-              <span className="text-[10px] font-semibold text-slate-500 bg-white/80 border border-slate-200/60 backdrop-blur-xs px-2 py-0.5 rounded-full shadow-2xs">
-                {isKhmer ? 'រួចរាល់' : 'Clear'}
-              </span>
-            )}
-          </div>
-        </Link>
+          label={isKhmer ? 'រង់ចាំការត្រួតពិនិត្យ' : 'Pending Review'}
+          value={pendingReviewTotal}
+          icon={AlertCircle}
+          accent={pendingReviewTotal > 0 ? 'amber' : 'blue'}
+          valueClassName={pendingReviewTotal > 0 ? 'text-amber-600' : undefined}
+          tone={pendingReviewTotal > 0 ? 'warning' : 'neutral'}
+          badge={pendingReviewTotal > 0 ? (isKhmer ? 'ត្រូវការពិនិត្យ' : 'Queue') : (isKhmer ? 'រួចរាល់' : 'Clear')}
+        />
       </div>
 
       {/* 2.5 Quick Action Hub */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <Link
-            to="/admin/categories"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
-          >
-            <Layers className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'ផ្នែកការងារ & បង្កើត' : 'Job Categories'}</span>
-            <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.2 rounded-full font-bold">
-              {stats.total_categories || 12}
-            </span>
-          </Link>
-
-          <Link
-            to="/admin/users"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
-          >
-            <Users className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់' : 'Users & Roles'}</span>
-          </Link>
-
-          <Link
-            to="/admin/companies"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
-          >
-            <Building2 className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន' : 'Verify Companies'}</span>
-          </Link>
-
-          <Link
-            to="/admin/jobs"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
-          >
-            <Briefcase className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'ត្រួតពិនិត្យការងារ' : 'Moderate Jobs'}</span>
-          </Link>
-
-          <Link
-            to="/admin/audit"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white/80 hover:bg-white hover:text-blue-600 border border-white/80 shadow-2xs transition-all"
-          >
-            <History className="w-3.5 h-3.5 text-slate-500" />
-            <span>{isKhmer ? 'កំណត់ហេតុ Audit' : 'Audit Trail'}</span>
-          </Link>
-        </div>
-
-        <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
-          {isKhmer ? 'ទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាពផ្ទាល់' : 'Synced with MySQL Database'}
-        </div>
-      </div>
+      <QuickActions
+        hint={isKhmer ? 'ទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាពផ្ទាល់' : 'Synced with MySQL Database'}
+        actions={[
+          {
+            to: '/admin/categories',
+            label: isKhmer ? 'ផ្នែកការងារ & បង្កើត' : 'Job Categories',
+            icon: Layers,
+            badge: stats.total_categories || 12,
+          },
+          { to: '/admin/users', label: isKhmer ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់' : 'Users & Roles', icon: Users },
+          { to: '/admin/companies', label: isKhmer ? 'ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន' : 'Verify Companies', icon: Building2 },
+          { to: '/admin/jobs', label: isKhmer ? 'ត្រួតពិនិត្យការងារ' : 'Moderate Jobs', icon: Briefcase },
+          { to: '/admin/audit', label: isKhmer ? 'កំណត់ហេតុ Audit' : 'Audit Trail', icon: History },
+        ]}
+      />
 
       {/* 3. Attention Alert Banner if pending items exist */}
       {pendingReviewTotal > 0 && (

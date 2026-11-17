@@ -122,16 +122,20 @@ export const EmployerCompanyProfilePage: React.FC = () => {
 
     setIsUploadingLogo(true)
     try {
-      const res = await companiesService.uploadCompanyImage(file)
+      const res = await companiesService.uploadCompanyImage(file, 'logo')
       if (res && res.url) {
         setLogoUrl(res.url)
+        setShowLogoUrlInput(true)
         toast.success(
           isKhmer ? 'បានផ្ទុកឡើងរូបសញ្ញា' : 'Logo Uploaded',
-          isKhmer ? 'រូបសញ្ញាក្រុមហ៊ុនត្រូវបានផ្ទុកឡើងដោយជោគជ័យ' : 'Company logo has been uploaded.'
+          isKhmer ? 'រូបសញ្ញាក្រុមហ៊ុនត្រូវបានផ្ទុកឡើង និងរក្សាទុកដោយជោគជ័យ' : 'Company logo uploaded and saved.'
         )
       }
     } catch (err: any) {
-      const msg = err.response?.data?.file || 'Failed to upload logo image.'
+      const msg =
+        err?.response?.data?.details?.file ||
+        err?.response?.data?.error ||
+        'Failed to upload logo image.'
       toast.error('Upload Failed', String(msg))
     } finally {
       setIsUploadingLogo(false)
@@ -156,20 +160,55 @@ export const EmployerCompanyProfilePage: React.FC = () => {
 
     setIsUploadingBanner(true)
     try {
-      const res = await companiesService.uploadCompanyImage(file)
+      const res = await companiesService.uploadCompanyImage(file, 'banner')
       if (res && res.url) {
         setBannerUrl(res.url)
+        setShowBannerUrlInput(true)
         toast.success(
           isKhmer ? 'បានផ្ទុកឡើងផ្ទាំងរូបភាព' : 'Banner Uploaded',
-          isKhmer ? 'ផ្ទាំងរូបភាពក្រុមហ៊ុនត្រូវបានផ្ទុកឡើងដោយជោគជ័យ' : 'Company banner has been uploaded.'
+          isKhmer ? 'ផ្ទាំងរូបភាពក្រុមហ៊ុនត្រូវបានផ្ទុកឡើង និងរក្សាទុកដោយជោគជ័យ' : 'Company banner uploaded and saved.'
         )
       }
     } catch (err: any) {
-      const msg = err.response?.data?.file || 'Failed to upload banner image.'
+      const msg =
+        err?.response?.data?.details?.file ||
+        err?.response?.data?.error ||
+        'Failed to upload banner image.'
       toast.error('Upload Failed', String(msg))
     } finally {
       setIsUploadingBanner(false)
       if (bannerInputRef.current) bannerInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveImage = async (type: 'logo' | 'banner') => {
+    const previousLogo = logoUrl
+    const previousBanner = bannerUrl
+
+    if (type === 'logo') setLogoUrl('')
+    else setBannerUrl('')
+
+    try {
+      const updated = await companiesService.updateEmployerCompany(
+        type === 'logo' ? { logo_url: null } : { banner_url: null }
+      )
+      if (updated) {
+        setCompany(updated)
+        setLogoUrl(updated.logo_url || '')
+        setBannerUrl(updated.banner_url || '')
+      }
+      toast.success(
+        isKhmer ? 'បានដករូបភាពចេញ' : 'Image Removed',
+        isKhmer ? 'រូបភាពត្រូវបានដកចេញ និងរក្សាទុកដោយជោគជ័យ' : 'The image was removed and saved.'
+      )
+    } catch {
+      // Revert the preview if the server failed to clear the image.
+      setLogoUrl(previousLogo)
+      setBannerUrl(previousBanner)
+      toast.error(
+        isKhmer ? 'បរាជ័យ' : 'Remove Failed',
+        isKhmer ? 'មិនអាចដករូបភាពបានទេ។ សូមព្យាយាមម្តងទៀត។' : 'Could not remove the image. Please try again.'
+      )
     }
   }
 
@@ -178,10 +217,11 @@ export const EmployerCompanyProfilePage: React.FC = () => {
     setIsSaving(true)
     setMessage(null)
     try {
-      await companiesService.updateEmployerCompany({
+      const updated = await companiesService.updateEmployerCompany({
         name: name.trim(),
-        logo_url: logoUrl.trim() || undefined,
-        banner_url: bannerUrl.trim() || undefined,
+        // Send null (not undefined) so an intentionally removed image is cleared in the DB.
+        logo_url: logoUrl.trim() || null,
+        banner_url: bannerUrl.trim() || null,
         description,
         website: website.trim() || undefined,
         industry: industry.trim() || undefined,
@@ -190,6 +230,11 @@ export const EmployerCompanyProfilePage: React.FC = () => {
         city: city.trim() || undefined,
         address: address.trim() || undefined,
       })
+      if (updated) {
+        setCompany(updated)
+        setLogoUrl(updated.logo_url || '')
+        setBannerUrl(updated.banner_url || '')
+      }
       toast.success(
         isKhmer ? 'បានរក្សាទុក' : 'Changes Saved',
         isKhmer ? 'ព័ត៌មានក្រុមហ៊ុនត្រូវបានកែប្រែដោយជោគជ័យ!' : 'Company profile updated successfully!'
@@ -337,7 +382,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                       {logoUrl && (
                         <button
                           type="button"
-                          onClick={() => setLogoUrl('')}
+                          onClick={() => handleRemoveImage('logo')}
                           className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-gray-200 transition cursor-pointer shadow-2xs"
                           title="Remove Logo"
                         >
@@ -411,7 +456,7 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                   {bannerUrl && (
                     <button
                       type="button"
-                      onClick={() => setBannerUrl('')}
+                      onClick={() => handleRemoveImage('banner')}
                       className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-gray-200 transition cursor-pointer shadow-2xs"
                       title="Remove Banner"
                     >

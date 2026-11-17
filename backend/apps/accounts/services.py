@@ -27,6 +27,9 @@ def register_user(validated_data: dict) -> dict:
     full_name = validated_data["full_name"].strip()
     phone_number = validated_data.get("phone_number", "").strip() or None
     role_name = validated_data.get("role", "job_seeker")
+    # Defense in depth: never allow privilege escalation through public registration.
+    if role_name not in ("job_seeker", "employer"):
+        raise ValidationError({"role": "Only job_seeker and employer accounts can be self-registered."})
     company_name = validated_data.get("company_name", "").strip()
 
     # 1. Check existing email

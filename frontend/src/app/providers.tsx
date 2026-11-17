@@ -15,15 +15,15 @@ interface AuthContextType {
   isAdmin: boolean
   isSuperAdmin: boolean
   dashboardPath: string
-  login: (email: string, pass: string) => Promise<User>
-  register: (payload: any) => Promise<User>
+  login: (email: string, pass: string, remember?: boolean) => Promise<User>
+  register: (payload: any, remember?: boolean) => Promise<User>
   oauthLogin: (payload: {
     provider: 'google' | 'linkedin'
     email: string
     full_name?: string
     avatar_url?: string
     role?: 'job_seeker' | 'employer'
-  }) => Promise<User>
+  }, remember?: boolean) => Promise<User>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -123,7 +123,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
   }, [language])
 
   const refreshUser = async () => {
-    const token = localStorage.getItem('access_token')
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token')
     if (!token) {
       setUser(null)
       setIsLoading(false)
@@ -135,6 +135,8 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     } catch {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      sessionStorage.removeItem('access_token')
+      sessionStorage.removeItem('refresh_token')
       setUser(null)
     } finally {
       setIsLoading(false)
@@ -151,10 +153,10 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     return () => window.removeEventListener('auth:logout', handleLogoutEvent)
   }, [])
 
-  const login = async (email: string, pass: string) => {
+  const login = async (email: string, pass: string, remember: boolean = true) => {
     setIsLoading(true)
     try {
-      const res = await authService.login({ email, password: pass })
+      const res = await authService.login({ email, password: pass }, remember)
       setUser(res.user)
       return res.user
     } finally {
@@ -162,10 +164,10 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     }
   }
 
-  const register = async (payload: any) => {
+  const register = async (payload: any, remember: boolean = true) => {
     setIsLoading(true)
     try {
-      const res = await authService.register(payload)
+      const res = await authService.register(payload, remember)
       setUser(res.user)
       return res.user
     } finally {
@@ -179,10 +181,10 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     full_name?: string
     avatar_url?: string
     role?: 'job_seeker' | 'employer'
-  }) => {
+  }, remember: boolean = true) => {
     setIsLoading(true)
     try {
-      const res = await authService.oauthLogin(payload)
+      const res = await authService.oauthLogin(payload, remember)
       setUser(res.user)
       return res.user
     } finally {
