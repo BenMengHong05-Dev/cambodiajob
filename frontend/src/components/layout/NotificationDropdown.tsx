@@ -160,7 +160,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
         className={`w-9 h-9 rounded-full flex items-center justify-center transition-all relative border cursor-pointer ${
           isOpen
             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-md shadow-blue-500/20'
-            : 'bg-white/80 hover:bg-white text-slate-700 hover:text-blue-600 border-white/80 hover:border-blue-300/80 shadow-2xs backdrop-blur-md'
+            : 'bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border-slate-200/80 dark:border-slate-700 hover:border-blue-300/80 dark:hover:border-blue-500/50 shadow-2xs backdrop-blur-md'
         }`}
         title={isKhmer ? 'ការជូនដំណឹង' : 'Notifications'}
         aria-label="Notifications"
@@ -181,15 +181,15 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
 
       {/* Dropdown Panel (Clear Glassmorphism) */}
       {isOpen && (
-        <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl glass-dropdown bg-white/85 backdrop-blur-2xl shadow-2xl shadow-blue-950/10 border border-white/90 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl glass-dropdown bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-2xl shadow-blue-950/10 dark:shadow-slate-950/50 border border-slate-200/90 dark:border-slate-800 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="px-4 py-3 bg-white/60 backdrop-blur-md border-b border-white/80 flex items-center justify-between">
+          <div className="px-4 py-3 bg-white/80 dark:bg-slate-850 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-slate-900 text-sm">
+              <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                 {isKhmer ? 'ការជូនដំណឹង' : 'Notifications'}
               </span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-700 border border-rose-400/25">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-400/25">
                   {unreadCount} {isKhmer ? 'ថ្មី' : 'new'}
                 </span>
               )}
@@ -199,7 +199,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition flex items-center space-x-1 cursor-pointer"
+                className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition flex items-center space-x-1 cursor-pointer"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>{isKhmer ? 'សម្គាល់ថាអានរួច' : 'Mark all read'}</span>
@@ -208,16 +208,16 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
           </div>
 
           {/* List of Notifications */}
-          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100/80">
+          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100/80 dark:divide-slate-800">
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2">
                   <Bell className="w-5 h-5" />
                 </div>
-                <p className="text-xs font-bold text-slate-700">
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
                   {isKhmer ? 'មិនមានការជូនដំណឹងថ្មីទេ' : 'No new notifications'}
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                   {isKhmer ? 'អ្នកបានអានព័ត៌មានទាំងអស់រួចរាល់ហើយ' : 'You are all caught up!'}
                 </p>
               </div>
@@ -229,8 +229,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
                   <div
                     key={item.id}
                     onClick={(e) => handleMarkAsRead(item, e)}
-                    className={`p-3.5 flex items-start space-x-3 transition cursor-pointer hover:bg-blue-50/50 ${
-                      isUnread ? 'bg-blue-50/30' : 'bg-transparent'
+                    className={`p-3.5 flex items-start space-x-3 transition cursor-pointer hover:bg-blue-50/50 dark:hover:bg-slate-800/60 ${
+                      isUnread ? 'bg-blue-50/30 dark:bg-blue-950/30' : 'bg-transparent'
                     }`}
                   >
                     {/* Icon */}
@@ -239,14 +239,14 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <h4 className="text-xs font-bold text-slate-900 truncate">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                           {isKhmer && item.title_km ? item.title_km : item.title}
                         </h4>
-                        <span className="text-[10px] text-slate-400 shrink-0 font-medium">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 font-medium">
                           {formatRelativeTime(item.created_at)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
                         {isKhmer && item.message_km ? item.message_km : item.message}
                       </p>
                     </div>
@@ -262,11 +262,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
           </div>
 
           {/* Footer View All */}
-          <div className="p-2.5 bg-white/60 backdrop-blur-md border-t border-white/80 text-center">
+          <div className="p-2.5 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 text-center">
             <Link
               to={role === 'employer' ? '/employer/applications' : '/seeker/notifications'}
               onClick={() => setIsOpen(false)}
-              className="inline-flex items-center justify-center space-x-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 transition py-1"
+              className="inline-flex items-center justify-center space-x-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition py-1"
             >
               <span>{isKhmer ? 'មើលការជូនដំណឹងទាំងអស់' : 'View all notifications'}</span>
               <ExternalLink className="w-3 h-3" />

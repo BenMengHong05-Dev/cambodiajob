@@ -245,12 +245,17 @@ html.dark .border-slate-100:not([class*="dark:border-"]),
 html.dark .border-slate-200:not([class*="dark:border-"]),
 html.dark .border-slate-200\/80:not([class*="dark:border-"]),
 html.dark .border-slate-200\/90:not([class*="dark:border-"]),
-html.dark .border-slate-300:not([class*="dark:border-"]) {
+html.dark .border-slate-300:not([class*="dark:border-"]),
+html.dark .border-gray-100:not([class*="dark:border-"]),
+html.dark .border-gray-200:not([class*="dark:border-"]),
+html.dark .border-gray-300:not([class*="dark:border-"]) {
   border-color: #1e293b;
 }
 
 html.dark .hover\:bg-slate-50:hover,
-html.dark .hover\:bg-slate-100:hover {
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover {
   background-color: #1e293b;
 }
 
@@ -268,7 +273,7 @@ html.dark .workspace-layout main .card-clear {
 }
 
 html.dark .glass-sidebar {
-  background: rgba(11, 15, 25, 0.92) !important;
+  background: rgba(11, 15, 25, 0.95) !important;
   border-right-color: rgba(30, 41, 59, 0.85) !important;
 }
 
@@ -278,16 +283,23 @@ html.dark .glass-topbar {
 }
 
 html.dark .glass-dropdown {
-  background: rgba(17, 24, 39, 0.95) !important;
+  background: rgba(17, 24, 39, 0.98) !important;
   border-color: rgba(30, 41, 59, 0.9) !important;
 }
 
 html.dark input,
 html.dark select,
 html.dark textarea {
-  background-color: #1e293b !important;
+  background-color: #111827 !important;
   color: #f8fafc !important;
-  border-color: #334155 !important;
+  border-color: #374151 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
 }
 
 html.dark input::placeholder,

@@ -316,12 +316,12 @@ export const SeekerProfilePage: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-5 font-sans w-full pb-16">
       {/* 1. SaaS Page Header */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900/90 p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             {isKhmer ? 'ប្រវត្តិរូប និង CV' : 'Profile & Resumes'}
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {isKhmer
               ? 'គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន បទពិសោធន៍ការងារ ការអប់រំ ជំនាញ និងឯកសារ CV របស់អ្នក'
               : 'Manage your contact details, professional headline, work history, education, and resume files'}
@@ -332,7 +332,7 @@ export const SeekerProfilePage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsPreviewCvOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-98 text-white text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
             title={isKhmer ? 'មើល និងទាញយកប្រវត្តិរូប CV' : 'Preview and Export Resume CV'}
           >
             <Printer className="w-3.5 h-3.5" />
@@ -342,16 +342,16 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 2. Personal Information Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
-        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-gray-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
             <User className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               {isKhmer ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isKhmer ? 'កែប្រែឈ្មោះ លេខទូរស័ព្ទ និងសេចក្ដីសង្ខេបអំពីខ្លួនអ្នក' : 'Keep your contact and headline details up to date'}
             </p>
           </div>
@@ -473,16 +473,16 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 3. CV & Resume Files Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
-        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-gray-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
             <FileText className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               {isKhmer ? 'ឯកសារប្រវត្តិរូប និង CV' : 'CV & Resume Files'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isKhmer ? 'ផ្ទុកឡើងឯកសារ PDF ឬ Word សម្រាប់ដាក់ពាក្យការងារ' : 'Upload your PDF or Word documents for job applications'}
             </p>
           </div>
@@ -494,20 +494,20 @@ export const SeekerProfilePage: React.FC = () => {
             profile.resumes.map((resume) => (
               <div
                 key={resume.id}
-                className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 bg-slate-50/60 hover:bg-slate-50 transition shadow-2xs"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-2xs"
               >
                 <div className="flex items-center space-x-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100/70 text-blue-700 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100/70 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <h4 className="text-xs font-bold text-slate-900 truncate">{resume.title}</h4>
-                    <p className="text-[11px] text-slate-500">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{resume.title}</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {(resume.file_size / 1024).toFixed(0)} KB • {isKhmer ? 'ផ្ទុកឡើង' : 'Uploaded'} {new Date(resume.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   {resume.is_primary && (
-                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-50 text-blue-700 border border-gray-200 rounded-md shrink-0">
+                    <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-gray-200 dark:border-blue-800/40 rounded-md shrink-0">
                       {isKhmer ? 'CV ចម្បង' : 'Primary CV'}
                     </span>
                   )}
@@ -515,7 +515,7 @@ export const SeekerProfilePage: React.FC = () => {
 
                 <button
                   onClick={() => setDeletingItem({ type: 'resume', id: resume.id, title: resume.title })}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition shrink-0 cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition shrink-0 cursor-pointer"
                   title={isKhmer ? 'លុប CV' : 'Delete Resume'}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -523,16 +523,16 @@ export const SeekerProfilePage: React.FC = () => {
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-400 italic py-2">
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">
               {isKhmer ? 'មិនទាន់មានឯកសារ CV ផ្ទុកឡើងនៅឡើយទេ។' : 'No resumes uploaded yet.'}
             </p>
           )}
         </div>
 
         {/* Upload Form */}
-        <form onSubmit={handleUploadResume} className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row gap-3 items-end">
+        <form onSubmit={handleUploadResume} className="pt-3 border-t border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row gap-3 items-end">
           <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               {isKhmer ? 'ចំណងជើង CV' : 'Resume Title'}
             </label>
             <input
@@ -540,26 +540,26 @@ export const SeekerProfilePage: React.FC = () => {
               value={resumeTitle}
               onChange={(e) => setResumeTitle(e.target.value)}
               placeholder="e.g. Sokha_Meas_Senior_Developer_CV"
-              className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+              className="w-full text-xs p-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
             />
           </div>
 
           <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               {isKhmer ? 'ជ្រើសរើសឯកសារ (PDF / DOCX)' : 'Upload File (PDF / DOCX)'}
             </label>
             <input
               type="file"
               accept=".pdf,.doc,.docx"
               onChange={(e) => setCvFile(e.target.files?.[0] || null)}
-              className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100/80 cursor-pointer text-slate-500 border border-gray-200 rounded-xl p-1.5 bg-white shadow-2xs"
+              className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 dark:file:bg-blue-950/60 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-100/80 cursor-pointer text-slate-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700 rounded-xl p-1.5 bg-white dark:bg-slate-800 shadow-2xs"
             />
           </div>
 
           <button
             type="submit"
             disabled={isUploadingCv}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition shrink-0 disabled:opacity-50 flex items-center shadow-2xs cursor-pointer"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition shrink-0 disabled:opacity-50 flex items-center shadow-2xs cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5 mr-1.5" />
             <span>{isUploadingCv ? (isKhmer ? 'កំពុងផ្ទុក...' : 'Uploading...') : (isKhmer ? 'ផ្ទុកឡើង CV' : 'Upload CV')}</span>
@@ -568,26 +568,26 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 4. Work Experience Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-gray-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
               <Briefcase className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 {isKhmer ? 'បទពិសោធន៍ការងារ' : 'Work Experience'}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isKhmer ? 'ប្រវត្តិការងារ និងតួនាទីកន្លងមក' : 'Career journey and past positions'}
               </p>
             </div>
           </div>
           <button
             onClick={() => setIsExpModalOpen(true)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center transition shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center transition shadow-2xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 mr-1 text-blue-600" />
+            <Plus className="w-3.5 h-3.5 mr-1 text-blue-600 dark:text-blue-400" />
             <span>{isKhmer ? 'បន្ថែមបទពិសោធន៍' : 'Add Experience'}</span>
           </button>
         </div>
@@ -595,17 +595,17 @@ export const SeekerProfilePage: React.FC = () => {
         <div className="space-y-2">
           {profile?.work_experiences && profile.work_experiences.length > 0 ? (
             profile.work_experiences.map((exp) => (
-              <div key={exp.id} className="flex justify-between items-start p-3.5 rounded-xl border border-gray-200 bg-slate-50/60 hover:bg-slate-50 transition shadow-2xs">
+              <div key={exp.id} className="flex justify-between items-start p-3.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-2xs">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">{exp.job_title}</h4>
-                  <p className="text-xs text-slate-600 mt-0.5">{exp.company_name} {exp.location ? `• ${exp.location}` : ''}</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{exp.job_title}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{exp.company_name} {exp.location ? `• ${exp.location}` : ''}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                     {exp.start_date} - {exp.is_current ? (isKhmer ? 'បច្ចុប្បន្ន' : 'Present') : exp.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
                   </p>
                 </div>
                 <button
                   onClick={() => setDeletingItem({ type: 'experience', id: exp.id, title: `${exp.job_title} @ ${exp.company_name}` })}
-                  className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                  className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -613,7 +613,7 @@ export const SeekerProfilePage: React.FC = () => {
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-400 italic py-2">
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">
               {isKhmer ? 'មិនទាន់មានបទពិសោធន៍ការងារត្រូវបានបន្ថែមនៅឡើយទេ។' : 'No work experiences listed.'}
             </p>
           )}
@@ -621,26 +621,26 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 5. Education Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-gray-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
               <GraduationCap className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 {isKhmer ? 'កម្រិតវប្បធម៌ និងការអប់រំ' : 'Education'}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isKhmer ? 'សញ្ញាបត្រ សាកលវិទ្យាល័យ និងវិញ្ញាបនបត្រ' : 'Degrees, colleges, and certifications'}
               </p>
             </div>
           </div>
           <button
             onClick={() => setIsEduModalOpen(true)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center transition shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center transition shadow-2xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 mr-1 text-blue-600" />
+            <Plus className="w-3.5 h-3.5 mr-1 text-blue-600 dark:text-blue-400" />
             <span>{isKhmer ? 'បន្ថែមការអប់រំ' : 'Add Education'}</span>
           </button>
         </div>
@@ -648,17 +648,17 @@ export const SeekerProfilePage: React.FC = () => {
         <div className="space-y-2">
           {profile?.educations && profile.educations.length > 0 ? (
             profile.educations.map((edu) => (
-              <div key={edu.id} className="flex justify-between items-start p-3.5 rounded-xl border border-gray-200 bg-slate-50/60 hover:bg-slate-50 transition shadow-2xs">
+              <div key={edu.id} className="flex justify-between items-start p-3.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-2xs">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900">{edu.degree}</h4>
-                  <p className="text-xs text-slate-600 mt-0.5">{edu.institution} {edu.field_of_study ? `• ${edu.field_of_study}` : ''}</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{edu.degree}</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{edu.institution} {edu.field_of_study ? `• ${edu.field_of_study}` : ''}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                     {edu.start_date} - {edu.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
                   </p>
                 </div>
                 <button
                   onClick={() => setDeletingItem({ type: 'education', id: edu.id, title: `${edu.degree} (${edu.institution})` })}
-                  className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                  className="text-slate-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -666,7 +666,7 @@ export const SeekerProfilePage: React.FC = () => {
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-400 italic py-2">
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">
               {isKhmer ? 'មិនទាន់មានកំណត់ត្រាអប់រំត្រូវបានបន្ថែមនៅឡើយទេ។' : 'No education records added yet.'}
             </p>
           )}
@@ -674,16 +674,16 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 6. Skills Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
-        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
+      <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-gray-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 dark:text-slate-100">
+        <div className="flex items-center space-x-3 pb-3 border-b border-gray-100 dark:border-slate-800">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-2xs">
             <Award className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               {isKhmer ? 'ជំនាញ និងសមត្ថភាព' : 'Skills & Competencies'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {isKhmer ? 'ជំនាញបច្ចេកទេស និងភាសា' : 'Technical proficiencies and language abilities'}
             </p>
           </div>
@@ -694,7 +694,7 @@ export const SeekerProfilePage: React.FC = () => {
             profile.skills.map((s) => (
               <span
                 key={s.id}
-                className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 border border-gray-200"
+                className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-gray-200 dark:border-blue-800/40"
               >
                 <span>{s.name} ({s.proficiency_level})</span>
                 <button
@@ -707,7 +707,7 @@ export const SeekerProfilePage: React.FC = () => {
               </span>
             ))
           ) : (
-            <p className="text-xs text-slate-400 italic py-1">
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic py-1">
               {isKhmer ? 'មិនទាន់មានជំនាញត្រូវបានបន្ថែមនៅឡើយទេ។' : 'No skills added yet.'}
             </p>
           )}
