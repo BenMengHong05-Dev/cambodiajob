@@ -87,7 +87,7 @@ export const HomePage: React.FC = () => {
             setSavedJobIds(saved.map((s) => s.id))
           }
         })
-        .catch(() => {})
+        .catch(() => { })
     } else {
       setSavedJobIds([])
     }
@@ -391,9 +391,8 @@ export const HomePage: React.FC = () => {
               >
                 <span>{showAllCategories ? (isKhmer ? 'បង្រួម' : 'Show Less') : (isKhmer ? 'បង្ហាញទាំងអស់' : `Show All (${categories.length})`)}</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 ${
-                    showAllCategories ? 'rotate-180' : ''
-                  }`}
+                  className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 ${showAllCategories ? 'rotate-180' : ''
+                    }`}
                 />
               </button>
             )}
@@ -500,11 +499,10 @@ export const HomePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={(e) => toggleSave(job.id, e)}
-                      className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md backdrop-blur-md cursor-pointer ${
-                        isSaved
+                      className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md backdrop-blur-md cursor-pointer ${isSaved
                           ? 'bg-blue-600 text-white shadow-blue-500/40 ring-2 ring-white/60 scale-105'
                           : 'bg-white/90 dark:bg-slate-900/85 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 border border-white/50 dark:border-slate-700/80 hover:scale-105'
-                      }`}
+                        }`}
                       title={isSaved ? (isKhmer ? 'ដកការរក្សាទុក' : 'Remove bookmark') : (isKhmer ? 'រក្សាទុកការងារ' : 'Save job')}
                     >
                       <Bookmark className={`w-3 h-3 ${isSaved ? 'fill-white text-white' : ''}`} />
