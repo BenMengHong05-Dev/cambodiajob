@@ -5,6 +5,7 @@ export interface User {
   email: string
   full_name: string
   phone_number?: string | null
+  avatar_url?: string | null
   is_active: boolean
   roles: UserRole[]
   seeker_profile?: {

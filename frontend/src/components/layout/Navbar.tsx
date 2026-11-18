@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth, useToast, useSiteSettings } from '../../app/providers'
 import { Button } from '../ui/Button'
 import { LanguageDropdown } from './LanguageDropdown'
+import { getAssetUrl } from '../../utils/assets'
 import {
   Briefcase,
   Building,
@@ -34,6 +35,7 @@ export const Navbar: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   const isKhmer = i18n.language === 'km'
+  const userAvatar = user?.avatar_url || user?.seeker_profile?.avatar_url || user?.company?.logo_url
 
   const getRoleLabel = () => {
     if (!user) return ''
@@ -155,16 +157,44 @@ export const Navbar: React.FC = () => {
                     title={user.full_name}
                     aria-label="User account menu"
                   >
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-semibold text-sm flex items-center justify-center shadow-xs">
-                      {user.full_name?.charAt(0) || 'U'}
-                    </div>
+                    {userAvatar ? (
+                      <div className="w-9 h-9 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+                        <img
+                          src={getAssetUrl(userAvatar)}
+                          alt={user.full_name}
+                          className="w-full h-full object-cover rounded-full"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-semibold text-sm flex items-center justify-center shadow-xs">
+                        {user.full_name?.charAt(0) || 'U'}
+                      </div>
+                    )}
                   </button>
 
                   {userDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-[9999] animate-in fade-in zoom-in-95 duration-100">
-                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                        <p className="text-xs font-medium text-slate-900 truncate">{user.full_name}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                      <div className="px-3 py-2 border-b border-slate-100 mb-1 flex items-center space-x-2.5">
+                        {userAvatar ? (
+                          <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                            <img
+                              src={getAssetUrl(userAvatar)}
+                              alt={user.full_name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {user.full_name?.charAt(0) || 'U'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-900 truncate">{user.full_name}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                        </div>
                       </div>
 
                       {/* CASE 1: Job Seeker (Role 1) */}
@@ -358,9 +388,24 @@ export const Navbar: React.FC = () => {
             <div className="border-t border-slate-100 pt-2">
               {user ? (
                 <div className="space-y-1">
-                  <div className="px-3 py-1.5 bg-slate-50 rounded-xl">
-                    <p className="text-xs font-bold text-slate-900">{user.full_name}</p>
-                    <p className="text-[11px] text-slate-500">{user.email}</p>
+                  <div className="px-3 py-2 bg-slate-50 rounded-xl flex items-center space-x-2.5">
+                    {userAvatar ? (
+                      <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                        <img
+                          src={getAssetUrl(userAvatar)}
+                          alt={user.full_name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                        {user.full_name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-900 truncate">{user.full_name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                    </div>
                   </div>
                   {/* CASE 1: Job Seeker (Role 1) */}
                   {user.roles.includes('job_seeker') && (

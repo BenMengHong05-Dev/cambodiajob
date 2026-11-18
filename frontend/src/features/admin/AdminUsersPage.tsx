@@ -38,12 +38,14 @@ import {
   Download,
   FileSpreadsheet,
 } from 'lucide-react'
+import { getAssetUrl } from '../../utils/assets'
 
 interface UserRecord {
   id: number
   email: string
   full_name: string
   phone_number: string | null
+  avatar_url?: string | null
   is_active: boolean
   created_at: string
   updated_at?: string
@@ -549,18 +551,31 @@ export const AdminUsersPage: React.FC = () => {
                         {/* User Account */}
                         <td className="py-2.5 px-3.5 align-middle font-normal">
                           <div className="flex items-center space-x-2.5">
-                            <div
-                              className={`w-7 h-7 rounded-full text-white font-medium text-[11px] flex items-center justify-center shrink-0 shadow-2xs ${isRootAdmin
-                                ? 'bg-amber-500 ring-2 ring-amber-200'
-                                : role === 'admin'
-                                  ? 'bg-blue-600'
-                                  : role === 'employer'
-                                    ? 'bg-sky-600'
-                                    : 'bg-emerald-600'
-                                }`}
-                            >
-                              {u.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                            </div>
+                            {u.avatar_url ? (
+                              <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                                <img
+                                  src={getAssetUrl(u.avatar_url)}
+                                  alt={u.full_name}
+                                  className="w-full h-full object-cover rounded-full"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className={`w-8 h-8 rounded-full text-white font-medium text-xs flex items-center justify-center shrink-0 shadow-2xs ${isRootAdmin
+                                  ? 'bg-amber-500 ring-2 ring-amber-200'
+                                  : role === 'admin'
+                                    ? 'bg-blue-600'
+                                    : role === 'employer'
+                                      ? 'bg-sky-600'
+                                      : 'bg-emerald-600'
+                                  }`}
+                              >
+                                {u.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                              </div>
+                            )}
                             <div className="min-w-0 max-w-xs">
                               <div className="flex items-center space-x-1.5">
                                 <h4 className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors truncate text-xs">
@@ -725,9 +740,19 @@ export const AdminUsersPage: React.FC = () => {
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
               <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-xl bg-blue-600 text-white font-bold text-base flex items-center justify-center shadow-2xs">
-                  {viewingUser.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
+                {viewingUser.avatar_url ? (
+                  <div className="w-11 h-11 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                    <img
+                      src={getAssetUrl(viewingUser.avatar_url)}
+                      alt={viewingUser.full_name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-blue-600 text-white font-bold text-base flex items-center justify-center shadow-2xs">
+                    {viewingUser.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                )}
                 <div>
                   <div className="flex items-center space-x-2">
                     <h3 className="text-base font-bold text-slate-900">{viewingUser.full_name}</h3>

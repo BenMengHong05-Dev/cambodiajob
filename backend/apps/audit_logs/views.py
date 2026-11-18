@@ -37,7 +37,7 @@ class AdminDashboardView(APIView):
 
         recent_applications = fetch_all(
             """
-            SELECT a.id, a.status, a.created_at, j.title as job_title, u.full_name as applicant_name, c.name as company_name
+            SELECT a.id, a.status, a.created_at, j.title as job_title, u.full_name as applicant_name, sp.avatar_url as applicant_avatar, c.name as company_name, c.logo_url as company_logo
             FROM applications a
             INNER JOIN jobs j ON j.id = a.job_id
             INNER JOIN companies c ON c.id = j.company_id
@@ -50,7 +50,7 @@ class AdminDashboardView(APIView):
 
         recent_companies = fetch_all(
             """
-            SELECT id, name, industry, province, verification_status, created_at
+            SELECT id, name, industry, province, logo_url, verification_status, created_at
             FROM companies
             ORDER BY created_at DESC
             LIMIT 5
@@ -59,7 +59,7 @@ class AdminDashboardView(APIView):
 
         pending_jobs = fetch_all(
             """
-            SELECT j.id, j.title, j.employment_type, j.workplace_type, j.created_at, c.name as company_name
+            SELECT j.id, j.title, j.employment_type, j.workplace_type, j.created_at, c.name as company_name, c.logo_url as company_logo
             FROM jobs j
             INNER JOIN companies c ON c.id = j.company_id
             WHERE j.moderation_status = 'pending'
@@ -70,7 +70,7 @@ class AdminDashboardView(APIView):
 
         pending_companies = fetch_all(
             """
-            SELECT id, name, industry, province, verification_status, created_at
+            SELECT id, name, industry, province, logo_url, verification_status, created_at
             FROM companies
             WHERE verification_status = 'pending'
             ORDER BY created_at DESC
@@ -203,10 +203,13 @@ class AdminUsersView(APIView):
         sql = """
             SELECT 
                 u.id, u.email, u.full_name, u.phone_number, u.is_active, u.created_at,
+                COALESCE(sp.avatar_url, c.logo_url) as avatar_url,
                 GROUP_CONCAT(r.name) as role_names
             FROM users u
             LEFT JOIN user_roles ur ON ur.user_id = u.id
             LEFT JOIN roles r ON r.id = ur.role_id
+            LEFT JOIN seeker_profiles sp ON sp.user_id = u.id
+            LEFT JOIN companies c ON c.user_id = u.id
             GROUP BY u.id
             ORDER BY u.created_at DESC
         """

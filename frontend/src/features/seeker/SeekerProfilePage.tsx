@@ -4,7 +4,7 @@ import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
 import { SeekerProfile, Education, Resume, Skill } from '../../types'
 import { Select, Input, Textarea } from '../../components/ui'
-import { useToast } from '../../app/providers'
+import { useToast, useAuth } from '../../app/providers'
 import {
   User,
   Briefcase,
@@ -22,11 +22,18 @@ import {
   MapPin,
   DollarSign,
   Save,
+  Building,
+  CheckCircle2,
+  Sparkles,
+  Globe,
+  Download,
 } from 'lucide-react'
+import { getAssetUrl } from '../../utils/assets'
 
 export const SeekerProfilePage: React.FC = () => {
   const { t, i18n } = useTranslation()
   const { toast } = useToast()
+  const { user } = useAuth()
   const isKhmer = i18n.language === 'km'
 
   const [profile, setProfile] = useState<SeekerProfile | null>(null)
@@ -449,7 +456,6 @@ export const SeekerProfilePage: React.FC = () => {
         </form>
       </div>
 
-      {/* 3. CV & Resume Files Card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 z-20">
         <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
           <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
@@ -465,7 +471,6 @@ export const SeekerProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Existing CVs list */}
         <div className="space-y-2">
           {profile?.resumes && profile.resumes.length > 0 ? (
             profile.resumes.map((resume) => (
@@ -938,147 +943,346 @@ export const SeekerProfilePage: React.FC = () => {
 
       {/* Printable / Exportable CV Modal */}
       {isPreviewCvOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full my-8 shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Action Bar */}
-            <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ប្រវត្តិរូបសង្ខេប CV' : 'Professional Curriculum Vitae (CV)'}
-                </h3>
+        <div
+
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto"
+        >
+          <div id="printable-cv-modal-wrapper" className=" bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[96vh]">
+            {/* Modal Action Bar (Clean White, No Tabs) */}
+            <div className="no-print p-3.5 sm:px-6 bg-white border-b border-slate-200/90 flex items-center justify-between gap-3 shrink-0 text-slate-900">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shadow-2xs">
+                  <FileText className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
+                      {isKhmer ? 'ប្រវត្តិរូបសង្ខេប CV' : 'Curriculum Vitae (CV)'}
+                    </h3>
+
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {isKhmer ? 'ទម្រង់ A4 ស្តង់ដារ • អាចបោះពុម្ព ឬ Save ជា PDF' : 'Standard A4 Format • Print or Save as PDF'}
+                  </span>
+                </div>
               </div>
+
+              {/* Action Buttons (Print / Save & Close) */}
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-2xs cursor-pointer transition active:scale-98"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold flex items-center space-x-2 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>{isKhmer ? 'បោះពុម្ព / Save PDF' : 'Print / Save PDF'}</span>
+                  <span>{isKhmer ? 'បោះពុម្ព' : 'Print '}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsPreviewCvOpen(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
+                  className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
+                  title={isKhmer ? 'បិទ' : 'Close'}
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* A4 Resume Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto space-y-5 text-slate-900 font-sans">
-              {/* CV Header */}
-              <div className="border-b border-gray-200 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    {profile?.full_name || 'Candidate Name'}
-                  </h1>
-                  <p className="text-xs sm:text-sm font-semibold text-blue-600 mt-0.5">
-                    {profile?.headline || (isKhmer ? 'បេក្ខជនការងារ' : 'Job Seeker')}
-                  </p>
-                </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  {profile?.email && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.email}</span>
-                    </div>
-                  )}
-                  {profile?.phone_number && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.phone_number}</span>
-                    </div>
-                  )}
-                  {profile?.province && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.province} {profile.city ? `, ${profile.city}` : ''}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Scrollable Container with Pristine Pure White A4 Sheet */}
+            <div className="p-3 sm:p-6 md:p-8 overflow-y-auto bg-slate-100/90 flex justify-center">
+              {(() => {
+                const candidateName = profile?.full_name || fullName || user?.full_name || 'MengHong Ben'
+                const candidateEmail = profile?.email || user?.email || 'contact@cambodiajob.site'
+                const candidatePhone = profile?.phone_number || phoneNumber || user?.phone_number || '+855 12 345 678'
+                const candidateHeadline = profile?.headline || headline || (isKhmer ? 'អ្នកជំនាញ Full-Stack Developer' : 'Full Stack Developer')
+                const candidateLocation = profile?.province || province ? `${profile?.province || province}${profile?.city || city ? `, ${profile?.city || city}` : ''}` : (isKhmer ? 'រាជធានីភ្នំពេញ' : 'Phnom Penh, Cambodia')
+                const candidateSalary = profile?.expected_salary || expectedSalary
+                const candidateCurrency = profile?.salary_currency || salaryCurrency || 'USD'
+                const candidateAvatar = profile?.avatar_url || user?.avatar_url
+                const candidateGender = profile?.gender
+                const candidateSummary = profile?.summary || summary
 
-              {/* Summary */}
-              {profile?.summary && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'សេចក្តីសង្ខេបអំពីខ្លួន' : 'Professional Summary'}
-                  </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-3 rounded-xl border border-gray-100">
-                    {profile.summary}
-                  </p>
-                </div>
-              )}
+                return (
+                  <div className=" printable-cv-sheet cv-two-column-layout bg-white rounded-2xl shadow-xl overflow-hidden max-w-[850px] w-full flex flex-col md:flex-row min-h-[1080px] print:min-h-0 print:h-full print:rounded-none text-slate-800 border border-slate-200/90 print:border-none">
+                    {/* LEFT SIDEBAR (Candidate Info, Contact, Education, Skills) - PURE WHITE WITH SOFT BORDER */}
+                    <div className="cv-left-sidebar p-6 sm:p-7 pt-7 sm:pt-8 print:p-2 print:pt-2.5 space-y-6 print:space-y-2.5 md:w-[35%] shrink-0 flex flex-col justify-between bg-white text-slate-800 border-r border-slate-200/90">
+                      <div className="space-y-6 print:space-y-2.5">
+                        {/* Profile Avatar (Rounded-Full) */}
+                        <div className="flex flex-col items-center text-center">
+                          {candidateAvatar ? (
+                            <div className="w-24 h-24 sm:w-28 sm:h-28 print:w-18 print:h-18 rounded-full overflow-hidden shadow-md shrink-0 border-2 border-blue-600/30 ring-4 ring-blue-50/80 mx-auto">
+                              <img
+                                src={getAssetUrl(candidateAvatar)}
+                                alt={candidateName}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-24 h-24 sm:w-28 sm:h-28 print:w-18 print:h-18 rounded-full flex items-center justify-center font-black text-3xl print:text-2xl shadow-md shrink-0 bg-gradient-to-br from-blue-600 to-indigo-600 text-white ring-4 ring-blue-50/80 mx-auto">
+                              {candidateName.charAt(0)}
+                            </div>
+                          )}
 
-              {/* Work Experience */}
-              {profile?.work_experiences && profile.work_experiences.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ប្រវត្តិការងារ' : 'Work Experience'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.work_experiences.map((exp) => (
-                      <div key={exp.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{exp.job_title}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {exp.start_date} — {exp.is_current ? (isKhmer ? 'បច្ចុប្បន្ន' : 'Present') : exp.end_date || 'Present'}
+                          {/* Mobile-only name display */}
+                          <div className="md:hidden print:hidden mt-3">
+                            <h2 className="text-lg font-black text-slate-900">{candidateName}</h2>
+                            <p className="text-xs font-semibold text-blue-600">{candidateHeadline}</p>
+                          </div>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="space-y-3 print:space-y-1.5 pt-2 print:pt-0">
+                          <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 pb-1 print:pb-0.5 border-b border-slate-200">
+                            <Mail className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{isKhmer ? 'ទំនាក់ទំនង' : 'Contact'}</span>
+                          </h4>
+                          <div className="space-y-2 print:space-y-1 text-xs print:text-[11px]">
+                            {candidateEmail && (
+                              <div className="flex items-start space-x-2.5">
+                                <div className="w-5 h-5 print:w-4 print:h-4 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                                  <Mail className="w-3 h-3 print:w-2.5 print:h-2.5" />
+                                </div>
+                                <span className="break-all font-medium text-slate-700">{candidateEmail}</span>
+                              </div>
+                            )}
+
+                            {candidatePhone && (
+                              <div className="flex items-center space-x-2.5">
+                                <div className="w-5 h-5 print:w-4 print:h-4 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                  <Phone className="w-3 h-3 print:w-2.5 print:h-2.5" />
+                                </div>
+                                <span className="font-medium text-slate-700">{candidatePhone}</span>
+                              </div>
+                            )}
+
+                            {candidateLocation && (
+                              <div className="flex items-center space-x-2.5">
+                                <div className="w-5 h-5 print:w-4 print:h-4 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                  <MapPin className="w-3 h-3 print:w-2.5 print:h-2.5" />
+                                </div>
+                                <span className="font-medium text-slate-700">{candidateLocation}</span>
+                              </div>
+                            )}
+
+                            {candidateSalary && (
+                              <div className="flex items-center space-x-2.5">
+                                <div className="w-5 h-5 print:w-4 print:h-4 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                  <DollarSign className="w-3 h-3 print:w-2.5 print:h-2.5" />
+                                </div>
+                                <span className="font-bold text-emerald-700">
+                                  {candidateCurrency === 'USD' ? `$${Number(candidateSalary).toLocaleString()}` : `${Number(candidateSalary).toLocaleString()} ៛`} / {isKhmer ? 'ខែ' : 'mo'}
+                                </span>
+                              </div>
+                            )}
+
+                            {candidateGender && (
+                              <div className="flex items-center space-x-2.5">
+                                <div className="w-5 h-5 print:w-4 print:h-4 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                  <User className="w-3 h-3 print:w-2.5 print:h-2.5" />
+                                </div>
+                                <span className="font-medium text-slate-700">
+                                  {isKhmer ? (candidateGender === 'male' ? 'ភេទ: ប្រុស' : candidateGender === 'female' ? 'ភេទ: ស្រី' : candidateGender) : `Gender: ${candidateGender}`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Education Section (Sidebar) */}
+                        <div className="space-y-3 print:space-y-1.5 pt-2 print:pt-0 print-avoid-break">
+                          <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 pb-1 print:pb-0.5 border-b border-slate-200">
+                            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{isKhmer ? 'កម្រិតវប្បធម៌' : 'Education'}</span>
+                          </h4>
+                          <div className="space-y-3 print:space-y-1.5">
+                            {profile?.educations && profile.educations.length > 0 ? (
+                              profile.educations.map((edu) => (
+                                <div key={edu.id} className="space-y-0.5">
+                                  <h5 className="font-bold text-xs print:text-[11px] text-slate-900">{edu.degree}</h5>
+                                  <p className="text-[11px] print:text-[10px] font-medium text-slate-600">
+                                    {edu.institution}
+                                  </p>
+                                  {edu.field_of_study && (
+                                    <p className="text-[10px] print:text-[9px] text-slate-500">
+                                      {edu.field_of_study}
+                                    </p>
+                                  )}
+                                  <span className="inline-block px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+                                    {edu.start_date} — {edu.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsPreviewCvOpen(false)
+                                  setIsEduModalOpen(true)
+                                }}
+                                className="no-print text-left text-[11px] text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer font-semibold"
+                              >
+                                <Plus className="w-3 h-3" />
+                                <span>{isKhmer ? '+ បន្ថើមកម្រិតវប្បធម៌' : '+ Add Education'}</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Skills Section (Sidebar) */}
+                        <div className="space-y-3 print:space-y-1.5 pt-2 print:pt-0 print-avoid-break">
+                          <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 pb-1 print:pb-0.5 border-b border-slate-200">
+                            <Award className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{isKhmer ? 'ជំនាញ និងសមត្ថភាព' : 'Skills & Proficiencies'}</span>
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5 print:gap-1">
+                            {profile?.skills && profile.skills.length > 0 ? (
+                              profile.skills.map((s) => (
+                                <span
+                                  key={s.id}
+                                  className="inline-flex items-center gap-1 px-2.5 print:px-1.5 py-1 print:py-0.5 rounded-lg text-[10px] print:text-[9px] font-bold bg-blue-50/80 text-blue-800 border border-blue-200/80 shadow-2xs"
+                                >
+                                  <span>{s.name}</span>
+                                  {s.proficiency_level && (
+                                    <span className="text-[8px] print:text-[7px] px-1 py-0.2 rounded uppercase font-semibold bg-white text-blue-600 border border-blue-200">
+                                      {s.proficiency_level}
+                                    </span>
+                                  )}
+                                </span>
+                              ))
+                            ) : (
+                              <p className="text-[11px] italic text-slate-400">
+                                {isKhmer ? 'មិនទាន់បានបន្ថែមជំនាញ' : 'No skills added yet'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Languages */}
+                      <div className="pt-4 print:pt-2 border-t border-slate-200 text-[10px] print:text-[9px] space-y-1 print:space-y-0.5">
+                        <span className="font-bold uppercase tracking-wider block text-slate-500">
+                          {isKhmer ? 'ភាសា (Languages)' : 'Languages'}
+                        </span>
+                        <div className="flex flex-wrap gap-2 print:gap-1.5 pt-1 font-medium text-slate-700">
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3 print:w-2.5 print:h-2.5 text-blue-600" />
+                            <span>Khmer (Native)</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3 print:w-2.5 print:h-2.5 text-indigo-600" />
+                            <span>English (Professional)</span>
                           </span>
                         </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {exp.company_name} {exp.location ? `• ${exp.location}` : ''}
-                        </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                    </div>
 
-              {/* Education */}
-              {profile?.educations && profile.educations.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'កម្រិតវប្បធម៌ និងការអប់រំ' : 'Education'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.educations.map((edu) => (
-                      <div key={edu.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{edu.degree}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {edu.start_date} — {edu.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
-                          </span>
+                    {/* RIGHT MAIN CONTENT (Header, Summary, Experience) - PURE WHITE */}
+                    <div className="cv-right-content p-6 sm:p-9 pt-7 sm:pt-8 print:p-2.5 print:pt-2.5 md:w-[65%] flex flex-col justify-between space-y-6 print:space-y-2.5 bg-white">
+                      <div className="space-y-6 print:space-y-2.5">
+                        {/* Executive Header */}
+                        <div className="hidden md:block print:block pb-4 print:pb-1.5 border-b border-slate-100">
+                          <h1 className="text-2xl sm:text-3xl print:text-xl font-black text-slate-900 tracking-tight">
+                            {candidateName}
+                          </h1>
+                          <p className="text-xs sm:text-sm print:text-xs font-bold text-blue-600 uppercase tracking-wider mt-1 print:mt-0.5">
+                            {candidateHeadline}
+                          </p>
+                          <div className="h-1 w-16 print:w-12 print:h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mt-2.5 print:mt-1" />
                         </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {edu.institution} {edu.field_of_study ? `• ${edu.field_of_study}` : ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {/* Skills */}
-              {profile?.skills && profile.skills.length > 0 && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ជំនាញ និងសមត្ថភាព' : 'Skills & Proficiencies'}
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {profile.skills.map((s) => (
-                      <span
-                        key={s.id}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-gray-200"
-                      >
-                        {s.name} <span className="text-[10px] text-slate-400 font-normal">({s.proficiency_level})</span>
-                      </span>
-                    ))}
+                        {/* Professional Summary */}
+                        {candidateSummary && (
+                          <div className="space-y-2 print:space-y-1 print-avoid-break">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-4 print:w-1.5 print:h-3 rounded-full bg-blue-600 shrink-0" />
+                              <h3 className="text-xs sm:text-sm print:text-[11px] font-black uppercase tracking-wider text-slate-900">
+                                {isKhmer ? 'សេចក្តីសង្ខេបវិជ្ជាជីវៈ (Professional Summary)' : 'Professional Summary'}
+                              </h3>
+                            </div>
+                            <div className="text-xs sm:text-sm print:text-[10px] text-slate-700 leading-relaxed space-y-2 print:space-y-1 border-l-2 border-blue-500/70 pl-3.5 print:pl-2.5 py-0.5 print:py-0">
+                              {candidateSummary.split('\n\n').map((para, i) => (
+                                <p key={i} className="whitespace-pre-line">
+                                  {para.trim()}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Work Experience Timeline */}
+                        <div className="space-y-3 print:space-y-1.5 print-avoid-break">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-4 print:w-1.5 print:h-3 rounded-full bg-blue-600 shrink-0" />
+                            <h3 className="text-xs sm:text-sm print:text-[11px] font-black uppercase tracking-wider text-slate-900">
+                              {isKhmer ? 'ប្រវត្តិការងារ (Work Experience)' : 'Work Experience'}
+                            </h3>
+                          </div>
+
+                          <div className="space-y-4 print:space-y-2 pl-2 pt-1 print:pt-0">
+                            {profile?.work_experiences && profile.work_experiences.length > 0 ? (
+                              profile.work_experiences.map((exp) => (
+                                <div
+                                  key={exp.id}
+                                  className="relative pl-5 print:pl-4 border-l-2 border-blue-200/90 pb-4 print:pb-2 last:pb-0 space-y-1 print:space-y-0.5"
+                                >
+                                  <div className="absolute -left-[5px] top-1.5 print:top-1 w-2 h-2 print:w-1.5 print:h-1.5 rounded-full bg-blue-600 ring-2 ring-white" />
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                    <h4 className="text-xs sm:text-sm print:text-[11px] font-bold text-slate-900">
+                                      {exp.job_title}
+                                    </h4>
+                                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] print:text-[8px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80 self-start sm:self-auto shrink-0">
+                                      {exp.start_date} — {exp.is_current ? (isKhmer ? 'បច្ចុប្បន្ន' : 'Present') : exp.end_date || 'Present'}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs print:text-[10px] font-semibold text-slate-600 flex items-center gap-1.5">
+                                    <Building className="w-3.5 h-3.5 print:w-3 print:h-3 text-slate-400 shrink-0" />
+                                    <span>{exp.company_name}</span>
+                                    {exp.location && (
+                                      <>
+                                        <span className="text-slate-300">•</span>
+                                        <MapPin className="w-3 h-3 print:w-2.5 print:h-2.5 text-slate-400 shrink-0" />
+                                        <span>{exp.location}</span>
+                                      </>
+                                    )}
+                                  </p>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center space-y-1.5">
+                                <p className="text-xs text-slate-400">
+                                  {isKhmer ? 'មិនទាន់មានប្រវត្តិការងារដែលបានកត់ត្រានៅឡើយ' : 'No work experience added yet'}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsPreviewCvOpen(false)
+                                    setIsExpModalOpen(true)
+                                  }}
+                                  className="no-print text-xs font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>{isKhmer ? 'បន្ថែមបទពិសោធន៍ការងារ' : 'Add Experience'}</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Official Verification Footer */}
+                      <div className="pt-6 print:pt-2 border-t border-slate-200/80 flex items-center justify-between text-[10px] print:text-[8px] text-slate-400 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 print:w-3 print:h-3 text-emerald-600 shrink-0" />
+                          <span className="font-semibold text-slate-600">
+                            {isKhmer ? 'ប្រវត្តិរូបបេក្ខជនផ្ទៀងផ្ទាត់ផ្លូវការ' : 'Verified Candidate Profile'}
+                          </span>
+                        </span>
+                        <span>CambodiaJobs Career Portal • {new Date().toLocaleDateString()}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
             </div>
           </div>
         </div>

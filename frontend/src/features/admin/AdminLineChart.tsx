@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TrendingUp, Calendar, ArrowUpRight } from 'lucide-react'
 
 type TimeRange = '7d' | '30d' | '12m'
 
@@ -124,26 +123,17 @@ export const AdminLineChart: React.FC<AdminLineChartProps> = ({ analytics }) => 
     y: padTop + plotHeight - pct * plotHeight,
   }))
 
-  const totalApps = data.reduce((sum, d) => sum + d.applications, 0)
-  const totalJobs = data.reduce((sum, d) => sum + d.jobs, 0)
-
   return (
     <div className="glass-card rounded-2xl border border-white/90 p-4 sm:p-5 shadow-sm space-y-3.5 relative overflow-hidden">
       {/* Decorative gradient blur inside chart header */}
       <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Header with Title, Stats & Filter Pills */}
+      {/* Header with Title & Filter Pills */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60 relative z-10">
         <div>
-          <div className="flex items-center space-x-2">
-            <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
-              {isKhmer ? 'ស្ថិតិកំណើនវេទិកា & និន្នាការដាក់ពាក្យ' : 'Platform Activity & Application Growth'}
-            </h3>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/25 backdrop-blur-md">
-              <TrendingUp className="w-3 h-3 text-blue-600" />
-              <span>+34.8% YoY</span>
-            </span>
-          </div>
+          <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+            {isKhmer ? 'ស្ថិតិកំណើនវេទិកា & និន្នាការដាក់ពាក្យ' : 'Platform Activity & Application Growth'}
+          </h3>
           <p className="text-[11px] text-slate-500 mt-0.5">
             {isKhmer
               ? 'ទិន្នន័យប្រៀបធៀបរវាងពាក្យសុំការងារពីបេក្ខជន និងការផ្សាយការងារថ្មី'
@@ -185,45 +175,6 @@ export const AdminLineChart: React.FC<AdminLineChartProps> = ({ analytics }) => 
               </button>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Metric Quick Stats Cards with Frosted Glass */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 relative z-10">
-        <div className="bg-white/60 backdrop-blur-md rounded-xl p-3 border border-white/80 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider block">
-              {isKhmer ? 'ពាក្យសុំសរុប (ក្នុងជួរ)' : 'Total Applications'}
-            </span>
-            <span className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 block">
-              {totalApps.toLocaleString()}
-            </span>
-          </div>
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-xs" />
-        </div>
-
-        <div className="bg-white/60 backdrop-blur-md rounded-xl p-3 border border-white/80 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-semibold text-sky-700 uppercase tracking-wider block">
-              {isKhmer ? 'ការងារបានបង្កើត' : 'New Vacancies'}
-            </span>
-            <span className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 block">
-              {totalJobs.toLocaleString()}
-            </span>
-          </div>
-          <div className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs" />
-        </div>
-
-        <div className="col-span-2 sm:col-span-1 bg-white/60 backdrop-blur-md rounded-xl p-3 border border-white/80 shadow-2xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider block">
-              {isKhmer ? 'អត្រាឆ្លើយតប' : 'Response Rate'}
-            </span>
-            <span className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 block">
-              88.4%
-            </span>
-          </div>
-          <ArrowUpRight className="w-4 h-4 text-emerald-600" />
         </div>
       </div>
 

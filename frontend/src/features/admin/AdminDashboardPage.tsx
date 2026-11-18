@@ -297,9 +297,22 @@ export const AdminDashboardPage: React.FC = () => {
                       <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
                         <td className="py-2.5 px-3">
                           <div className="flex items-center space-x-2">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                              {app.applicant_name?.charAt(0)?.toUpperCase() || 'U'}
-                            </div>
+                            {app.applicant_avatar ? (
+                              <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                                <img
+                                  src={getAssetUrl(app.applicant_avatar)}
+                                  alt={app.applicant_name}
+                                  className="w-full h-full object-cover rounded-full"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                {app.applicant_name?.charAt(0)?.toUpperCase() || 'U'}
+                              </div>
+                            )}
                             <span className="font-bold text-slate-900 group-hover:text-blue-600 transition truncate max-w-[120px] block">
                               {app.applicant_name}
                             </span>
@@ -382,10 +395,26 @@ export const AdminDashboardPage: React.FC = () => {
                           <td className="py-2.5 px-3">
                             <div className="flex items-center space-x-2.5">
                               {comp.logo_url ? (
-                                <img src={getAssetUrl(comp.logo_url)} alt={comp.name} className="w-7 h-7 rounded-lg object-contain border border-white/90 shadow-2xs shrink-0 bg-white" />
+                                <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                                  <img
+                                    src={getAssetUrl(comp.logo_url)}
+                                    alt={comp.name}
+                                    className="w-full h-full object-cover rounded-full"
+                                    onError={(e) => {
+                                      const target = e.currentTarget
+                                      target.style.display = 'none'
+                                      if (target.parentElement) {
+                                        target.parentElement.className =
+                                          'w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 border border-blue-400/25 flex items-center justify-center shrink-0 shadow-2xs'
+                                        target.parentElement.innerHTML =
+                                          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>'
+                                      }
+                                    }}
+                                  />
+                                </div>
                               ) : (
-                                <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 border border-blue-400/25 flex items-center justify-center shrink-0">
-                                  <Building2 className="w-3.5 h-3.5" />
+                                <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 border border-blue-400/25 flex items-center justify-center shrink-0 shadow-2xs">
+                                  <Building2 className="w-4 h-4" />
                                 </div>
                               )}
                               <div className="min-w-0">

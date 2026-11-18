@@ -144,8 +144,9 @@ def authenticate_user(validated_data: dict) -> dict:
     except Exception as em_err:
         print(f"[Login] Login notification email skipped: {em_err}")
 
+    user_obj = get_user_by_id(user_id)
     return {
-        "user": {
+        "user": user_obj.to_dict() if user_obj else {
             "id": user_id,
             "email": row["email"],
             "full_name": row["full_name"],

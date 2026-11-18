@@ -533,9 +533,22 @@ export const EmployerDashboardPage: React.FC = () => {
                       <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
                         <td className="py-2.5 px-4">
                           <div className="flex items-center space-x-2.5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
-                              {app.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
-                            </div>
+                            {app.applicant_avatar ? (
+                              <div className="w-8 h-8 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                                <img
+                                  src={getAssetUrl(app.applicant_avatar)}
+                                  alt={app.applicant_name}
+                                  className="w-full h-full object-cover rounded-full"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
+                                {app.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
+                              </div>
+                            )}
                             <div className="min-w-0">
                               <span className="font-bold text-slate-900 group-hover:text-indigo-600 block truncate max-w-[130px]">
                                 {app.applicant_name}
@@ -906,9 +919,19 @@ export const EmployerDashboardPage: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
             <div className="flex items-start justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-base flex items-center justify-center shrink-0 border border-indigo-200">
-                  {selectedApplicant.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
-                </div>
+                {selectedApplicant.applicant_avatar ? (
+                  <div className="w-11 h-11 rounded-full border border-slate-200/80 bg-white flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                    <img
+                      src={getAssetUrl(selectedApplicant.applicant_avatar)}
+                      alt={selectedApplicant.applicant_name}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-base flex items-center justify-center shrink-0 border border-indigo-200">
+                    {selectedApplicant.applicant_name?.charAt(0)?.toUpperCase() || 'C'}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">{selectedApplicant.applicant_name}</h3>
                   <p className="text-xs text-blue-600 font-medium">{selectedApplicant.job_title}</p>

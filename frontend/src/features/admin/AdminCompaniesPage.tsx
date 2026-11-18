@@ -312,9 +312,9 @@ export const AdminCompaniesPage: React.FC = () => {
                         {/* Column 1: Company Logo & Title Only */}
                         <td className="py-2.5 px-4 align-middle">
                           <div className="flex items-center space-x-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-slate-100 border border-gray-200 flex items-center justify-center font-semibold text-slate-700 text-xs shrink-0 shadow-2xs overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 border border-gray-200 flex items-center justify-center font-semibold text-slate-700 text-xs shrink-0 shadow-2xs overflow-hidden">
                               {c.logo_url ? (
-                                <img src={getAssetUrl(c.logo_url)} alt={c.name} className="w-full h-full object-cover" />
+                                <img src={getAssetUrl(c.logo_url)} alt={c.name} className="w-full h-full object-cover rounded-full" />
                               ) : (
                                 c.name?.charAt(0) || 'C'
                               )}
@@ -475,9 +475,9 @@ export const AdminCompaniesPage: React.FC = () => {
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-slate-800 font-bold text-base shrink-0 shadow-2xs overflow-hidden">
+                <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-800 font-bold text-base shrink-0 shadow-2xs overflow-hidden">
                   {viewingCompany.logo_url ? (
-                    <img src={getAssetUrl(viewingCompany.logo_url)} alt={viewingCompany.name} className="w-full h-full object-cover" />
+                    <img src={getAssetUrl(viewingCompany.logo_url)} alt={viewingCompany.name} className="w-full h-full object-cover rounded-full" />
                   ) : (
                     viewingCompany.name?.charAt(0) || 'C'
                   )}

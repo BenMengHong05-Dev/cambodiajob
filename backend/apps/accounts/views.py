@@ -195,6 +195,8 @@ class MeView(APIView):
                 [user.id],
             )
             data["seeker_profile"] = profile
+            if profile and profile.get("avatar_url"):
+                data["avatar_url"] = profile["avatar_url"]
 
         # If Employer, attach company info
         if user.is_employer:
@@ -209,6 +211,8 @@ class MeView(APIView):
                 [user.id],
             )
             data["company"] = company
+            if company and company.get("logo_url"):
+                data["avatar_url"] = company["logo_url"]
 
         return Response(
             {

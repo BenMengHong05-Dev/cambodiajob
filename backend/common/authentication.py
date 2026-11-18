@@ -21,6 +21,7 @@ class AuthenticatedUser:
         self.email = data["email"]
         self.full_name = data.get("full_name", "")
         self.phone_number = data.get("phone_number")
+        self.avatar_url = data.get("avatar_url")
         self.is_active = bool(data.get("is_active", True))
         
         # Parse roles list
@@ -63,6 +64,7 @@ class AuthenticatedUser:
             "email": self.email,
             "full_name": self.full_name,
             "phone_number": self.phone_number,
+            "avatar_url": self.avatar_url,
             "is_active": self.is_active,
             "role": self.role,
             "roles": self.roles if self.roles else [self.role],
@@ -80,12 +82,16 @@ def get_user_by_id(user_id: int) -> AuthenticatedUser | None:
             u.full_name, 
             u.phone_number, 
             u.is_active,
+            COALESCE(sp.avatar_url, c.logo_url) AS avatar_url,
             GROUP_CONCAT(r.name) AS role_names
         FROM users u
         LEFT JOIN user_roles ur ON ur.user_id = u.id
         LEFT JOIN roles r ON r.id = ur.role_id
+        LEFT JOIN seeker_profiles sp ON sp.user_id = u.id
+        LEFT JOIN employer_members em ON em.user_id = u.id
+        LEFT JOIN companies c ON c.id = em.company_id
         WHERE u.id = %s
-        GROUP BY u.id, u.email, u.full_name, u.phone_number, u.is_active
+        GROUP BY u.id, u.email, u.full_name, u.phone_number, u.is_active, sp.avatar_url, c.logo_url
     """
     row = fetch_one(sql, [user_id])
     if not row:
