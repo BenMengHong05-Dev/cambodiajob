@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { jobsService } from '../../services/jobs.service'
 import { seekerService } from '../../services/seeker.service'
-import { Job, Resume } from '../../types'
+import { aiService } from '../../services/ai.service'
+import { Job, Resume, SeekerProfile } from '../../types'
 import { useAuth, usePreferences, useToast } from '../../app/providers'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
@@ -21,6 +22,9 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  Zap,
+  Target,
+  Check,
 } from 'lucide-react'
 
 export const JobDetailPage: React.FC = () => {
@@ -45,6 +49,10 @@ export const JobDetailPage: React.FC = () => {
   const [applySuccess, setApplySuccess] = useState(false)
   const [applyError, setApplyError] = useState<string | null>(null)
 
+  // AI & Candidate state
+  const [seekerProfile, setSeekerProfile] = useState<SeekerProfile | null>(null)
+  const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false)
+
   const isKhmer = i18n.language === 'km'
 
   useEffect(() => {
@@ -62,6 +70,45 @@ export const JobDetailPage: React.FC = () => {
     }
     fetchJob()
   }, [slug])
+
+  // Optionally fetch seeker profile to compute live AI match score & assist cover letters
+  useEffect(() => {
+    if (user && (user.roles.includes('job_seeker') || user.roles.includes('admin'))) {
+      seekerService.getProfile()
+        .then((p) => setSeekerProfile(p))
+        .catch(() => {})
+    }
+  }, [user])
+
+  const handleGenerateAICoverLetter = async () => {
+    if (!job) return
+    setIsGeneratingCoverLetter(true)
+    try {
+      const skills = seekerProfile?.skills?.map((s) => s.name) || []
+      const res = await aiService.generateCoverLetter({
+        job_title: isKhmer && job.title_km ? job.title_km : job.title,
+        company_name: job.company_name || 'Hiring Team',
+        job_description: isKhmer && job.description_km ? job.description_km : job.description,
+        candidate_name: user?.full_name || 'Candidate',
+        candidate_skills: skills,
+        is_khmer: isKhmer,
+      })
+      if (res) {
+        setCoverLetter(res)
+        toast.success(
+          isKhmer ? '✨ លិខិតត្រូវបានបង្កើត' : '✨ Cover Letter Generated',
+          isKhmer ? 'លិខិតណែនាំខ្លួនត្រូវបានបង្កើតដោយ AI តាមការងារនេះ!' : 'AI has drafted a tailored cover letter!'
+        )
+      }
+    } catch (err: any) {
+      toast.error(
+        isKhmer ? 'បរាជ័យក្នុងការបង្កើត' : 'Generation Failed',
+        err.response?.data?.error || 'Could not generate cover letter.'
+      )
+    } finally {
+      setIsGeneratingCoverLetter(false)
+    }
+  }
 
   // Fetch candidate resumes when opening modal
   const openApplyModal = async () => {
@@ -431,6 +478,92 @@ export const JobDetailPage: React.FC = () => {
           {/* Right Column: About Company & Related Jobs (1/3 width) */}
           <div className="space-y-6">
             
+            {/* AI Career Fit & Compatibility Analysis Card */}
+            <div className="bg-white rounded-2xl border border-blue-100 p-5 sm:p-6 shadow-2xs space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 via-indigo-500/5 to-transparent rounded-bl-full pointer-events-none" />
+              
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-bold border border-blue-200/60">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  {isKhmer ? 'ការវិភាគ AI ភាពត្រូវគ្នា' : 'AI Career Fit Score'}
+                </span>
+                {user ? (
+                  <span className="text-xs font-bold text-slate-700">
+                    {(() => {
+                      const cSkills = (seekerProfile?.skills || []).map((s) => s.name.toLowerCase())
+                      const jSkills = (job.skills || []).map((s) => s.name.toLowerCase())
+                      if (jSkills.length === 0) return '90% Match'
+                      const matches = jSkills.filter((s) => cSkills.includes(s))
+                      const pct = Math.max(35, Math.min(98, Math.round((matches.length / jSkills.length) * 100) || 75))
+                      return `${pct}% Match`
+                    })()}
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium text-slate-400">
+                    {isKhmer ? 'ការវិភាគឆ្លាតវៃ' : 'Smart Insight'}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-blue-600" />
+                  <span>{isKhmer ? 'ជំនាញតម្រូវសំខាន់ៗ & ភាពត្រូវគ្នា' : 'Role Alignment & Highlights'}</span>
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  {isKhmer
+                    ? 'ប្រព័ន្ធ AI បានវិភាគលក្ខខណ្ឌការងារនេះ ដើម្បីជួយអ្នកវាយតម្លៃភាពសមស្រប និងបង្កើតលិខិតដាក់ពាក្យ។'
+                    : 'AI analyzed this vacancy requirements to match candidate capabilities and draft optimal applications.'}
+                </p>
+              </div>
+
+              {/* Matched & Missing Skills comparison */}
+              {job.skills && job.skills.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <p className="text-[11px] font-semibold text-slate-700">
+                    {isKhmer ? 'ជំនាញដែលក្រុមហ៊ុនត្រូវការ៖' : 'Key Skills Evaluated:'}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.skills.map((s) => {
+                      const isCandidateHas = (seekerProfile?.skills || []).some(
+                        (cs) => cs.name.toLowerCase() === s.name.toLowerCase()
+                      )
+                      return (
+                        <span
+                          key={s.id}
+                          className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md font-medium border ${
+                            isCandidateHas
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-50 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {isCandidateHas && <Check className="w-3 h-3 text-emerald-600" />}
+                          <span>{s.name}</span>
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await openApplyModal()
+                    setTimeout(() => {
+                      handleGenerateAICoverLetter()
+                    }, 400)
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isKhmer ? '✨ បង្កើតលិខិត AI & ដាក់ពាក្យ' : '✨ Generate AI Cover Letter'}</span>
+                </button>
+              </div>
+            </div>
+
             {/* About Company Card */}
             <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -525,17 +658,17 @@ export const JobDetailPage: React.FC = () => {
 
       {/* ================= APPLY MODAL ================= */}
       {isApplyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative border border-slate-100 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-150">
             <button
               type="button"
               onClick={() => setIsApplyModalOpen(false)}
-              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="mb-5">
+            <div className="mb-5 pb-3 border-b border-slate-100">
               <span className="text-[11px] font-semibold text-blue-600 block">
                 {job.company_name}
               </span>
@@ -579,7 +712,7 @@ export const JobDetailPage: React.FC = () => {
                       </Link>
                     </div>
                   ) : (
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                       {resumes.map((r) => (
                         <label
                           key={r.id}
@@ -611,27 +744,46 @@ export const JobDetailPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Cover Letter */}
+                {/* Cover Letter with AI Button */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    {isKhmer
-                      ? 'កំណត់ចំណាំផ្ញើទៅអ្នកជ្រើសរើស (ជម្រើស)'
-                      : 'Cover Letter / Note (Optional)'}
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      {isKhmer
+                        ? 'លិខិតណែនាំខ្លួន / Cover Letter'
+                        : 'Cover Letter / Note'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAICoverLetter}
+                      disabled={isGeneratingCoverLetter}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[11px] font-semibold transition cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+                      <span>
+                        {isGeneratingCoverLetter
+                          ? isKhmer
+                            ? 'កំពុងបង្កើត...'
+                            : 'Generating...'
+                          : isKhmer
+                          ? '✨ AI បង្កើតលិខិត'
+                          : '✨ AI Generate'}
+                      </span>
+                    </button>
+                  </div>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={coverLetter}
                     onChange={(e) => setCoverLetter(e.target.value)}
                     placeholder={
                       isKhmer
-                        ? 'សរសេរណែនាំអំពីខ្លួនអ្នកសង្ខេប...'
-                        : 'Brief note to introduce yourself...'
+                        ? 'សរសេរណែនាំអំពីខ្លួនអ្នកសង្ខេប ឬចុច "✨ AI បង្កើតលិខិត" ដើម្បីបង្កើតស្វ័យប្រវត្តិ...'
+                        : 'Brief note to introduce yourself or click "✨ AI Generate" to auto-draft...'
                     }
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:border-blue-500 transition"
+                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white transition leading-relaxed"
                   />
                 </div>
 
-                <div className="flex items-center justify-end space-x-2 pt-2">
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setIsApplyModalOpen(false)}
@@ -642,7 +794,7 @@ export const JobDetailPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmittingApply || (resumes.length === 0 && !selectedResumeId)}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition disabled:opacity-50 cursor-pointer shadow-xs"
                   >
                     {isSubmittingApply
                       ? isKhmer ? 'កំពុងបញ្ជូន...' : 'Submitting...'

@@ -714,8 +714,8 @@ export const EmployerCompanyProfilePage: React.FC = () => {
                       ? 'កំពុងរក្សាទុក...'
                       : 'Saving...'
                     : isKhmer
-                    ? 'រក្សាទុកព័ត៌មាន'
-                    : 'Save Changes'}
+                      ? 'រក្សាទុកព័ត៌មាន'
+                      : 'Save Changes'}
                 </span>
                 {!isSaving && <ArrowRight className="w-3.5 h-3.5" />}
               </button>

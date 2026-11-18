@@ -332,11 +332,10 @@ export const JobsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsMoreFiltersOpen(!isMoreFiltersOpen)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${
-              isMoreFiltersOpen || extraFiltersCount > 0
-                ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 shadow-2xs'
-            }`}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer border ${isMoreFiltersOpen || extraFiltersCount > 0
+              ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-xs'
+              : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 shadow-2xs'
+              }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
             <span>{isKhmer ? 'តម្រងបន្ថែម' : 'More Filters'}</span>
@@ -346,9 +345,8 @@ export const JobsPage: React.FC = () => {
               </span>
             )}
             <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                isMoreFiltersOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
-              }`}
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${isMoreFiltersOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
+                }`}
             />
           </button>
 
@@ -371,11 +369,10 @@ export const JobsPage: React.FC = () => {
                 setViewMode('table')
                 localStorage.setItem('jobs_view_mode', 'table')
               }}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                viewMode === 'table'
-                  ? 'bg-blue-600 text-white shadow-xs font-bold'
-                  : 'text-slate-400 hover:text-slate-700'
-              }`}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'table'
+                ? 'bg-blue-600 text-white shadow-xs font-bold'
+                : 'text-slate-400 hover:text-slate-700'
+                }`}
               title={isKhmer ? 'ទិដ្ឋភាពតារាង (List Table)' : 'List Table View'}
               aria-label="Table view"
             >
@@ -387,11 +384,10 @@ export const JobsPage: React.FC = () => {
                 setViewMode('grid')
                 localStorage.setItem('jobs_view_mode', 'grid')
               }}
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                viewMode === 'grid'
-                  ? 'bg-blue-600 text-white shadow-xs font-bold'
-                  : 'text-slate-400 hover:text-slate-700'
-              }`}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${viewMode === 'grid'
+                ? 'bg-blue-600 text-white shadow-xs font-bold'
+                : 'text-slate-400 hover:text-slate-700'
+                }`}
               title={isKhmer ? 'ទិដ្ឋភាពក្រឡា (Grid Cards)' : 'Grid Cards View'}
               aria-label="Grid view"
             >
@@ -539,104 +535,101 @@ export const JobsPage: React.FC = () => {
 
       {/* 3. Collapsible More Filters Panel (Opens below search & badge filters) */}
 
-        {/* Collapsible More Filters Panel */}
-        {isMoreFiltersOpen && (
-          <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-sm space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Workplace Type */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
-                {isKhmer ? 'កន្លែងធ្វើការ:' : 'Workplace:'}
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { id: '', label: isKhmer ? 'ទាំងអស់' : 'All' },
-                  { id: 'on_site', label: isKhmer ? 'នៅកន្លែងធ្វើការ' : 'On-site' },
-                  { id: 'hybrid', label: isKhmer ? 'កូនកាត់ (Hybrid)' : 'Hybrid' },
-                  { id: 'remote', label: isKhmer ? 'ពីចម្ងាយ (Remote)' : 'Remote' },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setWorkplaceType(item.id)
-                      setPage(1)
-                    }}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                      workplaceType === item.id
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+      {/* Collapsible More Filters Panel */}
+      {isMoreFiltersOpen && (
+        <div className="p-4 bg-white rounded-2xl border border-slate-200/90 shadow-sm space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Workplace Type */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
+              {isKhmer ? 'កន្លែងធ្វើការ:' : 'Workplace:'}
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: '', label: isKhmer ? 'ទាំងអស់' : 'All' },
+                { id: 'on_site', label: isKhmer ? 'នៅកន្លែងធ្វើការ' : 'On-site' },
+                { id: 'hybrid', label: isKhmer ? 'កូនកាត់ (Hybrid)' : 'Hybrid' },
+                { id: 'remote', label: isKhmer ? 'ពីចម្ងាយ (Remote)' : 'Remote' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setWorkplaceType(item.id)
+                    setPage(1)
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${workplaceType === item.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
                     }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Experience Level */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
-              <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
-                {isKhmer ? 'កម្រិតបទពិសោធន៍:' : 'Experience Level:'}
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { id: '', label: isKhmer ? 'ទាំងអស់' : 'All' },
-                  { id: 'fresh_graduate', label: isKhmer ? 'និស្សិតទើបចប់' : 'Fresh Grad' },
-                  { id: 'entry', label: isKhmer ? 'កម្រិតដំបូង' : 'Entry Level' },
-                  { id: 'mid', label: isKhmer ? 'កម្រិតមធ្យម' : 'Mid Level' },
-                  { id: 'senior', label: isKhmer ? 'កម្រិតខ្ពស់' : 'Senior Level' },
-                  { id: 'lead', label: isKhmer ? 'អ្នកដឹកនាំ' : 'Lead / Director' },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setExperienceLevel(item.id)
-                      setPage(1)
-                    }}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                      experienceLevel === item.id
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Other Employment Types */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
-              <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
-                {isKhmer ? 'ប្រភេទផ្សេងទៀត:' : 'Other Types:'}
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { id: 'part_time', label: isKhmer ? 'ក្រៅម៉ោង' : 'Part-time' },
-                  { id: 'contract', label: isKhmer ? 'កិច្ចសន្យា' : 'Contract' },
-                  { id: 'freelance', label: isKhmer ? 'ឯករាជ្យ' : 'Freelance' },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setEmploymentType(employmentType === item.id ? '' : item.id)
-                      setPage(1)
-                    }}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                      employmentType === item.id
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+
+          {/* Experience Level */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
+            <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
+              {isKhmer ? 'កម្រិតបទពិសោធន៍:' : 'Experience Level:'}
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: '', label: isKhmer ? 'ទាំងអស់' : 'All' },
+                { id: 'fresh_graduate', label: isKhmer ? 'និស្សិតទើបចប់' : 'Fresh Grad' },
+                { id: 'entry', label: isKhmer ? 'កម្រិតដំបូង' : 'Entry Level' },
+                { id: 'mid', label: isKhmer ? 'កម្រិតមធ្យម' : 'Mid Level' },
+                { id: 'senior', label: isKhmer ? 'កម្រិតខ្ពស់' : 'Senior Level' },
+                { id: 'lead', label: isKhmer ? 'អ្នកដឹកនាំ' : 'Lead / Director' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setExperienceLevel(item.id)
+                    setPage(1)
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${experienceLevel === item.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Other Employment Types */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2.5 border-t border-slate-100">
+            <span className="text-xs font-bold text-slate-500 w-32 shrink-0">
+              {isKhmer ? 'ប្រភេទផ្សេងទៀត:' : 'Other Types:'}
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'part_time', label: isKhmer ? 'ក្រៅម៉ោង' : 'Part-time' },
+                { id: 'contract', label: isKhmer ? 'កិច្ចសន្យា' : 'Contract' },
+                { id: 'freelance', label: isKhmer ? 'ឯករាជ្យ' : 'Freelance' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    setEmploymentType(employmentType === item.id ? '' : item.id)
+                    setPage(1)
+                  }}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${employmentType === item.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 4. Jobs List / 4-Column Grid View */}
       {isLoading ? (
@@ -770,15 +763,14 @@ export const JobsPage: React.FC = () => {
                       <img
                         src={
                           getAssetUrl(job.company_banner) ||
-                          `https://images.unsplash.com/photo-${
-                            [
-                              '1497366216548-37526070297c',
-                              '1497215728101-856f4ea42174',
-                              '1486406146926-c627a92ad1ab',
-                              '1522071820081-009f0129c71c',
-                              '1557804506-669a67965ba0',
-                              '1504384308090-c894fdcc538d',
-                            ][job.id % 6]
+                          `https://images.unsplash.com/photo-${[
+                            '1497366216548-37526070297c',
+                            '1497215728101-856f4ea42174',
+                            '1486406146926-c627a92ad1ab',
+                            '1522071820081-009f0129c71c',
+                            '1557804506-669a67965ba0',
+                            '1504384308090-c894fdcc538d',
+                          ][job.id % 6]
                           }?w=600&h=340&fit=crop`
                         }
                         alt={job.title}
@@ -805,25 +797,23 @@ export const JobsPage: React.FC = () => {
                         e.stopPropagation()
                         handleToggleSave(job, e)
                       }}
-                      className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition backdrop-blur-md border shadow-xs cursor-pointer ${
-                        job.is_saved
-                          ? 'bg-blue-600 text-white border-blue-500'
-                          : 'bg-slate-900/60 hover:bg-slate-900/90 text-white border-white/25'
-                      }`}
+                      className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition backdrop-blur-md border shadow-xs cursor-pointer ${job.is_saved
+                        ? 'bg-blue-600 text-white border-blue-500'
+                        : 'bg-slate-900/60 hover:bg-slate-900/90 text-white border-white/25'
+                        }`}
                       title={
                         job.is_saved
                           ? isKhmer
                             ? 'ដកការរក្សាទុក'
                             : 'Remove bookmark'
                           : isKhmer
-                          ? 'រក្សាទុកការងារ'
-                          : 'Save job'
+                            ? 'រក្សាទុកការងារ'
+                            : 'Save job'
                       }
                     >
                       <Bookmark
-                        className={`w-3 h-3 ${
-                          job.is_saved ? 'fill-white stroke-white' : ''
-                        }`}
+                        className={`w-3 h-3 ${job.is_saved ? 'fill-white stroke-white' : ''
+                          }`}
                       />
                     </button>
                   )}
@@ -884,9 +874,7 @@ export const JobsPage: React.FC = () => {
                       <span className="px-2.5 py-0.5 rounded-full text-[9px] font-semibold bg-purple-50 text-purple-700 border border-purple-100">
                         {getWorkplaceLabel(job.workplace_type)}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                        {getExperienceLabel(job.experience_level)}
-                      </span>
+
                     </div>
                   </div>
                 </div>
@@ -1048,25 +1036,23 @@ export const JobsPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={(e) => handleToggleSave(job, e)}
-                            className={`p-1.5 rounded-lg flex items-center justify-center transition border cursor-pointer ${
-                              job.is_saved
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                                : 'bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 border-slate-200 shadow-2xs'
-                            }`}
+                            className={`p-1.5 rounded-lg flex items-center justify-center transition border cursor-pointer ${job.is_saved
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                              : 'bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 border-slate-200 shadow-2xs'
+                              }`}
                             title={
                               job.is_saved
                                 ? isKhmer
                                   ? 'ដកការរក្សាទុក'
                                   : 'Remove bookmark'
                                 : isKhmer
-                                ? 'រក្សាទុកការងារ'
-                                : 'Save job'
+                                  ? 'រក្សាទុកការងារ'
+                                  : 'Save job'
                             }
                           >
                             <Bookmark
-                              className={`w-3.5 h-3.5 ${
-                                job.is_saved ? 'fill-white stroke-white' : ''
-                              }`}
+                              className={`w-3.5 h-3.5 ${job.is_saved ? 'fill-white stroke-white' : ''
+                                }`}
                             />
                           </button>
                         )}
@@ -1107,9 +1093,9 @@ export const JobsPage: React.FC = () => {
 
       {/* Job Alert Subscription Modal */}
       {isJobAlertOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 text-slate-900 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2.5">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center">
                   <Bell className="w-4 h-4" />

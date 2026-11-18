@@ -160,16 +160,16 @@ export const SeekerLayout: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  title={isKhmer ? item.nameKm : item.name}
-                  className={`flex items-center rounded-xl text-xs transition-all duration-150 ${isCollapsed
+                  title={isCollapsed ? (isKhmer ? item.nameKm : item.name) : undefined}
+                  className={`group flex items-center rounded-xl text-xs transition-all duration-150 ${isCollapsed
                     ? 'justify-center w-10 h-10 mx-auto'
                     : 'space-x-3 px-3.5 py-2.5 text-left'
                     } ${isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md shadow-blue-500/20'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 border border-transparent hover:border-white/80 font-medium hover:shadow-2xs'
+                      ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
                     }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
                   {!isCollapsed && (
                     <span className="flex-1 text-left truncate">{isKhmer ? item.nameKm : item.name}</span>
                   )}
@@ -188,8 +188,8 @@ export const SeekerLayout: React.FC = () => {
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
-            title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
-            className={`w-full flex items-center rounded-xl text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-white/80 border border-transparent hover:border-slate-200 transition-all ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
+            title={isCollapsed ? (isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website') : undefined}
+            className={`w-full flex items-center rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
               }`}
           >
             <ExternalLink className="w-4 h-4 shrink-0 text-slate-400" />
@@ -200,8 +200,8 @@ export const SeekerLayout: React.FC = () => {
           <button
             type="button"
             onClick={handleLogout}
-            title={isKhmer ? 'ចាកចេញ' : 'Sign Out'}
-            className={`w-full flex items-center rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-500/10 border border-transparent hover:border-rose-200/50 transition-all cursor-pointer ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
+            title={isCollapsed ? (isKhmer ? 'ចាកចេញ' : 'Sign Out') : undefined}
+            className={`w-full flex items-center rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer ${isCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'space-x-2.5 px-3 py-2 text-left'
               }`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
@@ -276,8 +276,8 @@ export const SeekerLayout: React.FC = () => {
 
               {profileDropdownOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setProfileDropdownOpen(false)} />
-                  <div className="absolute right-0 mt-2.5 w-60 rounded-2xl glass-dropdown bg-white/85 backdrop-blur-2xl shadow-2xl shadow-blue-950/10 border border-white/90 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="fixed inset-0 z-[9998]" onClick={() => setProfileDropdownOpen(false)} />
+                  <div className="absolute right-0 mt-2.5 w-60 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2 z-[9999] animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3 py-2.5 border-b border-slate-100/80">
                       <p className="text-xs font-bold text-slate-900 truncate">{user.full_name}</p>
                       <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{user.email}</p>

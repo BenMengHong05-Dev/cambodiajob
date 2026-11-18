@@ -49,7 +49,7 @@ export const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({ variant = 'l
     : 'bg-white border-slate-100 text-slate-800 shadow-xl'
 
   return (
-    <div className="relative inline-block text-left font-sans" ref={dropdownRef}>
+    <div className={`relative inline-block text-left font-sans ${isOpen ? 'z-[9999]' : 'z-10'}`} ref={dropdownRef}>
       {/* Modern, Clean Trigger */}
       <button
         type="button"
@@ -70,7 +70,7 @@ export const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({ variant = 'l
       {/* Clean, Direct Menu */}
       {isOpen && (
         <div
-          className={`absolute right-0 mt-1.5 w-32 rounded-xl border p-1 z-50 animate-in fade-in zoom-in-95 duration-100 ${menuClasses}`}
+          className={`absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 p-1 z-[9999] shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${menuClasses}`}
         >
           {currencies.map((c) => {
             const isSelected = c.code === currency

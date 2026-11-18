@@ -4,11 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
+import { aiService } from '../../services/ai.service'
 import { Application, Job, SeekerProfile, AIChartData } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
-import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
 import { AICareerChart } from '../../components/ai/AICareerChart'
-import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
 import { StatCard } from '../../components/dashboard/StatCard'
 import { QuickActions } from '../../components/dashboard/QuickActions'
 import { getAssetUrl } from '../../utils/assets'
@@ -23,15 +22,13 @@ import {
   TrendingUp,
   Building,
   Video,
-  Sparkles,
   ChevronRight,
   FileCheck,
   Search,
   User,
   ExternalLink,
   MapPin,
-  RefreshCw,
-  Zap,
+  Sparkles,
 } from 'lucide-react'
 
 export const SeekerDashboardPage: React.FC = () => {
@@ -46,6 +43,7 @@ export const SeekerDashboardPage: React.FC = () => {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all')
   const [appSearchQuery, setAppSearchQuery] = useState<string>('')
   const [activeChartTab, setActiveChartTab] = useState<'salary' | 'skills'>('salary')
+  const [liveSalaryChart, setLiveSalaryChart] = useState<AIChartData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -53,16 +51,20 @@ export const SeekerDashboardPage: React.FC = () => {
     if (!quiet) setIsLoading(true)
     else setIsRefreshing(true)
     try {
-      const [profData, appsData, savedData, jobsRes] = await Promise.all([
+      const [profData, appsData, savedData, jobsRes, marketRes] = await Promise.all([
         seekerService.getProfile().catch(() => null),
         seekerService.getApplications().catch(() => []),
         seekerService.getSavedJobs().catch(() => []),
         jobsService.getJobs({ page_size: 3 }).catch(() => ({ results: [] } as any)),
+        aiService.getMarketChart().catch(() => null),
       ])
       setProfile(profData)
       setApplications(appsData || [])
       setSavedJobs(savedData || [])
       setRecommendedJobs(jobsRes?.results || [])
+      if (marketRes?.chart) {
+        setLiveSalaryChart(marketRes.chart)
+      }
     } catch (err) {
       console.error('Failed to load seeker dashboard data:', err)
     } finally {
@@ -135,8 +137,8 @@ export const SeekerDashboardPage: React.FC = () => {
     return isKhmer ? 'សាយណ្ហសួស្តី' : 'Good evening'
   }
 
-  // Pre-configured Live Market Benchmark Charts
-  const salaryBenchmarkChart: AIChartData = {
+  // Live Market Benchmark Charts with Database fallback
+  const salaryBenchmarkChart: AIChartData = liveSalaryChart || {
     type: 'salary_benchmark',
     title: isKhmer ? 'កម្រិតប្រាក់ខែទីផ្សារការងារកម្ពុជា' : 'Cambodia Tech & Business Salary Benchmarks',
     title_km: 'កម្រិតប្រាក់ខែទីផ្សារការងារកម្ពុជា',
@@ -149,17 +151,33 @@ export const SeekerDashboardPage: React.FC = () => {
     ],
   }
 
+  // Dynamic Skill Match Chart based on candidate profile skills
+  const userSkillNames = (profile?.skills || []).map((s) => s.name.toLowerCase())
+  const marketSkills = [
+    'React / Next.js & TypeScript',
+    'Python / Django REST APIs',
+    'Relational Database (MySQL/PostgreSQL)',
+    'UI/UX & Mobile Design',
+    'Docker & Cloud Deployment',
+  ]
+  const dynamicSkillItems = marketSkills.map((sk) => ({
+    skill: sk,
+    user_has: userSkillNames.some(
+      (us) => sk.toLowerCase().includes(us) || us.includes(sk.toLowerCase().split(' ')[0])
+    ),
+  }))
+  const matchedSkillCount = dynamicSkillItems.filter((i) => i.user_has).length
+  const dynamicMatchScore = Math.max(
+    40,
+    Math.min(100, Math.round((matchedSkillCount / dynamicSkillItems.length) * 100) || 75)
+  )
+
   const skillMatchChart: AIChartData = {
     type: 'skill_match',
     title: isKhmer ? 'ជំនាញដែលមានតម្រូវការខ្ពស់' : 'In-Demand Market Competencies',
     title_km: 'ជំនាញដែលមានតម្រូវការខ្ពស់',
-    match_score: 92,
-    items: [
-      { skill: 'React / Next.js & TypeScript', user_has: true },
-      { skill: 'Python / Django REST APIs', user_has: true },
-      { skill: 'Relational Database (MySQL/PostgreSQL)', user_has: true },
-      { skill: 'Docker & Cloud Deployment', user_has: false },
-    ],
+    match_score: dynamicMatchScore,
+    items: dynamicSkillItems,
   }
 
   const getDynamicStatusBadge = (status: string) => {
@@ -264,16 +282,6 @@ export const SeekerDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
-          <EmailNotificationCard variant="pill" role="job_seeker" />
-          <button
-            type="button"
-            onClick={() => loadDashboardData(true)}
-            disabled={isRefreshing}
-            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh'}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
-          </button>
           <Link
             to="/seeker/profile"
             className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
@@ -291,111 +299,7 @@ export const SeekerDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Dashboard Notification Alert Banner */}
-      <DashboardNotificationAlert role="job_seeker" interviewsCount={upcomingInterviews.length} />
-
-      {/* 2. Visual Career Pipeline Funnel Strip */}
-      <div className="glass-card p-3.5 sm:p-4 rounded-2xl border border-white/90 shadow-sm relative overflow-hidden">
-        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/60">
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-blue-600" />
-            <h3 className="text-xs font-bold text-slate-800">
-              {isKhmer ? 'ដំណាក់កាលពាក្យសុំការងារ' : 'Application Pipeline Stages'}
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-400 font-medium">
-            {isKhmer ? 'ចុចលើដំណាក់កាលដើម្បីត្រងទិន្នន័យ' : 'Click a stage to filter applications'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {/* Stage 1 */}
-          <button
-            type="button"
-            onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'all' ? 'submitted' : 'all')}
-            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-              selectedStatusFilter === 'all'
-                ? 'bg-blue-500/10 border-blue-400/40 text-blue-900 shadow-2xs'
-                : 'bg-white/60 hover:bg-white border-white/80 text-slate-700'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                1. {isKhmer ? 'បានដាក់' : 'Applied'}
-              </span>
-              <span className="text-sm font-extrabold text-blue-600">{submittedCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'ពាក្យសុំសរុប' : 'Total applications'}
-            </p>
-          </button>
-
-          {/* Stage 2 */}
-          <button
-            type="button"
-            onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'reviewing' ? 'all' : 'reviewing')}
-            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-              selectedStatusFilter === 'reviewing'
-                ? 'bg-amber-500/10 border-amber-400/40 text-amber-900 shadow-2xs'
-                : 'bg-white/60 hover:bg-white border-white/80 text-slate-700'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                2. {isKhmer ? 'កំពុងពិនិត្យ' : 'In Review'}
-              </span>
-              <span className="text-sm font-extrabold text-amber-600">{inReviewCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'និយោជកកំពុងមើល' : 'Under screening'}
-            </p>
-          </button>
-
-          {/* Stage 3 */}
-          <button
-            type="button"
-            onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'interview' ? 'all' : 'interview')}
-            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-              selectedStatusFilter === 'interview'
-                ? 'bg-indigo-500/10 border-indigo-400/40 text-indigo-900 shadow-2xs'
-                : 'bg-white/60 hover:bg-white border-white/80 text-slate-700'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                3. {isKhmer ? 'សម្ភាសន៍' : 'Interview'}
-              </span>
-              <span className="text-sm font-extrabold text-indigo-600">{interviewCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'ជិតមកដល់' : 'Scheduled meetings'}
-            </p>
-          </button>
-
-          {/* Stage 4 */}
-          <button
-            type="button"
-            onClick={() => setSelectedStatusFilter(selectedStatusFilter === 'offered' ? 'all' : 'offered')}
-            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-              selectedStatusFilter === 'offered'
-                ? 'bg-emerald-500/10 border-emerald-400/40 text-emerald-900 shadow-2xs'
-                : 'bg-white/60 hover:bg-white border-white/80 text-slate-700'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                4. {isKhmer ? 'ការផ្តល់ការងារ' : 'Offers'}
-              </span>
-              <span className="text-sm font-extrabold text-emerald-600">{offeredCount}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 truncate mt-0.5">
-              {isKhmer ? 'ជោគជ័យ' : 'Job offers received'}
-            </p>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Glassmorphic 4-Column Metric Cards */}
+      {/* 2. Glassmorphic 4-Column Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Total Submitted */}
         <StatCard
@@ -523,13 +427,18 @@ export const SeekerDashboardPage: React.FC = () => {
           {/* Active Applications Section */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-slate-200/60 bg-white/50 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ពាក្យសុំការងារចុងក្រោយ' : 'Recent Applications'}
-                </h2>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  {isKhmer ? 'ស្ថានភាពពាក្យសុំការងារដែលបានដាក់' : 'Tracking your current recruitment status'}
-                </p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-2xs shrink-0">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                    {isKhmer ? 'ពាក្យសុំការងារចុងក្រោយ' : 'Recent Applications'}
+                  </h2>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {isKhmer ? 'ស្ថានភាពពាក្យសុំការងារដែលបានដាក់' : 'Tracking your current recruitment status'}
+                  </p>
+                </div>
               </div>
 
               {/* Status Filter Tabs */}
@@ -546,18 +455,18 @@ export const SeekerDashboardPage: React.FC = () => {
                     onClick={() => setSelectedStatusFilter(tab.id)}
                     className={`px-3 py-1 rounded-xl text-xs font-semibold transition shrink-0 cursor-pointer ${
                       selectedStatusFilter === tab.id
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-white/70 hover:bg-white text-slate-600 hover:text-slate-900 border border-white/80 shadow-2xs'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 shadow-2xs'
                     }`}
                   >
-                    {tab.label} ({tab.count})
+                    {tab.label} <span className="opacity-80">({tab.count})</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Quick Search */}
-            <div className="px-4 sm:px-5 py-2.5 bg-slate-50/50 backdrop-blur-xs border-b border-slate-200/60 flex items-center justify-between gap-3">
+            <div className="px-4 sm:px-5 py-2.5 bg-slate-50/80 border-b border-slate-200/70 flex items-center justify-between gap-3">
               <div className="relative flex-1 max-w-sm">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -565,15 +474,15 @@ export const SeekerDashboardPage: React.FC = () => {
                   value={appSearchQuery}
                   onChange={(e) => setAppSearchQuery(e.target.value)}
                   placeholder={isKhmer ? 'ស្វែងរកតាមការងារ ឬក្រុមហ៊ុន...' : 'Search applied role or company...'}
-                  className="w-full pl-9 pr-3 py-1.5 bg-white/80 border border-white/90 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition shadow-2xs"
+                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition shadow-2xs"
                 />
               </div>
               <Link
                 to="/seeker/applications"
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition shrink-0"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition shrink-0 group"
               >
                 <span>{isKhmer ? 'មើលទាំងអស់' : 'View all'}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
@@ -600,7 +509,7 @@ export const SeekerDashboardPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-slate-200/60 text-[11px] font-bold text-slate-500 uppercase tracking-wider backdrop-blur-xs">
+                    <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                       <th className="py-3 px-4">{isKhmer ? 'តំណែងការងារ និងក្រុមហ៊ុន' : 'Job & Company'}</th>
                       <th className="py-3 px-4 hidden md:table-cell">{isKhmer ? 'ទីតាំង' : 'Location'}</th>
                       <th className="py-3 px-4 hidden sm:table-cell">{isKhmer ? 'ប្រាក់ខែ' : 'Salary'}</th>
@@ -611,10 +520,10 @@ export const SeekerDashboardPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
                     {filteredApplications.slice(0, 5).map((app: any) => (
-                      <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
+                      <tr key={app.id} className="hover:bg-blue-50/30 transition-colors group">
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-9 h-9 rounded-xl bg-white/90 border border-white/90 shadow-2xs p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-2xs p-1 shrink-0 flex items-center justify-center overflow-hidden">
                               {app.company_logo ? (
                                 <img src={getAssetUrl(app.company_logo)} alt={app.company_name} className="w-full h-full object-contain rounded-lg" />
                               ) : (
@@ -624,11 +533,11 @@ export const SeekerDashboardPage: React.FC = () => {
                             <div className="min-w-0">
                               <Link
                                 to={`/jobs/${app.job_slug}`}
-                                className="font-bold text-slate-900 group-hover:text-blue-600 transition truncate block max-w-xs"
+                                className="font-bold text-slate-900 group-hover:text-blue-600 transition truncate block max-w-xs text-xs"
                               >
                                 {app.job_title}
                               </Link>
-                              <span className="text-[11px] text-slate-500 font-medium">
+                              <span className="text-[11px] text-slate-500 font-medium block truncate">
                                 {app.company_name}
                               </span>
                             </div>
@@ -642,7 +551,7 @@ export const SeekerDashboardPage: React.FC = () => {
                         </td>
                         <td className="py-3 px-4 hidden sm:table-cell">
                           {app.salary_min ? (
-                            <span className="text-blue-600 font-semibold bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-200/60 text-[11px]">
+                            <span className="text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 text-[11px]">
                               {formatSalaryRange(app.salary_min, app.salary_max, app.salary_currency)}
                             </span>
                           ) : (
@@ -658,10 +567,10 @@ export const SeekerDashboardPage: React.FC = () => {
                         <td className="py-3 px-4 text-right">
                           <Link
                             to={`/jobs/${app.job_slug}`}
-                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white/80 hover:bg-blue-600 hover:text-white text-slate-600 border border-slate-200/70 text-[11px] font-semibold transition-all shadow-2xs"
+                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white hover:bg-blue-600 hover:text-white text-slate-600 border border-slate-200 text-[11px] font-semibold transition-all shadow-2xs group/btn"
                           >
                             <span>{isKhmer ? 'មើល' : 'View'}</span>
-                            <ExternalLink className="w-3 h-3 ml-1" />
+                            <ExternalLink className="w-3 h-3 ml-1 group-hover/btn:translate-x-0.5 transition-transform" />
                           </Link>
                         </td>
                       </tr>
@@ -675,16 +584,22 @@ export const SeekerDashboardPage: React.FC = () => {
           {/* Recommended Jobs */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ការងារណែនាំសម្រាប់អ្នក' : 'Recommended Jobs For You'}
-                </h3>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  {isKhmer ? 'ស្របតាមជំនាញ និងទីផ្សារការងារកម្ពុជា' : 'Matching your experience and preferences'}
-                </p>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-2xs shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    {isKhmer ? 'ការងារណែនាំសម្រាប់អ្នក' : 'Recommended Jobs For You'}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {isKhmer ? 'ស្របតាមជំនាញ និងទីផ្សារការងារកម្ពុជា' : 'Matching your experience and preferences'}
+                  </p>
+                </div>
               </div>
-              <Link to="/jobs" className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition">
-                {isKhmer ? 'មើលបន្ថែម' : 'Explore more'} &rarr;
+              <Link to="/jobs" className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition group">
+                <span>{isKhmer ? 'មើលបន្ថែម' : 'Explore more'}</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
@@ -693,23 +608,37 @@ export const SeekerDashboardPage: React.FC = () => {
                 <Link
                   key={job.id}
                   to={`/jobs/${job.slug}`}
-                  className="glass-card-hover p-3.5 rounded-xl border border-white/90 shadow-2xs hover:border-blue-400/60 transition-all flex flex-col justify-between group"
+                  className="glass-card-hover p-4 rounded-xl border border-white/90 shadow-2xs hover:border-blue-400/60 transition-all flex flex-col justify-between group hover:shadow-xs"
                 >
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 border border-blue-400/20 uppercase tracking-wide inline-block">
-                      {job.category_name_en || 'Opportunity'}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition line-clamp-1 mt-1">
-                      {job.title}
-                    </h4>
-                    <p className="text-xs text-slate-500 truncate">{job.company_name}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-1 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs">
+                        {job.company_logo ? (
+                          <img src={getAssetUrl(job.company_logo)} alt={job.company_name} className="w-full h-full object-contain rounded-lg" />
+                        ) : (
+                          <Building className="w-4 h-4 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 uppercase tracking-wider inline-block">
+                          {job.category_name_en || (isKhmer ? 'ឱកាសការងារ' : 'Opportunity')}
+                        </span>
+                        <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition line-clamp-1 mt-1">
+                          {job.title}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{job.company_name}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-blue-600 font-semibold">
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 font-bold text-[11px]">
                       {formatSalaryRange(job.salary_min, job.salary_max, job.salary_currency, job.is_salary_negotiable)}
                     </span>
-                    <span className="text-slate-400 text-[11px]">{job.province}</span>
+                    <span className="text-slate-500 text-[11px] flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      {job.province}
+                    </span>
                   </div>
                 </Link>
               ))}
@@ -722,16 +651,31 @@ export const SeekerDashboardPage: React.FC = () => {
           {/* Profile Strength Card */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                {isKhmer ? 'កម្រិតបំពេញ CV' : 'Profile Strength'}
-              </h3>
-              <span className="text-xs sm:text-sm font-bold text-blue-600">{profileScore}%</span>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shadow-2xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                  {isKhmer ? 'កម្រិតបំពេញ CV' : 'Profile Strength'}
+                </h3>
+              </div>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                  profileScore >= 80
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                    : profileScore >= 50
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200/60'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                }`}
+              >
+                {profileScore}%
+              </span>
             </div>
 
             {/* Progress Bar with luminous gradient track */}
-            <div className="w-full bg-slate-200/50 backdrop-blur-xs rounded-full h-2.5 p-0.5 overflow-hidden border border-white/80">
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
               <div
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full transition-all duration-500 shadow-2xs"
+                className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 h-full rounded-full transition-all duration-500"
                 style={{ width: `${profileScore}%` }}
               />
             </div>
@@ -742,50 +686,70 @@ export const SeekerDashboardPage: React.FC = () => {
                 : 'Complete your profile credentials to increase recruiter profile visibility.'}
             </p>
 
-            <div className="space-y-2 text-xs font-medium">
-              <div className="flex items-center space-x-2 text-slate-700">
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>{isKhmer ? 'គណនីបានផ្ទៀងផ្ទាត់' : 'Account active & verified'}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-slate-700">
-                {profile?.headline ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                ) : (
-                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
-                )}
-                <span>{isKhmer ? 'ចំណងជើង និងសេចក្ដីសង្ខេប' : 'Professional summary'}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-slate-700">
-                {profile?.work_experiences && profile.work_experiences.length > 0 ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                ) : (
-                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
-                )}
-                <span>{isKhmer ? 'បទពិសោធន៍ការងារ' : 'Work experience'}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-slate-700">
-                {profile?.educations && profile.educations.length > 0 ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                ) : (
-                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
-                )}
-                <span>{isKhmer ? 'កម្រិតវប្បធម៌' : 'Education history'}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-slate-700">
-                {profile?.skills && profile.skills.length > 0 ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                ) : (
-                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" />
-                )}
-                <span>{isKhmer ? 'ជំនាញឯកទេស' : 'Key skills listed'}</span>
-              </div>
+            {/* Checklist */}
+            <div className="space-y-2 text-xs">
+              {[
+                {
+                  done: true,
+                  label: isKhmer ? 'គណនីបានផ្ទៀងផ្ទាត់' : 'Account active & verified',
+                },
+                {
+                  done: !!(profile?.headline || profile?.summary),
+                  label: isKhmer ? 'ចំណងជើង និងសេចក្ដីសង្ខេប' : 'Professional summary',
+                },
+                {
+                  done: !!(profile?.work_experiences && profile.work_experiences.length > 0),
+                  label: isKhmer ? 'បទពិសោធន៍ការងារ' : 'Work experience',
+                },
+                {
+                  done: !!(profile?.educations && profile.educations.length > 0),
+                  label: isKhmer ? 'កម្រិតវប្បធម៌' : 'Education history',
+                },
+                {
+                  done: !!(profile?.skills && profile.skills.length > 0),
+                  label: isKhmer ? 'ជំនាញឯកទេស' : 'Key skills listed',
+                },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-center justify-between p-2 rounded-xl border transition-colors ${
+                    item.done
+                      ? 'bg-emerald-50/40 border-emerald-200/50 text-slate-800'
+                      : 'bg-slate-50/60 border-slate-200/60 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {item.done ? (
+                      <div className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center shrink-0">
+                        <div className="w-1 h-1 rounded-full bg-slate-300" />
+                      </div>
+                    )}
+                    <span className={`truncate text-xs ${item.done ? 'font-medium text-slate-800' : 'text-slate-600'}`}>
+                      {item.label}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-semibold shrink-0 px-1.5 py-0.5 rounded ${
+                      item.done
+                        ? 'text-emerald-700 bg-emerald-100/70'
+                        : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                    }`}
+                  >
+                    {item.done ? (isKhmer ? 'រួចរាល់' : 'Done') : (isKhmer ? '+ បន្ថែម' : '+ Add')}
+                  </span>
+                </div>
+              ))}
             </div>
 
             <Link
               to="/seeker/profile"
-              className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center space-x-1.5 cursor-pointer mt-2"
+              className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-xs shadow-xs hover:shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-2"
             >
-              <span>{isKhmer ? 'កែសម្រួលប្រវត្តិរូប' : 'Update Profile'}</span>
+              <span>{isKhmer ? 'កែលម្អប្រវត្តិរូប' : 'Update Profile'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -794,7 +758,7 @@ export const SeekerDashboardPage: React.FC = () => {
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-2xs">
                   <TrendingUp className="w-3.5 h-3.5" />
                 </div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">
@@ -805,8 +769,8 @@ export const SeekerDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveChartTab('salary')}
-                  className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
-                    activeChartTab === 'salary' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
+                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    activeChartTab === 'salary' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {isKhmer ? 'ប្រាក់ខែ' : 'Salaries'}
@@ -814,8 +778,8 @@ export const SeekerDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveChartTab('skills')}
-                  className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
-                    activeChartTab === 'skills' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600'
+                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    activeChartTab === 'skills' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {isKhmer ? 'ជំនាញ' : 'Skills'}
@@ -830,46 +794,6 @@ export const SeekerDashboardPage: React.FC = () => {
               <AICareerChart chart={skillMatchChart} />
             )}
           </div>
-
-          {/* Quick Links Card */}
-          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-1">
-            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-              {isKhmer ? 'ផ្លូវកាត់' : 'Quick Links'}
-            </span>
-            <Link
-              to="/seeker/saved"
-              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/80 border border-transparent hover:border-white/80 text-xs font-medium text-slate-700 hover:text-blue-600 transition shadow-2xs hover:shadow-xs"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Bookmark className="w-4 h-4 text-blue-600" />
-                <span>{isKhmer ? 'ការងាររក្សាទុក' : 'Saved Vacancies'}</span>
-              </div>
-              <span className="text-[10px] font-semibold text-blue-600 bg-blue-500/10 border border-blue-400/20 px-2 py-0.5 rounded-full">{savedCount}</span>
-            </Link>
-            <Link
-              to="/seeker/profile"
-              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/80 border border-transparent hover:border-white/80 text-xs font-medium text-slate-700 hover:text-blue-600 transition shadow-2xs hover:shadow-xs"
-            >
-              <div className="flex items-center space-x-2.5">
-                <FileText className="w-4 h-4 text-blue-600" />
-                <span>{isKhmer ? 'គ្រប់គ្រងឯកសារ CV' : 'Manage Resume Files'}</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            </Link>
-            <Link
-              to="/seeker/notifications"
-              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-white/80 border border-transparent hover:border-white/80 text-xs font-medium text-slate-700 hover:text-blue-600 transition shadow-2xs hover:shadow-xs"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span>{isKhmer ? 'ការជូនដំណឹង' : 'Notifications'}</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            </Link>
-          </div>
-
-          {/* Email Notification Alerts Status Card for Job Seeker */}
-          <EmailNotificationCard variant="card" role="job_seeker" />
         </div>
       </div>
     </div>

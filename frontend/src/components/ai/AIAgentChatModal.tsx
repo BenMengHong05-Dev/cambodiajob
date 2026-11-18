@@ -290,7 +290,7 @@ export const AIAgentChatModal: React.FC<AIAgentChatModalProps> = ({ isOpen, onCl
 
   return (
     <div
-      className={`fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50 flex flex-col bg-white rounded-3xl shadow-2xl shadow-slate-900/15 border border-slate-200/80 overflow-hidden transition-all duration-300 font-sans ${
+      className={`fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-[9999] flex flex-col bg-white rounded-3xl shadow-2xl shadow-slate-900/15 border border-slate-200/80 overflow-hidden transition-all duration-300 font-sans ${
         isExpanded
           ? 'w-[calc(100vw-24px)] sm:w-[680px] h-[85vh] max-h-[850px]'
           : 'w-[calc(100vw-24px)] sm:w-[460px] h-[620px] max-h-[88vh]'

@@ -6,8 +6,25 @@ class ApplyJobSerializer(serializers.Serializer):
 
 
 class UpdateApplicationStatusSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(
-        choices=["submitted", "reviewing", "shortlisted", "interview", "offered", "rejected", "withdrawn"]
-    )
+    STATUS_CHOICES = [
+        "submitted",
+        "reviewing",
+        "screening",  # alias for reviewing
+        "shortlisted",
+        "interview",
+        "interview_scheduled",  # alias for interview
+        "offered",
+        "rejected",
+        "withdrawn",
+    ]
+
+    status = serializers.ChoiceField(choices=STATUS_CHOICES)
     notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    def validate_status(self, value):
+        mapping = {
+            "screening": "reviewing",
+            "interview_scheduled": "interview",
+        }
+        return mapping.get(value, value)
 

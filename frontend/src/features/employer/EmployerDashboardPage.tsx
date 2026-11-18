@@ -7,7 +7,6 @@ import { companiesService } from '../../services/companies.service'
 import { Job, Company, Application } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
-import { DashboardNotificationAlert } from '../../components/layout/DashboardNotificationAlert'
 import { StatCard } from '../../components/dashboard/StatCard'
 import { QuickActions } from '../../components/dashboard/QuickActions'
 import {
@@ -192,11 +191,16 @@ export const EmployerDashboardPage: React.FC = () => {
         isKhmer ? 'បានធ្វើបច្ចុប្បន្នភាព' : 'Status Updated',
         isKhmer ? 'ស្ថានភាពបេក្ខជនត្រូវបានកែប្រែដោយជោគជ័យ' : 'Applicant status has been updated.'
       )
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update status:', err)
+      const errorMsg =
+        err.response?.data?.details?.status?.[0] ||
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        (isKhmer ? 'មិនអាចផ្លាស់ប្តូរស្ថានភាពបេក្ខជនបានទេ' : 'Failed to update candidate status.')
       toast.error(
         isKhmer ? 'បរាជ័យ' : 'Error',
-        isKhmer ? 'មិនអាចផ្លាស់ប្តូរស្ថានភាពបេក្ខជនបានទេ' : 'Failed to update candidate status.'
+        errorMsg
       )
     } finally {
       setIsUpdatingApplicant(false)
@@ -307,83 +311,6 @@ export const EmployerDashboardPage: React.FC = () => {
         <div className="absolute top-[380px] -left-20 w-[420px] h-[420px] bg-gradient-to-tr from-sky-200/35 via-blue-100/25 to-transparent rounded-full blur-3xl" />
         <div className="absolute -bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-tl from-indigo-100/35 via-purple-100/20 to-transparent rounded-full blur-3xl" />
       </div>
-
-      {/* 1. Glassmorphic Header Bar: Greeting, Enterprise Brand & Quick Actions */}
-      <div className="glass-header p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-bl from-blue-400/15 via-indigo-300/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex items-center space-x-3.5 min-w-0 relative z-10">
-          <div className="w-12 h-12 rounded-2xl border border-gray-200 bg-slate-50 p-1.5 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs">
-            {company?.logo_url ? (
-              <img src={getAssetUrl(company.logo_url)} alt={company.name} className="w-full h-full object-contain rounded-xl" />
-            ) : (
-              <Building className="w-6 h-6 text-blue-600" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-semibold text-slate-500">
-                <GreetingIcon className={`w-3.5 h-3.5 ${greeting.color}`} />
-                <span>
-                  {greeting.text}, {user?.full_name || 'Employer'}!
-                </span>
-              </span>
-              {company?.verification_status === 'verified' ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  <span>{isKhmer ? 'ក្រុមហ៊ុនផ្ទៀងផ្ទាត់រួច' : 'Verified Enterprise'}</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                  <ShieldAlert className="w-3 h-3 text-amber-600" />
-                  <span>{isKhmer ? 'រង់ចាំផ្ទៀងផ្ទាត់' : 'Pending Verification'}</span>
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate mt-0.5">
-              {company?.name || (isKhmer ? 'ផ្ទាំងគ្រប់គ្រងជ្រើសរើសបុគ្គលិក' : 'Recruitment Dashboard')}
-            </h1>
-
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isKhmer
-                ? `កំពុងផ្សាយ ${activeJobsCount} ការងារសកម្ម និងទទួលបានពាក្យសុំសរុប ${totalApplicationsCount} នាក់។`
-                : `Managing ${activeJobsCount} live vacancies with ${totalApplicationsCount} total candidate applications.`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap sm:flex-nowrap w-full md:w-auto relative z-10">
-          <button
-            type="button"
-            onClick={() => fetchDashboardData(true)}
-            disabled={isRefreshing}
-            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh'}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
-          </button>
-
-          <Link
-            to="/employer/jobs"
-            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isKhmer ? 'ការងារទាំងអស់' : 'All Jobs'}</span>
-          </Link>
-
-          <Link
-            to="/employer/jobs/new"
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white text-xs font-semibold transition-all duration-200 shadow-md shadow-blue-500/20 flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Notification Alert Banner */}
-      <DashboardNotificationAlert role="employer" />
 
       {/* Company Verification Guard Banner (if pending) */}
       {company && company.verification_status !== 'verified' && (
@@ -975,9 +902,9 @@ export const EmployerDashboardPage: React.FC = () => {
 
       {/* QUICK CANDIDATE REVIEW MODAL */}
       {selectedApplicant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white/95 backdrop-blur-2xl rounded-2xl border border-white/90 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
-            <div className="flex items-start justify-between pb-3 border-b border-slate-200/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-3">
                 <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-500/20 to-blue-500/20 text-indigo-700 font-bold text-base flex items-center justify-center shrink-0 border border-indigo-200">
                   {selectedApplicant.applicant_name?.charAt(0)?.toUpperCase() || 'C'}

@@ -26,6 +26,17 @@ import {
   Radio,
 } from 'lucide-react'
 
+const POPULAR_SKILL_SUGGESTIONS = [
+  'Khmer Language',
+  'English (Professional)',
+  'Communication',
+  'Microsoft Office',
+  'Customer Service',
+  'React.js',
+  'Node.js',
+  'Accounting',
+]
+
 export const EmployerJobCreatePage: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id?: string }>()
@@ -64,7 +75,6 @@ export const EmployerJobCreatePage: React.FC = () => {
   // Custom Skill Input States
   const [customSkillInput, setCustomSkillInput] = useState('')
   const [isAddingSkill, setIsAddingSkill] = useState(false)
-  const [skillSearch, setSkillSearch] = useState('')
 
   const [isLoadingJob, setIsLoadingJob] = useState(isEditMode)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -147,11 +157,16 @@ export const EmployerJobCreatePage: React.FC = () => {
     )
   }
 
-  const handleAddCustomSkill = async () => {
-    const trimmed = customSkillInput.trim()
+  const handleRemoveSkill = (skillId: number) => {
+    setSelectedSkillIds((prev) => prev.filter((id) => id !== skillId))
+  }
+
+  const handleAddCustomSkill = async (skillNameToAdd?: string) => {
+    const raw = typeof skillNameToAdd === 'string' ? skillNameToAdd : customSkillInput
+    const trimmed = raw.trim()
     if (!trimmed) return
 
-    // Check if it already exists
+    // Check if it already exists in available skills
     const existing = skills.find((s) => s.name.toLowerCase() === trimmed.toLowerCase())
     if (existing) {
       if (!selectedSkillIds.includes(existing.id)) {
@@ -178,6 +193,16 @@ export const EmployerJobCreatePage: React.FC = () => {
       setCustomSkillInput('')
     } finally {
       setIsAddingSkill(false)
+    }
+  }
+
+  const handleSkillInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      handleAddCustomSkill()
+    } else if (e.key === 'Backspace' && !customSkillInput && selectedSkillIds.length > 0) {
+      const lastId = selectedSkillIds[selectedSkillIds.length - 1]
+      handleRemoveSkill(lastId)
     }
   }
 
@@ -230,16 +255,16 @@ export const EmployerJobCreatePage: React.FC = () => {
               ? 'ការងារត្រូវបានកែប្រែ និងផ្សាយផ្ទាល់ដោយជោគជ័យ'
               : 'ព័ត៌មានការងារត្រូវបានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ'
             : finalStatus === 'published'
-            ? 'Job vacancy updated and posted live!'
-            : 'Job vacancy has been updated successfully.'
+              ? 'Job vacancy updated and posted live!'
+              : 'Job vacancy has been updated successfully.'
         )
         navigate('/employer/jobs')
       } catch (err: any) {
         setError(
           err.response?.data?.error ||
-            (isKhmer
-              ? 'មិនអាចកែប្រែការងារបានទេ។ សូមពិនិត្យផ្ទៀងផ្ទាត់ទិន្នន័យ។'
-              : 'Failed to update vacancy. Please review your changes.')
+          (isKhmer
+            ? 'មិនអាចកែប្រែការងារបានទេ។ សូមពិនិត្យផ្ទៀងផ្ទាត់ទិន្នន័យ។'
+            : 'Failed to update vacancy. Please review your changes.')
         )
       } finally {
         setIsSubmitting(false)
@@ -277,16 +302,16 @@ export const EmployerJobCreatePage: React.FC = () => {
             ? 'ឱកាសការងារថ្មីត្រូវបានចុះផ្សាយផ្ទាល់ដោយជោគជ័យ'
             : 'ការងារត្រូវបានរក្សាទុកជាសេចក្តីព្រាងដោយជោគជ័យ'
           : finalStatus === 'published'
-          ? 'New job vacancy posted live!'
-          : 'Job saved as draft.'
+            ? 'New job vacancy posted live!'
+            : 'Job saved as draft.'
       )
       navigate('/employer/jobs')
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-          (isKhmer
-            ? 'មិនអាចចុះផ្សាយការងារបានទេ។ សូមពិនិត្យផ្ទៀងផ្ទាត់ទិន្នន័យដែលបានបំពេញ។'
-            : 'Failed to post vacancy. Please review the form fields.')
+        (isKhmer
+          ? 'មិនអាចចុះផ្សាយការងារបានទេ។ សូមពិនិត្យផ្ទៀងផ្ទាត់ទិន្នន័យដែលបានបំពេញ។'
+          : 'Failed to post vacancy. Please review the form fields.')
       )
     } finally {
       setIsSubmitting(false)
@@ -344,11 +369,6 @@ export const EmployerJobCreatePage: React.FC = () => {
     { value: 'KHR', label: 'KHR (៛)' },
   ]
 
-  // Filter skills for preset list
-  const filteredSkills = skills.filter((s) =>
-    s.name.toLowerCase().includes(skillSearch.toLowerCase())
-  )
-
   if (isLoadingJob) {
     return (
       <div className="py-24 text-center font-sans">
@@ -379,8 +399,8 @@ export const EmployerJobCreatePage: React.FC = () => {
               ? 'ការកែសម្រួលឱកាសការងារ (Edit Vacancy)'
               : 'Editing Vacancy'
             : isKhmer
-            ? 'ការបង្កើតឱកាសការងារថ្មី (Post Vacancy)'
-            : 'Create New Job Opening'}
+              ? 'ការបង្កើតឱកាសការងារថ្មី (Post Vacancy)'
+              : 'Create New Job Opening'}
         </span>
       </div>
 
@@ -399,8 +419,8 @@ export const EmployerJobCreatePage: React.FC = () => {
                     ? 'កែសម្រួលព័ត៌មានការងារ និងផ្សាយ'
                     : 'Edit & Post Job Vacancy'
                   : isKhmer
-                  ? 'ចុះផ្សាយឱកាសការងារថ្មី'
-                  : 'Post New Job Vacancy'}
+                    ? 'ចុះផ្សាយឱកាសការងារថ្មី'
+                    : 'Post New Job Vacancy'}
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
                 {isEditMode
@@ -408,30 +428,28 @@ export const EmployerJobCreatePage: React.FC = () => {
                     ? 'ធ្វើបច្ចុប្បន្នភាពព័ត៌មានលម្អិត ប្រាក់បៀវត្ស លក្ខខណ្ឌ និងផ្សាយការងារឡើងវិញ'
                     : 'Update vacancy specifications, salary, requirements, and re-post or publish live'
                   : isKhmer
-                  ? 'បញ្ជាក់ព័ត៌មានលម្អិតអំពីតួនាទី ប្រាក់បៀវត្ស លក្ខខណ្ឌតម្រូវ និងជំនាញចាំបាច់'
-                  : 'Specify vacancy details, salary, requirements, and required skills'}
+                    ? 'បញ្ជាក់ព័ត៌មានលម្អិតអំពីតួនាទី ប្រាក់បៀវត្ស លក្ខខណ្ឌតម្រូវ និងជំនាញចាំបាច់'
+                    : 'Specify vacancy details, salary, requirements, and required skills'}
               </p>
             </div>
           </div>
 
           <div className="hidden sm:block">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border shadow-2xs ${
-                jobStatus === 'published'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : jobStatus === 'closed'
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border shadow-2xs ${jobStatus === 'published'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : jobStatus === 'closed'
                   ? 'bg-rose-50 text-rose-700 border-rose-200'
                   : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}
+                }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
-                  jobStatus === 'published'
-                    ? 'bg-emerald-500'
-                    : jobStatus === 'closed'
+                className={`w-2 h-2 rounded-full ${jobStatus === 'published'
+                  ? 'bg-emerald-500'
+                  : jobStatus === 'closed'
                     ? 'bg-rose-500'
                     : 'bg-amber-500'
-                }`}
+                  }`}
               />
               <span>
                 {jobStatus === 'published'
@@ -439,12 +457,12 @@ export const EmployerJobCreatePage: React.FC = () => {
                     ? 'ស្ថានភាព: ផ្សាយផ្ទាល់'
                     : 'Status: Published'
                   : jobStatus === 'closed'
-                  ? isKhmer
-                    ? 'ស្ថានភាព: បានបិទ'
-                    : 'Status: Closed'
-                  : isKhmer
-                  ? 'ស្ថានភាព: សេចក្តីព្រាង'
-                  : 'Status: Draft'}
+                    ? isKhmer
+                      ? 'ស្ថានភាព: បានបិទ'
+                      : 'Status: Closed'
+                    : isKhmer
+                      ? 'ស្ថានភាព: សេចក្តីព្រាង'
+                      : 'Status: Draft'}
               </span>
             </span>
           </div>
@@ -490,7 +508,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Senior Frontend Developer"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+                className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
 
@@ -503,7 +521,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={titleKm}
                 onChange={(e) => setTitleKm(e.target.value)}
                 placeholder="ឧ. អ្នកអភិវឌ្ឍន៍គេហទំព័រជាន់ខ្ពស់"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+                className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
           </div>
@@ -579,7 +597,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 required
                 value={vacanciesCount}
                 onChange={(e) => setVacanciesCount(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-900 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
           </div>
@@ -606,7 +624,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="e.g. Khan Daun Penh, Phnom Penh"
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
           </div>
@@ -641,7 +659,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                   value={salaryMin}
                   onChange={(e) => setSalaryMin(e.target.value)}
                   placeholder="e.g. 500"
-                  className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-xl text-slate-900 font-medium outline-none focus:border-blue-500 shadow-2xs"
+                  className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                 />
               </div>
 
@@ -654,7 +672,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                   value={salaryMax}
                   onChange={(e) => setSalaryMax(e.target.value)}
                   placeholder="e.g. 1000"
-                  className="w-full px-3 py-1.5 text-xs bg-white border border-gray-200 rounded-xl text-slate-900 font-medium outline-none focus:border-blue-500 shadow-2xs"
+                  className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                 />
               </div>
 
@@ -683,7 +701,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Outline roles, core responsibilities, day-to-day tasks..."
-                className="w-full p-3.5 text-xs bg-slate-50 border border-gray-200 rounded-2xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                className="w-full p-3.5 text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none resize-y leading-relaxed hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
 
@@ -696,7 +714,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={descriptionKm}
                 onChange={(e) => setDescriptionKm(e.target.value)}
                 placeholder="រៀបរាប់អំពីតួនាទី និងភារកិច្ចចម្បងៗ..."
-                className="w-full p-3.5 text-xs bg-slate-50 border border-gray-200 rounded-2xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                className="w-full p-3.5 text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none resize-y leading-relaxed hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
 
@@ -709,78 +727,169 @@ export const EmployerJobCreatePage: React.FC = () => {
                 value={requirements}
                 onChange={(e) => setRequirements(e.target.value)}
                 placeholder="Required education, years of experience, technical skills, languages..."
-                className="w-full p-3.5 text-xs bg-slate-50 border border-gray-200 rounded-2xl text-slate-900 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                className="w-full p-3.5 text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none resize-y leading-relaxed hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
               />
             </div>
           </div>
 
-          {/* SECTION 7: Required Skills Selector */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
+          {/* SECTION 7: Required Skills (Input Type Tag Writer) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-gray-200 space-y-3.5 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">
-                  {isKhmer ? 'ជំនាញចាំបាច់ (Required Skills)' : 'Required Skills'}
+                <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-blue-600" />
+                  <span>{isKhmer ? 'ជំនាញចាំបាច់ (Required Skills)' : 'Required Skills'}</span>
                 </label>
                 <p className="text-[11px] text-slate-400">
-                  {isKhmer ? 'ជ្រើសរើសជំនាញដែលត្រូវការសម្រាប់តួនាទីនេះ' : 'Select technologies & qualifications'}
+                  {isKhmer
+                    ? 'វាយបញ្ចូលជំនាញដែលត្រូវការ រួចចុច Enter ឬចុចប៊ូតុង "បន្ថែម"'
+                    : 'Type skill name and press Enter or click "Add"'}
                 </p>
               </div>
 
-              {/* Add Custom Skill */}
-              <div className="flex items-center gap-1.5">
+              {selectedSkillIds.length > 0 && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200/60">
+                    {selectedSkillIds.length} {isKhmer ? 'ជំនាញបានជ្រើស' : 'selected'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSkillIds([])}
+                    className="text-[11px] text-slate-400 hover:text-rose-600 font-medium transition cursor-pointer"
+                  >
+                    {isKhmer ? 'សម្អាតទាំងអស់' : 'Clear all'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Input Field Box */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
                 <input
                   type="text"
                   value={customSkillInput}
                   onChange={(e) => setCustomSkillInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      handleAddCustomSkill()
-                    }
-                  }}
-                  placeholder={isKhmer ? '+ បញ្ចូលជំនាញថ្មី...' : '+ Custom skill...'}
-                  className="text-xs px-2.5 py-1 bg-slate-50 border border-gray-200 rounded-xl text-slate-800 placeholder:text-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 shadow-2xs"
+                  onKeyDown={handleSkillInputKeyDown}
+                  placeholder={
+                    isKhmer
+                      ? 'វាយឈ្មោះជំនាញ (ឧទាហរណ៍: React.js, English, Photoshop...) រួចចុច Enter'
+                      : 'Type a skill (e.g. React.js, English, Photoshop...) and press Enter'
+                  }
+                  className="w-full pl-3.5 pr-10 py-2.5 min-h-[42px] text-xs sm:text-sm bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddCustomSkill}
-                  disabled={isAddingSkill || !customSkillInput.trim()}
-                  className="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
-                >
-                  {isKhmer ? 'បន្ថែម' : 'Add'}
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-52 overflow-y-auto p-3 border border-gray-200 rounded-2xl bg-slate-50/50 shadow-2xs">
-              {filteredSkills.map((s) => {
-                const isSelected = selectedSkillIds.includes(s.id)
-                return (
+                {customSkillInput && (
                   <button
                     type="button"
-                    key={s.id}
-                    onClick={() => toggleSkill(s.id)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer text-left ${
-                      isSelected
-                        ? 'bg-blue-600 text-white border border-blue-600 shadow-2xs'
-                        : 'bg-white text-slate-700 border border-gray-200 hover:bg-slate-100 hover:border-blue-300'
-                    }`}
+                    onClick={() => setCustomSkillInput('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                   >
-                    <span className="truncate">{s.name}</span>
-                    {isSelected && <Check className="w-3 h-3 shrink-0 ml-1 text-white" />}
+                    <X className="w-3.5 h-3.5" />
                   </button>
-                )
-              })}
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleAddCustomSkill()}
+                disabled={isAddingSkill || !customSkillInput.trim()}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[42px] rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs shrink-0"
+              >
+                {isAddingSkill ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
+                <span>{isKhmer ? 'បន្ថែម' : 'Add'}</span>
+              </button>
+            </div>
+
+            {/* Selected Skills Chips Container */}
+            {selectedSkillIds.length > 0 ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {selectedSkillIds.map((id) => {
+                  const s = skills.find((item) => item.id === id) || { id, name: `Skill #${id}` }
+                  return (
+                    <span
+                      key={id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold shadow-2xs group animate-in fade-in zoom-in-95 duration-100"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      <span>{s.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(id)}
+                        className="p-0.5 rounded-md hover:bg-blue-200/70 text-blue-500 hover:text-blue-800 transition cursor-pointer ml-0.5"
+                        title={isKhmer ? 'លុបជំនាញនេះ' : 'Remove skill'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="py-2.5 px-3 rounded-xl bg-white border border-dashed border-gray-200 text-center">
+                <p className="text-[11px] text-slate-400">
+                  {isKhmer
+                    ? 'មិនទាន់មានជំនាញដែលបានបញ្ចូលនៅឡើយទេ។ សូមវាយបញ្ចូលខាងលើ ឬជ្រើសរើសពីការណែនាំខាងក្រោម។'
+                    : 'No skills added yet. Type above or pick from suggestions below.'}
+                </p>
+              </div>
+            )}
+
+            {/* Popular Suggestions */}
+            <div className="pt-2 border-t border-gray-200/60">
+              <span className="block text-[11px] font-semibold text-slate-500 mb-2">
+                {isKhmer ? 'ជំនាញដែលពេញនិយម (Suggested Skills):' : 'Suggested Skills:'}
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {POPULAR_SKILL_SUGGESTIONS.map((sug) => {
+                  const matchingSkill = skills.find((s) => s.name.toLowerCase() === sug.toLowerCase())
+                  const isSelected = matchingSkill ? selectedSkillIds.includes(matchingSkill.id) : false
+
+                  return (
+                    <button
+                      type="button"
+                      key={sug}
+                      onClick={() => {
+                        if (isSelected && matchingSkill) {
+                          handleRemoveSkill(matchingSkill.id)
+                        } else {
+                          handleAddCustomSkill(sug)
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600 text-white border border-blue-600 shadow-2xs'
+                          : 'bg-white hover:bg-slate-100 text-slate-600 border border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {isSelected ? (
+                        <Check className="w-3 h-3 text-white" />
+                      ) : (
+                        <Plus className="w-2.5 h-2.5 text-slate-400" />
+                      )}
+                      <span>{sug}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
           {/* SECTION 8: NEW - Explicit Job Status & Visibility Selector */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-3 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-blue-600" />
-              <label className="text-xs font-bold text-slate-900">
-                {isKhmer ? 'ស្ថានភាពការងារ និងការផ្សាយជាសាធារណៈ (Publishing Status)' : 'Publishing Status & Visibility'}
-              </label>
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-gray-200 space-y-3.5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-slate-500" />
+                <label className="text-xs font-bold text-slate-800">
+                  {isKhmer ? 'ស្ថានភាពការងារ និងការផ្សាយជាសាធារណៈ (Publishing Status)' : 'Publishing Status & Visibility'}
+                </label>
+              </div>
+              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                {isKhmer ? 'ជ្រើសរើសស្ថានភាពដើម្បីកំណត់ភាពមើលឃើញនៃការងារ' : 'Control vacancy visibility'}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -788,87 +897,147 @@ export const EmployerJobCreatePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setJobStatus('published')}
-                className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                className={`group relative p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 bg-white ${
                   jobStatus === 'published'
-                    ? 'bg-emerald-50/80 border-emerald-400 text-emerald-950 ring-2 ring-emerald-400/20 shadow-2xs'
-                    : 'bg-white border-gray-200 hover:bg-slate-100 text-slate-700'
+                    ? 'border-emerald-500/80 ring-2 ring-emerald-500/10 shadow-2xs'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-slate-50/50 text-slate-700'
                 }`}
               >
-                <div
-                  className={`w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0 ${
-                    jobStatus === 'published'
-                      ? 'border-emerald-600 bg-emerald-600 text-white'
-                      : 'border-slate-300'
-                  }`}
-                >
-                  {jobStatus === 'published' && <Check className="w-2.5 h-2.5" />}
+                <div className="flex items-start justify-between w-full gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition ${
+                        jobStatus === 'published'
+                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                          : 'bg-slate-100/70 text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    >
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block text-slate-900">
+                        {isKhmer ? 'ផ្សាយផ្ទាល់' : 'Published'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        (Live / Public)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition ${
+                      jobStatus === 'published'
+                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                        : 'border-gray-300 bg-white group-hover:border-gray-400'
+                    }`}
+                  >
+                    {jobStatus === 'published' && <Check className="w-2.5 h-2.5 stroke-[2.5]" />}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold block">
-                    {isKhmer ? 'ផ្សាយផ្ទាល់ (Published)' : 'Published (Live)'}
-                  </span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    {isKhmer ? 'ការងារនឹងបង្ហាញជាសាធារណៈភ្លាមៗ ដើម្បីទទួលបេក្ខជន' : 'Immediately visible to job seekers'}
-                  </span>
-                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed font-normal">
+                  {isKhmer
+                    ? 'ការងារនឹងបង្ហាញជាសាធារណៈភ្លាមៗ ដើម្បីទទួលពាក្យពីបេក្ខជន'
+                    : 'Immediately visible to job seekers across Cambodia'}
+                </p>
               </button>
 
               {/* Option 2: Draft */}
               <button
                 type="button"
                 onClick={() => setJobStatus('draft')}
-                className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                className={`group relative p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 bg-white ${
                   jobStatus === 'draft'
-                    ? 'bg-amber-50/80 border-amber-400 text-amber-950 ring-2 ring-amber-400/20 shadow-2xs'
-                    : 'bg-white border-gray-200 hover:bg-slate-100 text-slate-700'
+                    ? 'border-amber-500/80 ring-2 ring-amber-500/10 shadow-2xs'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-slate-50/50 text-slate-700'
                 }`}
               >
-                <div
-                  className={`w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0 ${
-                    jobStatus === 'draft'
-                      ? 'border-amber-600 bg-amber-600 text-white'
-                      : 'border-slate-300'
-                  }`}
-                >
-                  {jobStatus === 'draft' && <Check className="w-2.5 h-2.5" />}
+                <div className="flex items-start justify-between w-full gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition ${
+                        jobStatus === 'draft'
+                          ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                          : 'bg-slate-100/70 text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    >
+                      <Save className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block text-slate-900">
+                        {isKhmer ? 'សេចក្តីព្រាង' : 'Draft'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        (Unpublished)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition ${
+                      jobStatus === 'draft'
+                        ? 'border-amber-500 bg-amber-500 text-white'
+                        : 'border-gray-300 bg-white group-hover:border-gray-400'
+                    }`}
+                  >
+                    {jobStatus === 'draft' && <Check className="w-2.5 h-2.5 stroke-[2.5]" />}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold block">
-                    {isKhmer ? 'សេចក្តីព្រាង (Draft)' : 'Draft (Unpublished)'}
-                  </span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    {isKhmer ? 'រក្សាទុកជាព្រាង មិនទាន់ផ្សាយជាសាធារណៈ' : 'Saved privately, hidden from seekers'}
-                  </span>
-                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed font-normal">
+                  {isKhmer
+                    ? 'រក្សាទុកជាព្រាងឯកជន មិនទាន់ផ្សាយជាសាធារណៈ'
+                    : 'Saved privately for further review before posting'}
+                </p>
               </button>
 
               {/* Option 3: Closed */}
               <button
                 type="button"
                 onClick={() => setJobStatus('closed')}
-                className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-start gap-2.5 ${
+                className={`group relative p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 bg-white ${
                   jobStatus === 'closed'
-                    ? 'bg-rose-50/80 border-rose-400 text-rose-950 ring-2 ring-rose-400/20 shadow-2xs'
-                    : 'bg-white border-gray-200 hover:bg-slate-100 text-slate-700'
+                    ? 'border-slate-400 ring-2 ring-slate-400/10 shadow-2xs'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-slate-50/50 text-slate-700'
                 }`}
               >
-                <div
-                  className={`w-4 h-4 rounded-full border mt-0.5 flex items-center justify-center shrink-0 ${
-                    jobStatus === 'closed'
-                      ? 'border-rose-600 bg-rose-600 text-white'
-                      : 'border-slate-300'
-                  }`}
-                >
-                  {jobStatus === 'closed' && <Check className="w-2.5 h-2.5" />}
+                <div className="flex items-start justify-between w-full gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition ${
+                        jobStatus === 'closed'
+                          ? 'bg-slate-100 text-slate-600 border border-slate-200'
+                          : 'bg-slate-100/70 text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    >
+                      <X className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block text-slate-900">
+                        {isKhmer ? 'បិទការជ្រើសរើស' : 'Closed'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        (Archive)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition ${
+                      jobStatus === 'closed'
+                        ? 'border-slate-600 bg-slate-600 text-white'
+                        : 'border-gray-300 bg-white group-hover:border-gray-400'
+                    }`}
+                  >
+                    {jobStatus === 'closed' && <Check className="w-2.5 h-2.5 stroke-[2.5]" />}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold block">
-                    {isKhmer ? 'បិទការជ្រើសរើស (Closed)' : 'Closed'}
-                  </span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    {isKhmer ? 'បិទមិនទទួលពាក្យសុំបណ្ដោះអាសន្ន' : 'Stop accepting new applications'}
-                  </span>
-                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed font-normal">
+                  {isKhmer
+                    ? 'បិទការងារមិនទទួលពាក្យសុំបណ្ដោះអាសន្ន ឬបំពេញរួចរាល់'
+                    : 'Stop accepting applications and archive vacancy'}
+                </p>
               </button>
             </div>
           </div>
@@ -901,11 +1070,10 @@ export const EmployerJobCreatePage: React.FC = () => {
                 type="button"
                 disabled={isSubmitting || (!isEditMode && company !== null && company.verification_status !== 'verified')}
                 onClick={(e) => handleFormSubmit(e, 'published')}
-                className={`inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-semibold text-xs transition shadow-2xs ${
-                  !isEditMode && company !== null && company.verification_status !== 'verified'
-                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:scale-95 text-white cursor-pointer disabled:opacity-50'
-                }`}
+                className={`inline-flex items-center justify-center gap-2 px-5 py-2 rounded-xl font-semibold text-xs transition shadow-2xs ${!isEditMode && company !== null && company.verification_status !== 'verified'
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 active:scale-95 text-white cursor-pointer disabled:opacity-50'
+                  }`}
               >
                 {isSubmitting ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -918,12 +1086,12 @@ export const EmployerJobCreatePage: React.FC = () => {
                       ? 'កំពុងរក្សាទុក...'
                       : 'Saving...'
                     : isEditMode
-                    ? isKhmer
-                      ? 'រក្សាទុក & ផ្សាយផ្ទាល់ការងារ (Save & Post)'
-                      : 'Save & Post Vacancy'
-                    : isKhmer
-                    ? 'ចុះផ្សាយការងារឥឡូវនេះ (Publish Live)'
-                    : 'Publish Vacancy Now'}
+                      ? isKhmer
+                        ? 'រក្សាទុក & ផ្សាយផ្ទាល់ការងារ (Save & Post)'
+                        : 'Save & Post Vacancy'
+                      : isKhmer
+                        ? 'ចុះផ្សាយការងារឥឡូវនេះ (Publish Live)'
+                        : 'Publish Vacancy Now'}
                 </span>
               </button>
             </div>

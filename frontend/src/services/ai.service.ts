@@ -72,4 +72,24 @@ export const aiService = {
     const res = await api.get<ApiResponse<any>>('/ai/market-chart/')
     return res.data.data
   },
+
+  /**
+   * Generate an intelligent, personalized Cover Letter tailored to a vacancy.
+   */
+  async generateCoverLetter(payload: {
+    job_title: string
+    company_name: string
+    job_description?: string
+    candidate_name?: string
+    candidate_skills?: string[]
+    experience_summary?: string
+    is_khmer?: boolean
+    api_key?: string
+  }): Promise<string> {
+    const res = await api.post<ApiResponse<{ cover_letter: string }>>(
+      '/ai/generate-cover-letter/',
+      payload
+    )
+    return res.data.data.cover_letter
+  },
 }

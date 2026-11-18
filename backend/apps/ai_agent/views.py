@@ -12,6 +12,7 @@ from .agent_service import (
     find_matching_jobs,
     get_seeker_profile_data,
     resolve_ai_config,
+    generate_ai_cover_letter,
 )
 
 
@@ -121,3 +122,61 @@ class AIMarketChartView(APIView):
             "success": True,
             "data": data,
         })
+
+
+class AICoverLetterView(APIView):
+    """
+    Generate an intelligent, tailored cover letter using AI for a job opportunity.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        job_title = request.data.get("job_title", "").strip()
+        company_name = request.data.get("company_name", "").strip()
+        job_description = request.data.get("job_description", "")
+        candidate_name = request.data.get("candidate_name")
+        candidate_skills = request.data.get("candidate_skills")
+        experience_summary = request.data.get("experience_summary")
+        is_khmer = bool(request.data.get("is_khmer", False))
+        api_key = request.data.get("api_key")
+
+        if not job_title or not company_name:
+            return Response(
+                {"success": False, "message": "job_title and company_name are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # If user is authenticated and details not supplied, enrich from profile
+        user = getattr(request, "user", None)
+        user_id = getattr(user, "id", None) if getattr(user, "is_authenticated", False) else None
+        if user_id:
+            profile_info = get_seeker_profile_data(user_id)
+            if profile_info:
+                if not candidate_name:
+                    candidate_name = profile_info["seeker"].get("full_name")
+                if not candidate_skills:
+                    candidate_skills = profile_info.get("skills", [])
+                if not experience_summary and profile_info.get("experiences"):
+                    exp_titles = [e["job_title"] for e in profile_info["experiences"][:2]]
+                    experience_summary = f"Background in {', '.join(exp_titles)}"
+
+        cover_letter = generate_ai_cover_letter(
+            job_title=job_title,
+            company_name=company_name,
+            job_description=job_description,
+            candidate_skills=candidate_skills,
+            candidate_name=candidate_name or "Candidate",
+            experience_summary=experience_summary,
+            is_khmer=is_khmer,
+            api_key=api_key,
+        )
+
+        return Response({
+            "success": True,
+            "data": {
+                "cover_letter": cover_letter,
+                "job_title": job_title,
+                "company_name": company_name,
+            }
+        })
+

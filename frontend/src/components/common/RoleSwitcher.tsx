@@ -20,8 +20,8 @@ const DEMO_ROLES: DemoRole[] = [
     role: 'admin',
     label: 'Administrator',
     labelKm: 'អ្នកគ្រប់គ្រងប្រព័ន្ធ',
-    sublabel: 'Serey Vathanak • System Admin',
-    email: 'admin@cambodiajobs.kh',
+    sublabel: 'Ben MengHong • System Admin',
+    email: 'admin@gmail.com',
     icon: Shield,
     color: 'text-indigo-600',
     badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
@@ -31,8 +31,8 @@ const DEMO_ROLES: DemoRole[] = [
     role: 'hr',
     label: 'HR / Recruiter',
     labelKm: 'ធនធានមនុស្ស / ជ្រើសរើស',
-    sublabel: 'Dara Chan • Smart Axiata',
-    email: 'recruiter@smart.com.kh',
+    sublabel: 'RAC • Smart Axiata HR',
+    email: 'hr@gmail.com',
     icon: Briefcase,
     color: 'text-blue-600',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -42,8 +42,8 @@ const DEMO_ROLES: DemoRole[] = [
     role: 'employee',
     label: 'Employee / Seeker',
     labelKm: 'បុគ្គលិក / បេក្ខជនការងារ',
-    sublabel: 'Sokha Meas • Candidate',
-    email: 'sokha.meas@gmail.com',
+    sublabel: 'Seeker • Candidate',
+    email: 'jobseeker@gmail.com',
     icon: User,
     color: 'text-emerald-600',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -75,7 +75,7 @@ export const RoleSwitcher: React.FC = () => {
 
     setIsSwitching(true)
     try {
-      await login(target.email, 'Password123!')
+      await login(target.email, '123456')
       setIsOpen(false)
       navigate(target.path)
     } catch (err) {
@@ -88,7 +88,7 @@ export const RoleSwitcher: React.FC = () => {
   const ActiveIcon = currentRole.icon
 
   return (
-    <div className="relative inline-block text-left font-sans">
+    <div className={`relative inline-block text-left font-sans ${isOpen ? 'z-[9999]' : 'z-10'}`}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -107,8 +107,8 @@ export const RoleSwitcher: React.FC = () => {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-white shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2 z-[9999] animate-in fade-in zoom-in-95 duration-150">
             <div className="px-3 py-2 border-b border-slate-100 mb-1">
               <div className="flex items-center space-x-1.5 text-blue-600">
                 <Sparkles className="w-3.5 h-3.5" />

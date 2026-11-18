@@ -15,9 +15,7 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowRight,
-  RefreshCw,
   History,
-  Shield,
   Layers,
   Plus,
 } from 'lucide-react'
@@ -141,63 +139,6 @@ export const AdminDashboardPage: React.FC = () => {
         />
         <div className="absolute top-[380px] -left-20 w-[420px] h-[420px] bg-gradient-to-tr from-sky-200/35 via-blue-100/25 to-transparent rounded-full blur-3xl" />
         <div className="absolute -bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-tl from-indigo-100/35 via-purple-100/20 to-transparent rounded-full blur-3xl" />
-      </div>
-
-      {/* 1. Glassmorphic Header Bar with Clear Glass Finish */}
-      <div className="glass-header p-4 sm:p-5 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Decorative inner corner sheen */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-bl from-blue-400/15 via-indigo-300/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-        <div className="min-w-0 relative z-10">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
-              {isKhmer ? 'ផ្ទាំងគ្រប់គ្រងរដ្ឋបាលប្រព័ន្ធ' : 'System Administration Overview'}
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/25 backdrop-blur-md shadow-2xs shrink-0">
-              <Shield className="w-3 h-3 text-blue-600" />
-              <span>{isKhmer ? 'អភិបាលជាន់ខ្ពស់' : 'Super Admin'}</span>
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-            {isKhmer
-              ? 'ត្រួតពិនិត្យ និងតាមដានសកម្មភាពទូទាំងប្រព័ន្ធ CambodiaJobs'
-              : 'Platform-wide telemetry, user governance, moderation queues, and operational metrics'}
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2.5 shrink-0 self-start md:self-auto relative z-10">
-          <EmailNotificationCard variant="pill" role="admin" />
-          <Link
-            to="/admin/categories"
-            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Layers className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isKhmer ? 'ផ្នែកការងារ' : 'Categories'}</span>
-          </Link>
-          <Link
-            to="/admin/users"
-            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <Users className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isKhmer ? 'អ្នកប្រើប្រាស់' : 'Users'}</span>
-          </Link>
-          <Link
-            to="/admin/audit"
-            className="px-3.5 py-2 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-700 hover:text-blue-600 border border-white/80 hover:border-blue-300/60 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center space-x-1.5 cursor-pointer"
-          >
-            <History className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isKhmer ? 'កំណត់ហេតុ' : 'Audit Logs'}</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => loadDashboard(true)}
-            disabled={isRefreshing}
-            className="p-2.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 text-xs font-medium transition-all shadow-2xs hover:shadow-xs cursor-pointer"
-            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh Dashboard'}
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : 'text-slate-400'}`} />
-          </button>
-        </div>
       </div>
 
       {/* 2. Glassmorphic Four Metric Cards */}

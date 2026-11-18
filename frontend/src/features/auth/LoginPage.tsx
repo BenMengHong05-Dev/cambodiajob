@@ -10,7 +10,6 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Sparkles,
   Building2,
   User,
   Shield,

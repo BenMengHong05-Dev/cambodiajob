@@ -5,6 +5,7 @@ import { employerService } from '../../services/employer.service'
 import { Job } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { TablePagination } from '../../components/common/TablePagination'
+import { Input, Select } from '../../components/ui'
 import { useToast } from '../../app/providers'
 import { exportJobsToExcel } from '../../utils/excelExport'
 import {
@@ -12,18 +13,15 @@ import {
   PlusCircle,
   Users,
   MapPin,
-  ExternalLink,
   Trash2,
   Search,
   AlertTriangle,
   FileSpreadsheet,
   Pencil,
-  Copy,
   Sparkles,
   ChevronDown,
   Check,
   X,
-  SlidersHorizontal,
   Clock,
   Save,
   CheckCircle2,
@@ -319,40 +317,6 @@ export const EmployerJobsPage: React.FC = () => {
             </Link>
           </div>
         </div>
-
-        {/* Quick KPI Status Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/70">
-            <span className="text-xs font-medium text-slate-600">
-              {isKhmer ? 'ការងារសរុប' : 'Total Postings'}
-            </span>
-            <span className="text-sm font-extrabold text-slate-800">{totalJobsCount}</span>
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80">
-            <span className="text-xs font-medium text-emerald-800 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              {isKhmer ? 'ផ្សាយផ្ទាល់' : 'Published'}
-            </span>
-            <span className="text-sm font-extrabold text-emerald-700">{publishedCount}</span>
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80">
-            <span className="text-xs font-medium text-amber-800 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              {isKhmer ? 'សេចក្តីព្រាង' : 'Drafts'}
-            </span>
-            <span className="text-sm font-extrabold text-amber-700">{draftCount}</span>
-          </div>
-
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80">
-            <span className="text-xs font-medium text-blue-800 flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-blue-600" />
-              {isKhmer ? 'បេក្ខជនសរុប' : 'Applicants'}
-            </span>
-            <span className="text-sm font-extrabold text-blue-700">{totalApplicantsCount}</span>
-          </div>
-        </div>
       </div>
 
       {/* 2. Filter and Search Bar */}
@@ -382,17 +346,15 @@ export const EmployerJobsPage: React.FC = () => {
                 setStatusFilter(tab.id)
                 setCurrentPage(1)
               }}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                statusFilter === tab.id
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-              }`}
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5 ${statusFilter === tab.id
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+                }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  statusFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
-                }`}
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${statusFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
+                  }`}
               >
                 {tab.count}
               </span>
@@ -411,8 +373,8 @@ export const EmployerJobsPage: React.FC = () => {
                 ? 'មិនទាន់មានការងារត្រូវបានផ្សាយនៅឡើយទេ'
                 : 'No Job Postings Yet'
               : isKhmer
-              ? 'រកមិនឃើញការងារតាមការស្វែងរកទេ'
-              : 'No matching vacancies'}
+                ? 'រកមិនឃើញការងារតាមការស្វែងរកទេ'
+                : 'No matching vacancies'}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {jobs.length === 0
@@ -420,8 +382,8 @@ export const EmployerJobsPage: React.FC = () => {
                 ? 'ចាប់ផ្តើមដោយការផ្សាយឱកាសការងារដំបូងដើម្បីទទួលបានបេក្ខជនឆ្នើមទូទាំងប្រទេស។'
                 : 'Get started by posting your first job opening to reach qualified professionals.'
               : isKhmer
-              ? 'សូមសាកល្បងផ្លាស់ប្តូរពាក្យគន្លឹះស្វែងរក។'
-              : 'Try clearing your search query or selecting a different status filter.'}
+                ? 'សូមសាកល្បងផ្លាស់ប្តូរពាក្យគន្លឹះស្វែងរក។'
+                : 'Try clearing your search query or selecting a different status filter.'}
           </p>
           {jobs.length === 0 && (
             <Link
@@ -443,9 +405,8 @@ export const EmployerJobsPage: React.FC = () => {
               return (
                 <div
                   key={job.id}
-                  className={`bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-blue-400 transition ${
-                    isOpenStatus ? 'relative z-30' : 'relative z-0'
-                  }`}
+                  className={`bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-blue-400 transition ${isOpenStatus ? 'relative z-30' : 'relative z-0'
+                    }`}
                 >
                   {/* Job Info Section */}
                   <div className="space-y-2 flex-1 min-w-0">
@@ -504,23 +465,21 @@ export const EmployerJobsPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setOpenStatusDropdownId(isOpenStatus ? null : job.id)}
-                        className={`inline-flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition shadow-2xs cursor-pointer ${
-                          job.status === 'published'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                            : job.status === 'closed'
+                        className={`inline-flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition shadow-2xs cursor-pointer ${job.status === 'published'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                          : job.status === 'closed'
                             ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
                             : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                        }`}
+                          }`}
                         title={isKhmer ? 'ចុចដើម្បីប្តូរស្ថានភាព' : 'Click to change vacancy status'}
                       >
                         <span
-                          className={`w-2 h-2 rounded-full ${
-                            job.status === 'published'
-                              ? 'bg-emerald-500'
-                              : job.status === 'closed'
+                          className={`w-2 h-2 rounded-full ${job.status === 'published'
+                            ? 'bg-emerald-500'
+                            : job.status === 'closed'
                               ? 'bg-rose-500'
                               : 'bg-amber-500'
-                          }`}
+                            }`}
                         />
                         <span className="truncate max-w-[110px]">
                           {job.status === 'published'
@@ -528,12 +487,12 @@ export const EmployerJobsPage: React.FC = () => {
                               ? 'ផ្សាយផ្ទាល់'
                               : 'Published'
                             : job.status === 'closed'
-                            ? isKhmer
-                              ? 'បិទការជ្រើសរើស'
-                              : 'Closed'
-                            : isKhmer
-                            ? 'សេចក្តីព្រាង'
-                            : 'Draft'}
+                              ? isKhmer
+                                ? 'បិទការជ្រើសរើស'
+                                : 'Closed'
+                              : isKhmer
+                                ? 'សេចក្តីព្រាង'
+                                : 'Draft'}
                         </span>
                         <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                       </button>
@@ -548,21 +507,19 @@ export const EmployerJobsPage: React.FC = () => {
                               key={opt.value}
                               type="button"
                               onClick={() => handleStatusChange(job.id, opt.value)}
-                              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                                job.status === opt.value
-                                  ? 'bg-blue-50 text-blue-700'
-                                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                              }`}
+                              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${job.status === opt.value
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                                }`}
                             >
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`w-2 h-2 rounded-full ${
-                                    opt.value === 'published'
-                                      ? 'bg-emerald-500'
-                                      : opt.value === 'closed'
+                                  className={`w-2 h-2 rounded-full ${opt.value === 'published'
+                                    ? 'bg-emerald-500'
+                                    : opt.value === 'closed'
                                       ? 'bg-rose-500'
                                       : 'bg-amber-500'
-                                  }`}
+                                    }`}
                                 />
                                 <span>{opt.label}</span>
                               </div>
@@ -573,30 +530,20 @@ export const EmployerJobsPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* 2. Primary EDIT / MODIFY JOB Button */}
+                    {/* 2. Edit Job Button */}
                     <Link
                       to={`/employer/jobs/${job.id}/edit`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition shadow-2xs hover:shadow-xs active:scale-95"
-                      title={isKhmer ? 'កែសម្រួលព័ត៌មានការងារនេះ' : 'Edit / Modify this job'}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
+                      title={isKhmer ? 'កែសម្រួលព័ត៌មានការងារនេះ' : 'Edit job'}
                     >
                       <Pencil className="w-3.5 h-3.5 text-blue-600" />
                       <span>{isKhmer ? 'កែសម្រួល' : 'Edit'}</span>
                     </Link>
 
-                    {/* 3. Quick In-Place Edit Modal Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenQuickEdit(job)}
-                      className="p-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 border border-gray-200 transition shadow-2xs cursor-pointer"
-                      title={isKhmer ? 'កែសម្រួលរហ័ស (ចំណងជើង, ប្រាក់បៀវត្ស, ចំនួន)' : 'Quick edit details'}
-                    >
-                      <SlidersHorizontal className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* 4. Review Applicants Button */}
+                    {/* 3. Review Applicants Button */}
                     <Link
                       to={`/employer/jobs/${job.id}/applications`}
-                      className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition flex items-center space-x-1.5 shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
                       title={isKhmer ? 'មើលបេក្ខជនទាំងអស់ដែលបានដាក់ពាក្យ' : 'Review candidates'}
                     >
                       <Users className="w-3.5 h-3.5 text-indigo-600" />
@@ -605,31 +552,11 @@ export const EmployerJobsPage: React.FC = () => {
                       </span>
                     </Link>
 
-                    {/* 5. Duplicate Job Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleDuplicateJob(job)}
-                      className="p-1.5 text-slate-600 hover:bg-slate-50 border border-gray-200 rounded-xl transition shadow-2xs cursor-pointer"
-                      title={isKhmer ? 'ចម្លងការងារនេះដើម្បីបង្កើតការងារថ្មី' : 'Duplicate job posting'}
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* 6. View Public Link Button */}
-                    <Link
-                      to={`/jobs/${job.slug}`}
-                      target="_blank"
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 border border-gray-200 rounded-xl transition shadow-2xs"
-                      title={isKhmer ? 'មើលការផ្សាយផ្ទាល់ជាសាធារណៈ' : 'View Public Post'}
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </Link>
-
-                    {/* 7. Delete Job Button */}
+                    {/* 4. Delete Job Button */}
                     <button
                       type="button"
                       onClick={() => setDeleteJobId(job.id)}
-                      className="p-1.5 text-rose-600 hover:bg-rose-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
+                      className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl transition cursor-pointer"
                       title={isKhmer ? 'លុបការងារនេះ' : 'Delete vacancy'}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -641,7 +568,7 @@ export const EmployerJobsPage: React.FC = () => {
 
           {/* Table Pagination */}
           {filteredJobs.length > 0 && (
-            <div className="rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xs bg-white relative z-0">
+            <div className="rounded-2xl overflow-visible border border-gray-200 bg-white relative z-20">
               <TablePagination
                 currentPage={currentPage}
                 pageSize={pageSize}
@@ -657,9 +584,9 @@ export const EmployerJobsPage: React.FC = () => {
 
       {/* QUICK IN-PLACE EDIT MODAL */}
       {quickEditJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
                   <Pencil className="w-4 h-4" />
@@ -683,73 +610,48 @@ export const EmployerJobsPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveQuickEdit} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'ចំណងជើងការងារ (Job Title) *' : 'Job Title *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={quickTitle}
-                  onChange={(e) => setQuickTitle(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-blue-500 outline-none"
+              <Input
+                label={isKhmer ? 'ចំណងជើងការងារ (Job Title)' : 'Job Title'}
+                required
+                value={quickTitle}
+                onChange={(e) => setQuickTitle(e.target.value)}
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label={isKhmer ? 'ប្រាក់បៀវត្សអប្បបរមា ($)' : 'Min Salary ($)'}
+                  type="number"
+                  value={quickSalaryMin}
+                  onChange={(e) => setQuickSalaryMin(e.target.value)}
+                  placeholder="e.g. 300"
+                />
+                <Input
+                  label={isKhmer ? 'ប្រាក់បៀវត្សអតិបរមា ($)' : 'Max Salary ($)'}
+                  type="number"
+                  value={quickSalaryMax}
+                  onChange={(e) => setQuickSalaryMax(e.target.value)}
+                  placeholder="e.g. 600"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'ប្រាក់បៀវត្សអប្បបរមា ($)' : 'Min Salary ($)'}
-                  </label>
-                  <input
-                    type="number"
-                    value={quickSalaryMin}
-                    onChange={(e) => setQuickSalaryMin(e.target.value)}
-                    placeholder="e.g. 300"
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'ប្រាក់បៀវត្សអតិបរមា ($)' : 'Max Salary ($)'}
-                  </label>
-                  <input
-                    type="number"
-                    value={quickSalaryMax}
-                    onChange={(e) => setQuickSalaryMax(e.target.value)}
-                    placeholder="e.g. 600"
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-blue-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'ចំនួនជ្រើសរើស (Openings)' : 'Vacancies Count'}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={quickVacancies}
-                    onChange={(e) => setQuickVacancies(Number(e.target.value) || 1)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-blue-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'ស្ថានភាព (Status)' : 'Status'}
-                  </label>
-                  <select
-                    value={quickStatus}
-                    onChange={(e) => setQuickStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 font-medium focus:bg-white focus:border-blue-500 outline-none"
-                  >
-                    <option value="published">{isKhmer ? 'ផ្សាយផ្ទាល់ (Published)' : 'Published'}</option>
-                    <option value="draft">{isKhmer ? 'សេចក្តីព្រាង (Draft)' : 'Draft'}</option>
-                    <option value="closed">{isKhmer ? 'បិទការជ្រើសរើស (Closed)' : 'Closed'}</option>
-                  </select>
-                </div>
+                <Input
+                  label={isKhmer ? 'ចំនួនជ្រើសរើស (Openings)' : 'Vacancies Count'}
+                  type="number"
+                  min={1}
+                  value={quickVacancies}
+                  onChange={(e) => setQuickVacancies(Number(e.target.value) || 1)}
+                />
+                <Select
+                  label={isKhmer ? 'ស្ថានភាព (Status)' : 'Status'}
+                  value={quickStatus}
+                  onChange={(e) => setQuickStatus(e.target.value as any)}
+                  options={[
+                    { value: 'published', label: isKhmer ? 'ផ្សាយផ្ទាល់ (Published)' : 'Published' },
+                    { value: 'draft', label: isKhmer ? 'សេចក្តីព្រាង (Draft)' : 'Draft' },
+                    { value: 'closed', label: isKhmer ? 'បិទការជ្រើសរើស (Closed)' : 'Closed' },
+                  ]}
+                />
               </div>
 
               <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
@@ -781,8 +683,8 @@ export const EmployerJobsPage: React.FC = () => {
                           ? 'កំពុងរក្សាទុក...'
                           : 'Saving...'
                         : isKhmer
-                        ? 'រក្សាទុក'
-                        : 'Save Changes'}
+                          ? 'រក្សាទុក'
+                          : 'Save Changes'}
                     </span>
                   </button>
                 </div>
@@ -794,8 +696,8 @@ export const EmployerJobsPage: React.FC = () => {
 
       {/* Delete Job Confirmation Modal */}
       {deleteJobId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
             <div className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 border border-gray-200 flex items-center justify-center mx-auto shadow-2xs">
               <AlertTriangle className="w-5 h-5" />
             </div>

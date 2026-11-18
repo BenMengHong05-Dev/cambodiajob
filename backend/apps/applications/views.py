@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 
-from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker
+from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, IsEmployerOrAdmin
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql, atomic_transaction
 from .serializers import ApplyJobSerializer, UpdateApplicationStatusSerializer
 from apps.notifications.email_service import (
@@ -341,27 +341,47 @@ class EmployerApplicationStatusUpdateView(APIView):
     """
     Update candidate application status and notify applicant.
     """
-    permission_classes = [IsEmployer]
+    permission_classes = [IsEmployerOrAdmin]
 
     def patch(self, request, pk):
-        # Verify employer manages this application's company
-        app_sql = """
-            SELECT 
-                a.id, a.job_id, a.seeker_id, a.status,
-                j.title AS job_title, 
-                c.name AS company_name,
-                sp.user_id AS seeker_user_id,
-                u.email AS seeker_email,
-                u.full_name AS seeker_name
-            FROM applications a
-            INNER JOIN jobs j ON j.id = a.job_id
-            INNER JOIN companies c ON c.id = j.company_id
-            INNER JOIN employer_members em ON em.company_id = j.company_id
-            INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
-            INNER JOIN users u ON u.id = sp.user_id
-            WHERE a.id = %s AND em.user_id = %s
-        """
-        app = fetch_one(app_sql, [pk, request.user.id])
+        # Verify employer manages this application's company (or user is system admin)
+        is_admin = getattr(request.user, "has_role", lambda r: False)("admin")
+        if is_admin:
+            app_sql = """
+                SELECT 
+                    a.id, a.job_id, a.seeker_id, a.status,
+                    j.title AS job_title, 
+                    c.name AS company_name,
+                    sp.user_id AS seeker_user_id,
+                    u.email AS seeker_email,
+                    u.full_name AS seeker_name
+                FROM applications a
+                INNER JOIN jobs j ON j.id = a.job_id
+                INNER JOIN companies c ON c.id = j.company_id
+                INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
+                INNER JOIN users u ON u.id = sp.user_id
+                WHERE a.id = %s
+            """
+            app = fetch_one(app_sql, [pk])
+        else:
+            app_sql = """
+                SELECT 
+                    a.id, a.job_id, a.seeker_id, a.status,
+                    j.title AS job_title, 
+                    c.name AS company_name,
+                    sp.user_id AS seeker_user_id,
+                    u.email AS seeker_email,
+                    u.full_name AS seeker_name
+                FROM applications a
+                INNER JOIN jobs j ON j.id = a.job_id
+                INNER JOIN companies c ON c.id = j.company_id
+                INNER JOIN employer_members em ON em.company_id = j.company_id
+                INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
+                INNER JOIN users u ON u.id = sp.user_id
+                WHERE a.id = %s AND em.user_id = %s
+            """
+            app = fetch_one(app_sql, [pk, request.user.id])
+
         if not app:
             raise NotFound("Application record not found or permission denied.")
 
@@ -432,13 +452,18 @@ class EmployerApplicationStatusUpdateView(APIView):
         return Response({"success": True, "message": f"Application status updated to {new_status}."})
 
     def delete(self, request, pk):
-        app_sql = """
-            SELECT a.id FROM applications a
-            INNER JOIN jobs j ON j.id = a.job_id
-            INNER JOIN employer_members em ON em.company_id = j.company_id
-            WHERE a.id = %s AND em.user_id = %s
-        """
-        app = fetch_one(app_sql, [pk, request.user.id])
+        is_admin = getattr(request.user, "has_role", lambda r: False)("admin")
+        if is_admin:
+            app = fetch_one("SELECT a.id FROM applications a WHERE a.id = %s", [pk])
+        else:
+            app_sql = """
+                SELECT a.id FROM applications a
+                INNER JOIN jobs j ON j.id = a.job_id
+                INNER JOIN employer_members em ON em.company_id = j.company_id
+                WHERE a.id = %s AND em.user_id = %s
+            """
+            app = fetch_one(app_sql, [pk, request.user.id])
+
         if not app:
             raise NotFound("Application record not found or permission denied.")
 

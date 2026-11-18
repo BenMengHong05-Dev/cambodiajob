@@ -118,10 +118,16 @@ export const EmployerApplicationsPage: React.FC = () => {
         isKhmer ? 'ស្ថានភាពត្រូវបានផ្លាស់ប្តូរ' : 'Status Updated',
         isKhmer ? 'ស្ថានភាពបេក្ខជនត្រូវបានកែប្រែដោយជោគជ័យ' : 'Applicant status has been updated successfully.'
       )
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Failed to update status:', err)
+      const errorMsg =
+        err.response?.data?.details?.status?.[0] ||
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        (isKhmer ? 'មិនអាចផ្លាស់ប្តូរស្ថានភាពបេក្ខជនបានទេ' : 'Failed to update applicant status.')
       toast.error(
         isKhmer ? 'បរាជ័យ' : 'Error',
-        isKhmer ? 'មិនអាចផ្លាស់ប្តូរស្ថានភាពបេក្ខជនបានទេ' : 'Failed to update applicant status.'
+        errorMsg
       )
     }
   }
@@ -264,11 +270,18 @@ export const EmployerApplicationsPage: React.FC = () => {
     }
   }
 
+  const normalizeAppStatus = (st?: string) => {
+    if (!st) return 'submitted'
+    if (st === 'screening') return 'reviewing'
+    if (st === 'interview_scheduled') return 'interview'
+    return st
+  }
+
   const candidateStatusOptions = [
     { value: 'submitted', label: isKhmer ? 'បានដាក់ពាក្យ (Submitted)' : 'Submitted' },
-    { value: 'screening', label: isKhmer ? 'កំពុងត្រួតពិនិត្យ (Screening)' : 'In Screening' },
+    { value: 'reviewing', label: isKhmer ? 'កំពុងត្រួតពិនិត្យ (Reviewing)' : 'In Review' },
     { value: 'shortlisted', label: isKhmer ? 'ជាប់បញ្ជីសម្រាំង (Shortlisted)' : 'Shortlisted' },
-    { value: 'interview_scheduled', label: isKhmer ? 'ណាត់សម្ភាសន៍ (Interview)' : 'Interview Scheduled' },
+    { value: 'interview', label: isKhmer ? 'ណាត់សម្ភាសន៍ (Interview)' : 'Interview Scheduled' },
     { value: 'offered', label: isKhmer ? 'ផ្តល់ការងារ (Offered)' : 'Offered' },
     { value: 'rejected', label: isKhmer ? 'បដិសេធ (Rejected)' : 'Rejected' },
   ]
@@ -287,7 +300,9 @@ export const EmployerApplicationsPage: React.FC = () => {
       app.applicant_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.applicant_headline?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+    const matchesStatus =
+      statusFilter === 'all' ||
+      normalizeAppStatus(app.status) === normalizeAppStatus(statusFilter)
     return matchesQuery && matchesStatus
   })
 
@@ -372,9 +387,9 @@ export const EmployerApplicationsPage: React.FC = () => {
           {[
             { id: 'all', label: isKhmer ? 'ទាំងអស់' : 'All' },
             { id: 'submitted', label: isKhmer ? 'បានដាក់' : 'Submitted' },
-            { id: 'screening', label: isKhmer ? 'ត្រួតពិនិត្យ' : 'Screening' },
+            { id: 'reviewing', label: isKhmer ? 'ត្រួតពិនិត្យ' : 'Reviewing' },
             { id: 'shortlisted', label: isKhmer ? 'ជាប់សម្រាំង' : 'Shortlisted' },
-            { id: 'interview_scheduled', label: isKhmer ? 'សម្ភាសន៍' : 'Interview' },
+            { id: 'interview', label: isKhmer ? 'សម្ភាសន៍' : 'Interview' },
             { id: 'offered', label: isKhmer ? 'ផ្តល់ការងារ' : 'Offered' },
             { id: 'rejected', label: isKhmer ? 'បដិសេធ' : 'Rejected' },
           ].map((tab) => (
@@ -484,7 +499,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                     {/* Status Dropdown */}
                     <div className="w-36">
                       <Select
-                        value={app.status}
+                        value={normalizeAppStatus(app.status)}
                         onChange={(e) => handleStatusChange(app.id, e.target.value)}
                         options={candidateStatusOptions}
                       />
@@ -761,9 +776,9 @@ export const EmployerApplicationsPage: React.FC = () => {
 
       {/* Schedule Interview Modal */}
       {isInterviewModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2.5">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
                   <Calendar className="w-4 h-4" />
@@ -922,8 +937,8 @@ export const EmployerApplicationsPage: React.FC = () => {
 
       {/* Delete Candidate Confirmation Modal */}
       {deleteCandidateId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
             <div className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 border border-gray-200 flex items-center justify-center mx-auto shadow-2xs">
               <AlertTriangle className="w-5 h-5" />
             </div>

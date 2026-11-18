@@ -28,54 +28,55 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
     }
 
     return (
-      <div className={`bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl p-3 shadow-md border border-indigo-900/50 my-2 font-sans ${className}`}>
+      <div className={`bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 shadow-2xs my-1 font-sans ${className}`}>
         {/* Header */}
-        <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-indigo-800/40">
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/80">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-400/30">
-              <BarChart3 className="w-3.5 h-3.5" />
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200/60 shadow-2xs">
+              <BarChart3 className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white truncate max-w-[220px]">{title}</h4>
+            <h4 className="text-xs font-bold text-slate-800 truncate max-w-[220px]">{title}</h4>
           </div>
-          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            {isKhmer ? 'ទិន្នន័យផ្ទាល់' : 'Live DB'}
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{isKhmer ? 'ទិន្នន័យផ្ទាល់' : 'Live DB'}</span>
           </span>
         </div>
 
         {/* Salary Bars */}
-        <div className="space-y-2.5">
-          {items.slice(0, 6).map((item, idx) => {
+        <div className="space-y-3">
+          {items.slice(0, 5).map((item, idx) => {
             const label = isKhmer && item.label_km ? item.label_km : item.label
             const minPercent = Math.max(5, (item.min / maxVal) * 100)
             const maxPercent = Math.min(100, Math.max(minPercent + 10, (item.max / maxVal) * 100))
 
             return (
               <div key={idx} className="group">
-                <div className="flex items-center justify-between text-[11px] mb-0.5">
-                  <div className="truncate max-w-[62%]">
-                    <span className="font-semibold text-slate-200 block truncate">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="truncate max-w-[60%]">
+                    <span className="font-semibold text-slate-800 block truncate text-[11.5px] group-hover:text-blue-600 transition-colors">
                       {label}
                     </span>
                     {item.company ? (
-                      <span className="text-[9.5px] text-indigo-300 block truncate">
+                      <span className="text-[10px] text-indigo-600 font-medium block truncate">
                         {item.company}
                       </span>
                     ) : item.count !== undefined && item.count > 0 ? (
-                      <span className="text-[9.5px] text-slate-400 block truncate">
-                        {item.count} {isKhmer ? 'ការងារ' : item.count === 1 ? 'vacancy' : 'vacancies'}
+                      <span className="text-[10px] text-slate-400 block truncate">
+                        {item.count} {isKhmer ? 'ការងារកំពុងជ្រើសរើស' : item.count === 1 ? 'open role' : 'open roles'}
                       </span>
                     ) : null}
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-indigo-200 font-mono shrink-0">
-                    <span className="text-slate-400">{formatVal(item.min)}</span>
-                    <span className="text-slate-500">-</span>
-                    <span className="text-emerald-400 font-bold">{formatVal(item.max)}</span>
+                  <div className="flex items-center gap-1 text-[11px] font-mono shrink-0">
+                    <span className="text-slate-500 font-medium">{formatVal(item.min)}</span>
+                    <span className="text-slate-400">-</span>
+                    <span className="text-blue-600 font-bold">{formatVal(item.max)}</span>
                   </div>
                 </div>
 
-                <div className="h-2.5 bg-slate-800/80 rounded-full relative overflow-hidden flex items-center p-0.5 border border-slate-700/60">
+                <div className="h-2 bg-slate-200/80 rounded-full relative overflow-hidden flex items-center p-0.5 border border-slate-200/50">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-400 to-emerald-400 opacity-90 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500"
                     style={{
                       marginLeft: `${minPercent}%`,
                       width: `${maxPercent - minPercent}%`,
@@ -87,9 +88,9 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
           })}
         </div>
 
-        <div className="mt-2.5 pt-2 border-t border-indigo-900/40 flex items-center justify-between text-[9px] text-indigo-300">
+        <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[10px] text-slate-400">
           <span>{isKhmer ? 'ប្រាក់ខែជាមធ្យមប្រចាំខែ' : 'Average monthly salary ranges'}</span>
-          <span className="text-slate-400 font-mono">{currency === 'KHR' ? 'KHR / Mo' : 'USD / Mo'}</span>
+          <span className="text-slate-500 font-mono font-medium">{currency === 'KHR' ? 'KHR / Mo' : 'USD / Mo'}</span>
         </div>
       </div>
     )
@@ -99,44 +100,49 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
   if (chart.type === 'skill_match') {
     const items = (chart.items || []) as AISkillMatchItem[]
     const score = chart.match_score || 85
-    const matchedCount = items.filter((i) => i.user_has).length
 
     return (
-      <div className={`bg-gradient-to-br from-slate-900 to-blue-950 text-white rounded-xl p-3 shadow-md border border-blue-900/50 my-2 font-sans ${className}`}>
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-blue-800/40">
+      <div className={`bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 shadow-2xs my-1 font-sans ${className}`}>
+        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/80">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30">
-              <Award className="w-3.5 h-3.5" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shadow-2xs">
+              <Award className="w-4 h-4" />
             </div>
-            <h4 className="text-xs font-bold text-white truncate max-w-[200px]">{title}</h4>
+            <h4 className="text-xs font-bold text-slate-800 truncate max-w-[200px]">{title}</h4>
           </div>
 
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+          <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-[10px] font-bold">
             <span>{score}%</span>
             <span>{isKhmer ? 'ត្រូវគ្នា' : 'Fit'}</span>
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          {items.slice(0, 4).map((item, idx) => (
+        <div className="space-y-2">
+          {items.slice(0, 5).map((item, idx) => (
             <div
               key={idx}
-              className={`flex items-center justify-between p-1.5 rounded-lg border text-[11px] ${
+              className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-colors ${
                 item.user_has
-                  ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-200'
-                  : 'bg-amber-950/20 border-amber-800/30 text-amber-200'
+                  ? 'bg-emerald-50/50 border-emerald-200/70 text-emerald-900'
+                  : 'bg-white border-slate-200/80 text-slate-700'
               }`}
             >
-              <div className="flex items-center gap-1.5 truncate">
+              <div className="flex items-center gap-2 truncate">
                 {item.user_has ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 ) : (
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                 )}
-                <span className="truncate">{item.skill}</span>
+                <span className="truncate text-[11.5px] font-medium">{item.skill}</span>
               </div>
-              <span className="text-[9px] font-bold shrink-0">
-                {item.user_has ? '100%' : 'Required'}
+              <span
+                className={`text-[9.5px] font-bold shrink-0 px-1.5 py-0.5 rounded ${
+                  item.user_has
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                }`}
+              >
+                {item.user_has ? (isKhmer ? 'មានរួច' : 'Acquired') : (isKhmer ? 'ត្រូវការ' : 'Needed')}
               </span>
             </div>
           ))}

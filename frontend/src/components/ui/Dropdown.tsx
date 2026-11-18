@@ -43,7 +43,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   }, [isOpen])
 
   return (
-    <div className={`relative inline-block text-left ${className}`} ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-[9999]' : 'z-10'} ${className}`} ref={dropdownRef}>
       <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
         {trigger}
       </div>
@@ -52,7 +52,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         <div
           className={`absolute ${
             align === 'right' ? 'right-0' : 'left-0'
-          } mt-2 z-50 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 focus:outline-none animate-in fade-in zoom-in-95 duration-150 ${contentClassName}`}
+          } mt-2 z-[9999] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-1.5 focus:outline-none animate-in fade-in zoom-in-95 duration-150 ${contentClassName}`}
           onClick={() => setIsOpen(false)}
         >
           {children}

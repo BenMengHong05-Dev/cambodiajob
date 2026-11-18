@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
 import { SeekerProfile, Education, Resume, Skill } from '../../types'
-import { Select } from '../../components/ui/Select'
+import { Select, Input, Textarea } from '../../components/ui'
 import { useToast } from '../../app/providers'
 import {
   User,
@@ -20,6 +20,8 @@ import {
   Mail,
   Phone,
   MapPin,
+  DollarSign,
+  Save,
 } from 'lucide-react'
 
 export const SeekerProfilePage: React.FC = () => {
@@ -357,116 +359,91 @@ export const SeekerProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <form onSubmit={handleUpdateProfile} className="space-y-3.5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
-              </label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+855 12 345 678"
-                className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {isKhmer ? 'មុខតំណែងជំនាញ' : 'Professional Headline'}
-            </label>
-            <input
+        <form onSubmit={handleUpdateProfile} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label={isKhmer ? 'ឈ្មោះពេញ' : 'Full Name'}
               type="text"
-              value={headline}
-              onChange={(e) => setHeadline(e.target.value)}
-              placeholder="e.g. Senior Full-Stack Engineer | React & Python Developer"
-              className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder={isKhmer ? 'បញ្ចូលឈ្មោះពេញរបស់អ្នក' : 'Enter your full name'}
+              leftIcon={<User className="w-4 h-4" />}
+            />
+
+            <Input
+              label={isKhmer ? 'លេខទូរស័ព្ទ' : 'Phone Number'}
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="+855 12 345 678"
+              leftIcon={<Phone className="w-4 h-4" />}
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {isKhmer ? 'សេចក្តីសង្ខេប / ជីវប្រវត្តិសង្ខេប' : 'Summary / Bio'}
-            </label>
-            <textarea
-              rows={3}
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              placeholder="Brief overview of your experience, career goals, and strengths..."
-              className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+          <Input
+            label={isKhmer ? 'មុខតំណែងជំនាញ' : 'Professional Headline'}
+            type="text"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            placeholder="e.g. Senior Full-Stack Engineer | React & Python Developer"
+            leftIcon={<Briefcase className="w-4 h-4" />}
+          />
+
+          <Textarea
+            label={isKhmer ? 'សេចក្តីសង្ខេប / ជីវប្រវត្តិសង្ខេប' : 'Summary / Bio'}
+            rows={3}
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="Brief overview of your experience, career goals, and strengths..."
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Select
+              label={isKhmer ? 'រាជធានី / ខេត្ត' : 'Province / Municipality'}
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              placeholder={isKhmer ? 'ជ្រើសរើសខេត្ត' : 'Select Province'}
+              options={[
+                { value: '', label: isKhmer ? 'ជ្រើសរើសខេត្ត' : 'Select Province' },
+                ...provinces.map((p) => ({
+                  value: p.province_en,
+                  label: `${p.province_en} (${p.province_km})`,
+                })),
+              ]}
             />
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'រាជធានី / ខេត្ត' : 'Province / Municipality'}
-              </label>
-              <Select
-                value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                placeholder={isKhmer ? 'ជ្រើសរើសខេត្ត' : 'Select Province'}
-                options={[
-                  { value: '', label: isKhmer ? 'ជ្រើសរើសខេត្ត' : 'Select Province' },
-                  ...provinces.map((p) => ({
-                    value: p.province_en,
-                    label: `${p.province_en} (${p.province_km})`,
-                  })),
-                ]}
-              />
-            </div>
+            <Input
+              label={isKhmer ? 'ប្រាក់ខែរំពឹងទុក' : 'Expected Monthly Salary'}
+              type="number"
+              value={expectedSalary}
+              onChange={(e) => setExpectedSalary(e.target.value)}
+              placeholder="e.g. 1500"
+              leftIcon={<DollarSign className="w-4 h-4" />}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'ប្រាក់ខែរំពឹងទុក' : 'Expected Monthly Salary'}
-              </label>
-              <input
-                type="number"
-                value={expectedSalary}
-                onChange={(e) => setExpectedSalary(e.target.value)}
-                placeholder="e.g. 1500"
-                className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'រូបិយប័ណ្ណ' : 'Salary Currency'}
-              </label>
-              <Select
-                value={salaryCurrency}
-                onChange={(e) => setSalaryCurrency(e.target.value as any)}
-                options={[
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'KHR', label: 'KHR (៛)' },
-                ]}
-              />
-            </div>
+            <Select
+              label={isKhmer ? 'រូបិយប័ណ្ណ' : 'Salary Currency'}
+              value={salaryCurrency}
+              onChange={(e) => setSalaryCurrency(e.target.value as any)}
+              options={[
+                { value: 'USD', label: 'USD ($)' },
+                { value: 'KHR', label: 'KHR (៛)' },
+              ]}
+            />
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
               disabled={isSavingProfile}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-2xs disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-xs transition shadow-xs hover:shadow-md disabled:opacity-50 cursor-pointer"
             >
-              {isSavingProfile
-                ? (isKhmer ? 'កំពុងរក្សាទុក...' : 'Saving...')
-                : (isKhmer ? 'រក្សាទុកព័ត៌មាន' : 'Save Profile Details')}
+              <Save className="w-3.5 h-3.5" />
+              <span>
+                {isSavingProfile
+                  ? (isKhmer ? 'កំពុងរក្សាទុក...' : 'Saving...')
+                  : (isKhmer ? 'រក្សាទុកព័ត៌មាន' : 'Save Profile Details')}
+              </span>
             </button>
           </div>
         </form>
@@ -532,34 +509,32 @@ export const SeekerProfilePage: React.FC = () => {
         {/* Upload Form */}
         <form onSubmit={handleUploadResume} className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row gap-3 items-end">
           <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {isKhmer ? 'ចំណងជើង CV' : 'Resume Title'}
-            </label>
-            <input
+            <Input
+              label={isKhmer ? 'ចំណងជើង CV' : 'Resume Title'}
               type="text"
               value={resumeTitle}
               onChange={(e) => setResumeTitle(e.target.value)}
               placeholder="e.g. Sokha_Meas_Senior_Developer_CV"
-              className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
+              leftIcon={<FileText className="w-4 h-4" />}
             />
           </div>
 
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <div className="flex-1 w-full space-y-1.5 font-sans">
+            <label className="block text-xs font-semibold text-slate-700">
               {isKhmer ? 'ជ្រើសរើសឯកសារ (PDF / DOCX)' : 'Upload File (PDF / DOCX)'}
             </label>
             <input
               type="file"
               accept=".pdf,.doc,.docx"
               onChange={(e) => setCvFile(e.target.files?.[0] || null)}
-              className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100/80 cursor-pointer text-slate-500 border border-gray-200 rounded-xl p-1.5 bg-white shadow-2xs"
+              className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100/80 cursor-pointer text-slate-500 border border-gray-200 rounded-xl p-1 bg-slate-50 hover:bg-slate-100/60 min-h-[38px] transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={isUploadingCv}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition shrink-0 disabled:opacity-50 flex items-center shadow-2xs cursor-pointer"
+            className="px-4 py-2 min-h-[38px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition shrink-0 disabled:opacity-50 flex items-center shadow-xs cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5 mr-1.5" />
             <span>{isUploadingCv ? (isKhmer ? 'កំពុងផ្ទុក...' : 'Uploading...') : (isKhmer ? 'ផ្ទុកឡើង CV' : 'Upload CV')}</span>
@@ -756,9 +731,9 @@ export const SeekerProfilePage: React.FC = () => {
 
       {/* Modals */}
       {isEduModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-gray-200 text-slate-900 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-slate-900 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                 {isKhmer ? 'បន្ថែមព័ត៌មានអប់រំ' : 'Add Education'}
               </h3>
@@ -767,71 +742,44 @@ export const SeekerProfilePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleAddEducation} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'គ្រឹះស្ថានសិក្សា / សាកលវិទ្យាល័យ *' : 'Institution *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newInstitution}
-                  onChange={(e) => setNewInstitution(e.target.value)}
-                  placeholder="e.g. Royal University of Phnom Penh (RUPP)"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+            <form onSubmit={handleAddEducation} className="space-y-3.5">
+              <Input
+                label={isKhmer ? 'គ្រឹះស្ថានសិក្សា / សាកលវិទ្យាល័យ' : 'Institution'}
+                required
+                value={newInstitution}
+                onChange={(e) => setNewInstitution(e.target.value)}
+                placeholder="e.g. Royal University of Phnom Penh (RUPP)"
+                leftIcon={<GraduationCap className="w-4 h-4" />}
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'កម្រិតសញ្ញាបត្រ *' : 'Degree *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newDegree}
-                  onChange={(e) => setNewDegree(e.target.value)}
-                  placeholder="e.g. Bachelor of Computer Science"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+              <Input
+                label={isKhmer ? 'កម្រិតសញ្ញាបត្រ' : 'Degree'}
+                required
+                value={newDegree}
+                onChange={(e) => setNewDegree(e.target.value)}
+                placeholder="e.g. Bachelor of Computer Science"
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'ជំនាញឯកទេស' : 'Field of Study'}
-                </label>
-                <input
-                  type="text"
-                  value={newField}
-                  onChange={(e) => setNewField(e.target.value)}
-                  placeholder="e.g. Software Engineering"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+              <Input
+                label={isKhmer ? 'ជំនាញឯកទេស' : 'Field of Study'}
+                value={newField}
+                onChange={(e) => setNewField(e.target.value)}
+                placeholder="e.g. Software Engineering"
+              />
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
-                  </label>
-                  <input
-                    type="date"
-                    value={newEduStart}
-                    onChange={(e) => setNewEduStart(e.target.value)}
-                    className="w-full text-xs p-2 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
-                  </label>
-                  <input
-                    type="date"
-                    value={newEduEnd}
-                    onChange={(e) => setNewEduEnd(e.target.value)}
-                    className="w-full text-xs p-2 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500"
-                  />
-                </div>
+                <Input
+                  label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
+                  type="date"
+                  value={newEduStart}
+                  onChange={(e) => setNewEduStart(e.target.value)}
+                />
+                <Input
+                  label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
+                  type="date"
+                  value={newEduEnd}
+                  onChange={(e) => setNewEduEnd(e.target.value)}
+                />
               </div>
 
               <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
@@ -854,159 +802,10 @@ export const SeekerProfilePage: React.FC = () => {
         </div>
       )}
 
-      
-      {/* Printable / Exportable CV Modal */}
-      {isPreviewCvOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full my-8 shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Action Bar */}
-            <div className="p-4 bg-slate-50 border-b border-gray-200 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ប្រវត្តិរូបសង្ខេប CV' : 'Professional Curriculum Vitae (CV)'}
-                </h3>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-2xs cursor-pointer transition active:scale-98"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>{isKhmer ? 'បោះពុម្ព / Save PDF' : 'Print / Save PDF'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPreviewCvOpen(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* A4 Resume Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto space-y-5 text-slate-900 font-sans">
-              {/* CV Header */}
-              <div className="border-b border-gray-200 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    {profile?.full_name || 'Candidate Name'}
-                  </h1>
-                  <p className="text-xs sm:text-sm font-semibold text-blue-600 mt-0.5">
-                    {profile?.headline || (isKhmer ? 'បេក្ខជនការងារ' : 'Job Seeker')}
-                  </p>
-                </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  {profile?.email && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.email}</span>
-                    </div>
-                  )}
-                  {profile?.phone_number && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.phone_number}</span>
-                    </div>
-                  )}
-                  {profile?.province && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.province} {profile.city ? `, ${profile.city}` : ''}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Summary */}
-              {profile?.summary && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'សេចក្តីសង្ខេបអំពីខ្លួន' : 'Professional Summary'}
-                  </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-3 rounded-xl border border-gray-100">
-                    {profile.summary}
-                  </p>
-                </div>
-              )}
-
-              {/* Work Experience */}
-              {profile?.work_experiences && profile.work_experiences.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ប្រវត្តិការងារ' : 'Work Experience'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.work_experiences.map((exp) => (
-                      <div key={exp.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{exp.job_title}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {exp.start_date} — {exp.is_current ? (isKhmer ? 'បច្ចុប្បន្ន' : 'Present') : exp.end_date || 'Present'}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {exp.company_name} {exp.location ? `• ${exp.location}` : ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Education */}
-              {profile?.educations && profile.educations.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'កម្រិតវប្បធម៌ និងការអប់រំ' : 'Education'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.educations.map((edu) => (
-                      <div key={edu.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{edu.degree}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {edu.start_date} — {edu.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {edu.institution} {edu.field_of_study ? `• ${edu.field_of_study}` : ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Skills */}
-              {profile?.skills && profile.skills.length > 0 && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ជំនាញ និងសមត្ថភាព' : 'Skills & Proficiencies'}
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {profile.skills.map((s) => (
-                      <span
-                        key={s.id}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-gray-200"
-                      >
-                        {s.name} <span className="text-[10px] text-slate-400 font-normal">({s.proficiency_level})</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {isExpModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-gray-200 text-slate-900 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-slate-900 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                 {isKhmer ? 'បន្ថែមបទពិសោធន៍ការងារ' : 'Add Work Experience'}
               </h3>
@@ -1015,72 +814,46 @@ export const SeekerProfilePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleAddExperience} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'ឈ្មោះក្រុមហ៊ុន / ស្ថាប័ន *' : 'Company Name *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newCompany}
-                  onChange={(e) => setNewCompany(e.target.value)}
-                  placeholder="e.g. Smart Axiata or ABA Bank"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+            <form onSubmit={handleAddExperience} className="space-y-3.5">
+              <Input
+                label={isKhmer ? 'ឈ្មោះក្រុមហ៊ុន / ស្ថាប័ន' : 'Company Name'}
+                required
+                value={newCompany}
+                onChange={(e) => setNewCompany(e.target.value)}
+                placeholder="e.g. Smart Axiata or ABA Bank"
+                leftIcon={<Briefcase className="w-4 h-4" />}
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'មុខតំណែង *' : 'Job Title *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newJobTitle}
-                  onChange={(e) => setNewJobTitle(e.target.value)}
-                  placeholder="e.g. Frontend Developer"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+              <Input
+                label={isKhmer ? 'មុខតំណែង' : 'Job Title'}
+                required
+                value={newJobTitle}
+                onChange={(e) => setNewJobTitle(e.target.value)}
+                placeholder="e.g. Frontend Developer"
+              />
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {isKhmer ? 'ទីតាំង' : 'Location'}
-                </label>
-                <input
-                  type="text"
-                  value={newExpLocation}
-                  onChange={(e) => setNewExpLocation(e.target.value)}
-                  placeholder="e.g. Phnom Penh"
-                  className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
-                />
-              </div>
+              <Input
+                label={isKhmer ? 'ទីតាំង' : 'Location'}
+                value={newExpLocation}
+                onChange={(e) => setNewExpLocation(e.target.value)}
+                placeholder="e.g. Phnom Penh"
+                leftIcon={<MapPin className="w-4 h-4" />}
+              />
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
-                  </label>
-                  <input
-                    type="date"
-                    value={newExpStart}
-                    onChange={(e) => setNewExpStart(e.target.value)}
-                    className="w-full text-xs p-2 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    {isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
-                  </label>
-                  <input
-                    type="date"
-                    disabled={isCurrentExp}
-                    value={newExpEnd}
-                    onChange={(e) => setNewExpEnd(e.target.value)}
-                    className="w-full text-xs p-2 bg-white border border-gray-200 rounded-xl text-slate-900 outline-none focus:border-blue-500 disabled:opacity-40"
-                  />
-                </div>
+                <Input
+                  label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
+                  type="date"
+                  value={newExpStart}
+                  onChange={(e) => setNewExpStart(e.target.value)}
+                />
+                <Input
+                  label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
+                  type="date"
+                  disabled={isCurrentExp}
+                  value={newExpEnd}
+                  onChange={(e) => setNewExpEnd(e.target.value)}
+                />
               </div>
 
               <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer pt-1">
@@ -1113,159 +886,10 @@ export const SeekerProfilePage: React.FC = () => {
         </div>
       )}
 
-      
-      {/* Printable / Exportable CV Modal */}
-      {isPreviewCvOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full my-8 shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Action Bar */}
-            <div className="p-4 bg-slate-50 border-b border-gray-200 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ប្រវត្តិរូបសង្ខេប CV' : 'Professional Curriculum Vitae (CV)'}
-                </h3>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-2xs cursor-pointer transition active:scale-98"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>{isKhmer ? 'បោះពុម្ព / Save PDF' : 'Print / Save PDF'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsPreviewCvOpen(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* A4 Resume Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto space-y-5 text-slate-900 font-sans">
-              {/* CV Header */}
-              <div className="border-b border-gray-200 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    {profile?.full_name || 'Candidate Name'}
-                  </h1>
-                  <p className="text-xs sm:text-sm font-semibold text-blue-600 mt-0.5">
-                    {profile?.headline || (isKhmer ? 'បេក្ខជនការងារ' : 'Job Seeker')}
-                  </p>
-                </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  {profile?.email && (
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.email}</span>
-                    </div>
-                  )}
-                  {profile?.phone_number && (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.phone_number}</span>
-                    </div>
-                  )}
-                  {profile?.province && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{profile.province} {profile.city ? `, ${profile.city}` : ''}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Summary */}
-              {profile?.summary && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'សេចក្តីសង្ខេបអំពីខ្លួន' : 'Professional Summary'}
-                  </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-3 rounded-xl border border-gray-100">
-                    {profile.summary}
-                  </p>
-                </div>
-              )}
-
-              {/* Work Experience */}
-              {profile?.work_experiences && profile.work_experiences.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ប្រវត្តិការងារ' : 'Work Experience'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.work_experiences.map((exp) => (
-                      <div key={exp.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{exp.job_title}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {exp.start_date} — {exp.is_current ? (isKhmer ? 'បច្ចុប្បន្ន' : 'Present') : exp.end_date || 'Present'}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {exp.company_name} {exp.location ? `• ${exp.location}` : ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Education */}
-              {profile?.educations && profile.educations.length > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'កម្រិតវប្បធម៌ និងការអប់រំ' : 'Education'}
-                  </h3>
-                  <div className="space-y-2.5 divide-y divide-gray-100">
-                    {profile.educations.map((edu) => (
-                      <div key={edu.id} className="pt-2.5 first:pt-0 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-slate-900">{edu.degree}</h4>
-                          <span className="text-[11px] text-slate-500 font-medium">
-                            {edu.start_date} — {edu.end_date || (isKhmer ? 'បច្ចុប្បន្ន' : 'Present')}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-600">
-                          {edu.institution} {edu.field_of_study ? `• ${edu.field_of_study}` : ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Skills */}
-              {profile?.skills && profile.skills.length > 0 && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {isKhmer ? 'ជំនាញ និងសមត្ថភាព' : 'Skills & Proficiencies'}
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {profile.skills.map((s) => (
-                      <span
-                        key={s.id}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-gray-200"
-                      >
-                        {s.name} <span className="text-[10px] text-slate-400 font-normal">({s.proficiency_level})</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* In-app Delete Item Confirmation Modal */}
       {deletingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-gray-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-rose-50 border border-gray-200 text-rose-600 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
@@ -1314,10 +938,10 @@ export const SeekerProfilePage: React.FC = () => {
 
       {/* Printable / Exportable CV Modal */}
       {isPreviewCvOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-3xl w-full my-8 shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-3xl w-full my-8 shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Action Bar */}
-            <div className="p-4 bg-slate-50 border-b border-gray-200 flex items-center justify-between shrink-0">
+            <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-blue-600" />
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">

@@ -817,20 +817,163 @@ INSTRUCTIONS FOR PLATFORM SEARCH:
         active_provider = ai_cfg["provider"]
         active_model = ai_cfg["model"]
 
+    # 3. DYNAMIC CAREER & SALARY BENCHMARK CHART
+    chart_data = None
+    query_lower = raw_query.lower()
+    salary_keywords = [
+        "salary", "pay", "wage", "compensation", "benchmark", "chart",
+        "ប្រាក់ខែ", "បៀវត្ស", "តារាង", "ស្ថិតិ", "ទីផ្សារ", "rate", "ថវិកា"
+    ]
+    is_salary_query = any(k in query_lower for k in salary_keywords)
+
+    if is_salary_query or "benchmark" in query_lower:
+        stats = get_live_platform_stats()
+        categories = stats.get("categories", [])
+        if categories:
+            chart_items = []
+            for cat in categories[:6]:
+                chart_items.append({
+                    "label": cat.get("name_en", "General"),
+                    "label_km": cat.get("name_km") or cat.get("name_en", "ទូទៅ"),
+                    "min": float(cat.get("min_salary_usd") or 300),
+                    "max": float(cat.get("max_salary_usd") or 1500),
+                    "count": int(cat.get("job_count", 0)),
+                })
+            chart_data = {
+                "type": "salary_benchmark",
+                "title": "Cambodia Market Salary Benchmark (USD)",
+                "title_km": "តារាងប្រៀបធៀបប្រាក់ខែទីផ្សារការងារកម្ពុជា (USD)",
+                "items": chart_items,
+            }
+    elif user_id and any(k in query_lower for k in ["match", "fit", "skill", "profile", "cv", "ជំនាញ"]):
+        profile_info = get_seeker_profile_data(user_id)
+        if profile_info and profile_info.get("skills"):
+            user_skills = set(s.lower() for s in profile_info["skills"])
+            stats = get_live_platform_stats()
+            top_skills = stats.get("top_skills", [])
+            items = []
+            matched = 0
+            for s in top_skills[:5]:
+                has = s["name"].lower() in user_skills
+                if has:
+                    matched += 1
+                items.append({
+                    "skill": s["name"],
+                    "user_has": has,
+                })
+            score = round((matched / max(len(items), 1)) * 100) if items else 75
+            chart_data = {
+                "type": "skill_match",
+                "title": f"Candidate Skill Alignment ({score}%)",
+                "title_km": f"កម្រិតត្រូវគ្នានៃជំនាញបេក្ខជន ({score}%)",
+                "match_score": max(50, score),
+                "items": items,
+            }
+    elif matched_jobs and any(j.get("salary_min") or j.get("salary_max") for j in matched_jobs):
+        chart_items = []
+        for j in matched_jobs[:5]:
+            s_min = float(j.get("salary_min") or 350)
+            s_max = float(j.get("salary_max") or 1200)
+            if j.get("salary_currency") == "KHR":
+                s_min = round(s_min / KHR_PER_USD)
+                s_max = round(s_max / KHR_PER_USD)
+            chart_items.append({
+                "label": j["title"],
+                "label_km": j.get("title_km") or j["title"],
+                "min": s_min,
+                "max": s_max,
+                "company": j.get("company_name"),
+            })
+        if chart_items:
+            chart_data = {
+                "type": "salary_benchmark",
+                "title": f"Salary Range: {raw_query[:25]}",
+                "title_km": f"កម្រិតប្រាក់ខែ: {raw_query[:25]}",
+                "items": chart_items,
+            }
+
     suggested_actions = [
         "🎯 ស្វែងរកការងារលើគេហទំព័រ" if in_khmer else "🎯 Search Live Jobs",
         "🏢 ស្វែងរកក្រុមហ៊ុនដែលបានផ្ទៀងផ្ទាត់" if in_khmer else "🏢 Browse Verified Companies",
+        "📊 តារាងប្រាក់ខែទីផ្សារកម្ពុជា" if in_khmer else "📊 Salary Benchmark Chart",
         "📄 គន្លឹះរៀបចំ CV & សម្ភាសន៍" if in_khmer else "📄 CV & Interview Tips",
-        "💼 របៀបប្រកាសការងារ (Employer)" if in_khmer else "💼 How to Post a Job",
     ]
 
     return {
         "reply": reply_text,
         "matched_jobs": matched_jobs,
-        "chart": None,
+        "chart": chart_data,
         "suggested_actions": suggested_actions,
         "total_matches": len(matched_jobs),
         "intent": "job_search" if matched_jobs else "general_qa",
         "provider": active_provider,
         "model": active_model,
     }
+
+
+def generate_ai_cover_letter(
+    job_title: str,
+    company_name: str,
+    job_description: Optional[str] = "",
+    candidate_skills: Optional[List[str]] = None,
+    candidate_name: Optional[str] = "Candidate",
+    experience_summary: Optional[str] = "",
+    is_khmer: bool = False,
+    api_key: Optional[str] = None,
+) -> str:
+    """
+    Generate an engaging, professional cover letter tailored for a specific job and company.
+    Supports Khmer and English.
+    """
+    skills_str = ", ".join(candidate_skills) if candidate_skills else "relevant professional skills"
+    lang = "Khmer" if is_khmer else "English"
+
+    prompt = f"""Write a professional, concise, and compelling cover letter for the following position:
+- Job Title: {job_title}
+- Company: {company_name}
+- Candidate Name: {candidate_name}
+- Candidate Skills: {skills_str}
+- Candidate Background: {experience_summary or 'Experienced professional passionate about this role'}
+- Job Overview: {job_description[:500] if job_description else 'Standard requirements for ' + job_title}
+
+RULES:
+- Language: Write the entire cover letter in {lang}.
+- Tone: Professional, enthusiastic, respectful, and articulate.
+- Length: Around 3-4 short, impactful paragraphs.
+- Do NOT include generic placeholder brackets like [Your Name] if the name is provided.
+- Conclude with a polite call-to-action regarding an interview."""
+
+    system_instruction = f"You are a professional career coach and expert resume writer in Cambodia writing in {lang}."
+
+    cover_letter, _, _ = call_universal_ai(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        api_key_override=api_key,
+    )
+
+    if cover_letter:
+        return cover_letter.strip()
+
+    # Fallback template
+    if is_khmer:
+        return f"""សូមគោរពជូនចំពោះ គណៈគ្រប់គ្រង និងក្រុមការងារជ្រើសរើសបុគ្គលិកនៃ {company_name},
+
+ខ្ញុំបាទ/នាងខ្ញុំមានសេចក្តីសោមនស្សរីករាយយ៉ាងក្រៃលែងក្នុងការដាក់ពាក្យស្នើសុំមុខតំណែង {job_title} នៅក្រុមហ៊ុន {company_name}។ ជាមួយនឹងចំណេះដឹង បទពិសោធន៍ និងជំនាញពាក់ព័ន្ធដូចជា {skills_str} ខ្ញុំជឿជាក់យ៉ាងមុតមាំថាអាចរួមចំណែកយ៉ាងសកម្មដល់ការរីកចម្រើនរបស់ស្ថាប័ន។
+
+ខ្ញុំមានការកោតសរសើរចំពោះកេរ្តិ៍ឈ្មោះ និងភាពរីកចម្រើនរបស់ {company_name} ហើយមានបំណងប្រាថ្នាយ៉ាងខ្លាំងក្នុងការយកសមត្ថភាព និងការប្តេជ្ញាចិត្តរបស់ខ្ញុំមកបម្រើការងារជូនក្រុមហ៊ុន។
+
+ខ្ញុំសង្ឃឹមយ៉ាងមុតមាំថានឹងទទួលបានឱកាសជួបសម្ភាសន៍ដោយផ្ទាល់ ដើម្បីពិភាក្សាលម្អិតបន្ថែមអំពីការរួមចំណែករបស់ខ្ញុំ។
+
+ដោយក្តីគោរពដ៏ខ្ពង់ខ្ពស់,
+{candidate_name}"""
+    else:
+        return f"""Dear Hiring Team at {company_name},
+
+I am writing to express my strong interest in the {job_title} position at {company_name}. With my background, dedication, and proficiency in {skills_str}, I am confident in my ability to make a meaningful and immediate contribution to your team.
+
+I have followed {company_name}'s growth with great admiration and would be thrilled to bring my proactive mindset, technical capabilities, and collaborative spirit to this role.
+
+Thank you very much for your time and consideration. I welcome the opportunity to discuss my qualifications with you in an interview.
+
+Sincerely,
+{candidate_name}"""

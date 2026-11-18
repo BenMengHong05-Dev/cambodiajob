@@ -97,16 +97,23 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           </span>
         </div>
 
-        {/* Modern Select Popover (25, 50, 100) - Second */}
-        <div className="relative" ref={dropdownRef}>
+        {/* Flat Design Page Size Select */}
+        <div className="relative inline-flex items-center" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
             aria-expanded={isDropdownOpen}
             aria-haspopup="listbox"
-            className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/85 hover:border-slate-300 rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-all select-none outline-none focus:outline-none"
+            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition select-none outline-none ${
+              isDropdownOpen
+                ? 'bg-white border-blue-500 ring-2 ring-blue-500/10 text-slate-900'
+                : 'bg-slate-50 border-gray-200 text-slate-700 hover:border-gray-300 hover:bg-slate-100/60'
+            }`}
+            title={isKhmer ? 'ជ្រើសរើសចំនួនទិន្នន័យក្នុងមួយទំព័រ' : 'Rows per page'}
           >
-            <span>{pageSize}</span>
+            <span>
+              {pageSize} <span className="font-normal text-slate-400">/ {isKhmer ? 'ទំព័រ' : 'page'}</span>
+            </span>
             <ChevronDown
               className={`w-3.5 h-3.5 transition-transform duration-200 ${
                 isDropdownOpen ? 'rotate-180 text-blue-600' : 'text-slate-400'
@@ -117,8 +124,12 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           {isDropdownOpen && (
             <div
               role="listbox"
-              className="absolute left-0 bottom-full mb-1.5 w-28 bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-900/10 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+              style={{ backgroundColor: '#ffffff', opacity: 1 }}
+              className="absolute left-0 bottom-full mb-2 w-32 bg-white border border-gray-200 rounded-xl shadow-xl p-1 z-[99999] select-popover animate-in fade-in zoom-in-95 duration-100"
             >
+              <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+                {isKhmer ? 'ចំនួនក្នុង១ទំព័រ' : 'Rows per page'}
+              </div>
               <div className="space-y-0.5">
                 {pageSizeOptions.map((opt) => {
                   const isSelected = opt === pageSize
@@ -133,13 +144,15 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
                         onPageChange(1)
                         setIsDropdownOpen(false)
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-xl cursor-pointer transition-all border ${
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg cursor-pointer transition ${
                         isSelected
-                          ? 'bg-blue-50/90 text-blue-700 font-bold border-blue-200 shadow-2xs'
-                          : 'border-transparent hover:bg-slate-100 text-slate-700 font-medium'
+                          ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-100'
+                          : 'border border-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-medium'
                       }`}
                     >
-                      <span>{opt}</span>
+                      <span>
+                        {opt} <span className="text-[11px] font-normal text-slate-400">/ {isKhmer ? 'ទំព័រ' : 'page'}</span>
+                      </span>
                       {isSelected && (
                         <Check className="w-3.5 h-3.5 text-blue-600 stroke-[2.5]" />
                       )}

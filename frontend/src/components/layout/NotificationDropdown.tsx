@@ -149,7 +149,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
   }
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-[9999]' : 'z-10'}`} ref={dropdownRef}>
       {/* Bell Trigger Button */}
       <button
         type="button"
@@ -179,11 +179,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
         )}
       </button>
 
-      {/* Dropdown Panel (Clear Glassmorphism) */}
+      {/* Dropdown Panel (Clean White Elevated Surface) */}
       {isOpen && (
-        <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl glass-dropdown bg-white/85 backdrop-blur-2xl shadow-2xl shadow-blue-950/10 border border-white/90 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2.5 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="px-4 py-3 bg-white/60 backdrop-blur-md border-b border-white/80 flex items-center justify-between">
+          <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="font-bold text-slate-900 text-sm">
                 {isKhmer ? 'ការជូនដំណឹង' : 'Notifications'}
