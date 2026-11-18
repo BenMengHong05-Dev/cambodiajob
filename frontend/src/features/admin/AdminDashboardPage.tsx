@@ -5,7 +5,6 @@ import { adminService } from '../../services/admin.service'
 import { AdminLineChart } from './AdminLineChart'
 import { StatCard } from '../../components/dashboard/StatCard'
 import { QuickActions } from '../../components/dashboard/QuickActions'
-import { EmailNotificationCard } from '../../components/layout/EmailNotificationCard'
 import { getAssetUrl } from '../../utils/assets'
 import {
   Users,
@@ -333,47 +332,6 @@ export const AdminDashboardPage: React.FC = () => {
 
         {/* Right Column (5 cols): Enterprises + Audit Trail */}
         <div className="lg:col-span-5 space-y-4 sm:space-y-5">
-          {/* Card: Email Notification Alerts for Admin */}
-          <EmailNotificationCard variant="card" role="admin" />
-
-          {/* Card: Job Categories Management */}
-          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 relative overflow-hidden bg-gradient-to-br from-white/90 via-blue-50/20 to-white/90">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">
-              <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-400/25 text-blue-600 flex items-center justify-center shrink-0 shadow-inner">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-800">
-                    {isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories'}
-                  </h3>
-                  <p className="text-[10px] text-slate-400">
-                    {isKhmer ? 'ប្រភេទមុខរបរ & កាតទំព័រដើម' : 'Organize & create job sectors'}
-                  </p>
-                </div>
-              </div>
-
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                {stats.total_categories || 12} {isKhmer ? 'ប្រភេទ' : 'Total'}
-              </span>
-            </div>
-
-            <div className="pt-3 flex items-center justify-between gap-3">
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {isKhmer
-                  ? 'បង្កើតផ្នែកការងារថ្មី ឬកែសម្រួលរូបតំណាង និងឈ្មោះភាសាខ្មែរ/អង់គ្លេស'
-                  : 'Add new industry sectors or customize category icons & translations'}
-              </p>
-              <Link
-                to="/admin/categories"
-                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1 shrink-0 transition"
-              >
-                <Plus className="w-3.5 h-3.5 text-white" />
-                <span>{isKhmer ? 'បង្កើតថ្មី' : 'Manage'}</span>
-              </Link>
-            </div>
-          </div>
-
           {/* Card: Recently Registered Companies */}
           <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3.5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">

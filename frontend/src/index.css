@@ -156,9 +156,9 @@ samp {
   min-height: 100vh;
 }
 
-/* All cards, panels, tables, and containers in workspace layout */
-.workspace-layout main .bg-white.rounded-2xl:not(.select-popover):not([role="listbox"]),
-.workspace-layout main .bg-white.rounded-xl:not(.select-popover):not([role="listbox"]),
+/* All cards, panels, tables, and containers in workspace layout (exclude interactive elements) */
+.workspace-layout main div.bg-white.rounded-2xl:not(.select-popover):not([role="listbox"]):not(button):not(a),
+.workspace-layout main div.bg-white.rounded-xl:not(.select-popover):not([role="listbox"]):not(button):not(a),
 .workspace-layout main .card-clear {
   background-color: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(16px) !important;
@@ -178,8 +178,8 @@ samp {
 }
 
 /* Interactive card hover inside workspace */
-.workspace-layout main .bg-white.rounded-2xl.hover\:border-blue-500:hover,
-.workspace-layout main .bg-white.rounded-xl.hover\:border-blue-400:hover,
+.workspace-layout main div.bg-white.rounded-2xl.hover\:border-blue-500:hover,
+.workspace-layout main div.bg-white.rounded-xl.hover\:border-blue-400:hover,
 .workspace-layout main .card-clear-hover:hover {
   background-color: rgba(255, 255, 255, 0.92) !important;
   border-color: rgba(147, 197, 253, 0.8) !important;

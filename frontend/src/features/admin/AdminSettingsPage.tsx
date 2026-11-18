@@ -23,12 +23,8 @@ import {
   Briefcase,
   Eye,
   Trash2,
-  Copy,
-  CheckCheck,
   FolderOpen,
-  Link as LinkIcon,
   X,
-  FileImage,
   ArrowRight,
 } from 'lucide-react'
 
@@ -42,21 +38,13 @@ export const AdminSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
-  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false)
   const [isDragOverLogo, setIsDragOverLogo] = useState(false)
-  const [isDragOverFavicon, setIsDragOverFavicon] = useState(false)
-
-  // Copy URL indicators
-  const [copiedLogo, setCopiedLogo] = useState(false)
-  const [copiedFavicon, setCopiedFavicon] = useState(false)
-
   const logoInputRef = useRef<HTMLInputElement>(null)
-  const faviconInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState<SiteSettings>({
     site_name: 'CambodiaJobs',
     site_name_km: 'ការងារកម្ពុជា',
-    site_title: "Cambodia's Leading Job & Recruitment Platform",
+    site_title: "CambodiaJobs | Cambodia's #1 Job Search & Recruitment Platform",
     site_title_km: 'វេទិកាការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា',
     site_subtitle: 'Find your dream career or hire top talent across Cambodia',
     site_subtitle_km: 'ស្វែងរកការងារក្នុងក្តីស្រមៃ ឬជ្រើសរើសបុគ្គលិកឆ្នើមទូទាំងប្រទេសកម្ពុជា',
@@ -118,59 +106,63 @@ export const AdminSettingsPage: React.FC = () => {
     }))
   }
 
-  const handleFileUpload = async (file: File, type: 'logo' | 'favicon') => {
+  const handleFileUpload = async (file: File) => {
     if (!file) return
 
-    if (type === 'logo') setIsUploadingLogo(true)
-    else setIsUploadingFavicon(true)
+    setIsUploadingLogo(true)
 
     try {
-      const res = await adminService.uploadLogo(file, type)
+      const res = await adminService.uploadLogo(file, 'logo')
       if (res && res.url) {
-        handleChange(type === 'logo' ? 'logo_url' : 'favicon_url', res.url)
-        // Refresh global site settings so Navbar/Footer/Admin sidebar show
-        // the new image immediately without a full page reload.
+        setFormData((prev) => ({
+          ...prev,
+          logo_url: res.url,
+          favicon_url: res.url,
+        }))
+        await adminService.updateSettings({ logo_url: res.url, favicon_url: res.url })
         await refreshSettings()
         toast.success(
-          isKhmer
-            ? `បានផ្ទុកឡើង ${type === 'logo' ? 'រូបសញ្ញា Logo' : 'Favicon'} ដោយជោគជ័យ!`
-            : `${type === 'logo' ? 'Logo' : 'Favicon'} uploaded and saved!`,
-          isKhmer
-            ? 'រូបភាពត្រូវបានរក្សាទុកភ្លាមៗ (ការកែប្រែផ្សេងទៀតត្រូវចុចរក្សាទុក)'
-            : 'Image saved automatically (other changes still need Save)'
+          isKhmer ? 'បានផ្ទុកឡើងរូបសញ្ញា Logo & Favicon ដោយជោគជ័យ!' : 'Logo & Browser Favicon uploaded and saved!',
+          isKhmer ? 'រូបភាពត្រូវបានរក្សាទុកភ្លាមៗ' : 'Image saved automatically'
         )
       }
     } catch (err: any) {
-      console.error(`Failed to upload ${type}:`, err)
+      console.error('Failed to upload logo:', err)
       toast.error(
-        isKhmer ? `បរាជ័យក្នុងការបញ្ចូលរូបភាព ${type}` : `Failed to upload ${type}`,
+        isKhmer ? 'បរាជ័យក្នុងការបញ្ចូលរូបភាព' : 'Failed to upload logo',
         err?.response?.data?.details?.file ||
           err?.response?.data?.error ||
           'Error uploading file from PC'
       )
     } finally {
-      if (type === 'logo') setIsUploadingLogo(false)
-      else setIsUploadingFavicon(false)
+      setIsUploadingLogo(false)
     }
   }
 
-  const handleRemoveImage = async (type: 'logo' | 'favicon') => {
-    const field = type === 'logo' ? 'logo_url' : 'favicon_url'
-    const previous = formData[field]
+  const handleRemoveImage = async () => {
+    const prevLogo = formData.logo_url
+    const prevFavicon = formData.favicon_url
 
-    handleChange(field, null)
+    setFormData((prev) => ({
+      ...prev,
+      logo_url: null,
+      favicon_url: null,
+    }))
 
     try {
-      const res = await adminService.updateSettings(
-        type === 'logo' ? { logo_url: null } : { favicon_url: null }
-      )
+      const res = await adminService.updateSettings({ logo_url: null, favicon_url: null })
       if (res?.data) updateLocalSettings(res.data)
+      await refreshSettings()
       toast.success(
-        isKhmer ? 'បានដករូបភាពចេញ' : 'Image Removed',
-        isKhmer ? 'រូបភាពត្រូវបានដកចេញ និងរក្សាទុកដោយជោគជ័យ' : 'The image was removed and saved.'
+        isKhmer ? 'បានដករូបសញ្ញាចេញ' : 'Logo Removed',
+        isKhmer ? 'រូបសញ្ញា និង Favicon ត្រូវបានដកចេញដោយជោគជ័យ' : 'Logo & Favicon removed successfully.'
       )
     } catch (err: any) {
-      handleChange(field, previous)
+      setFormData((prev) => ({
+        ...prev,
+        logo_url: prevLogo,
+        favicon_url: prevFavicon,
+      }))
       toast.error(
         isKhmer ? 'បរាជ័យ' : 'Remove Failed',
         err?.response?.data?.message || (isKhmer ? 'មិនអាចដករូបភាពបានទេ' : 'Could not remove the image.')
@@ -178,20 +170,18 @@ export const AdminSettingsPage: React.FC = () => {
     }
   }
 
-  const handleCopyUrl = (url: string | null | undefined, type: 'logo' | 'favicon') => {
-    if (!url) return
-    navigator.clipboard.writeText(url)
-    if (type === 'logo') {
-      setCopiedLogo(true)
-      setTimeout(() => setCopiedLogo(false), 2000)
-    } else {
-      setCopiedFavicon(true)
-      setTimeout(() => setCopiedFavicon(false), 2000)
+  const getBrowserTabTitlePreview = () => {
+    const currentTitle = isKhmer
+      ? (formData.site_title_km || formData.site_title)
+      : formData.site_title
+    const currentName = isKhmer
+      ? (formData.site_name_km || formData.site_name)
+      : formData.site_name
+    if (!currentTitle) return currentName || 'CambodiaJobs'
+    if (currentName && currentTitle.toLowerCase().includes(currentName.toLowerCase())) {
+      return currentTitle
     }
-    toast.success(
-      isKhmer ? 'បានចម្លង URL' : 'URL Copied',
-      isKhmer ? 'តំណភ្ជាប់រូបភាពត្រូវបានចម្លងទៅកាន់ Clipboard' : 'Image URL copied to clipboard'
-    )
+    return `${currentName || 'CambodiaJobs'} | ${currentTitle}`
   }
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -206,6 +196,7 @@ export const AdminSettingsPage: React.FC = () => {
           announcement_enabled: Boolean(res.data.announcement_enabled),
         })
         updateLocalSettings(res.data)
+        await refreshSettings()
       }
       toast.success(
         isKhmer ? 'បានរក្សាទុកការកំណត់គេហទំព័រ!' : 'Website settings updated!',
@@ -236,52 +227,50 @@ export const AdminSettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 pb-20 font-sans animate-in fade-in duration-200 max-w-7xl mx-auto">
-      {/* 1. Header Card with Live Action Buttons */}
-      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gray-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-            <Settings className="w-6 h-6" />
+    <div className="w-full space-y-3.5 font-sans pb-12">
+      {/* 1. Header Bar: Title on left, Action buttons on right (Compact, unified, matching Job Categories UI) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              {isKhmer ? 'ការកំណត់គេហទំព័រ & ម៉ាកសញ្ញា' : 'Website Settings & Branding'}
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-gray-200">
+              <Settings className="w-3 h-3 text-blue-600" />
+              <span>{isKhmer ? 'ប្រព័ន្ធ' : 'System'}</span>
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {isKhmer ? 'ការកំណត់គេហទំព័រ & ម៉ាកសញ្ញា' : 'Website Settings & Branding'}
-              </h1>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                System
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isKhmer
-                ? 'គ្រប់គ្រង Logo, Favicon, ចំណងជើងគេហទំព័រ, ខ្លឹមសារទំព័រដើម, និងព័ត៌មានទំនាក់ទំនង'
-                : 'Configure website branding, logos, home page content, and organization contacts'}
-            </p>
-          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {isKhmer
+              ? 'គ្រប់គ្រង Logo, Favicon, ចំណងជើងគេហទំព័រ, ខ្លឹមសារទំព័រដើម, និងព័ត៌មានទំនាក់ទំនង'
+              : 'Configure website branding, logos, home page content, and organization contacts'}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Action Buttons on Right */}
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto w-full sm:w-auto justify-end">
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-2xs transition active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            title={isKhmer ? 'មើលគេហទំព័រផ្ទាល់' : 'View Live Site'}
           >
-            <Eye className="w-4 h-4 text-slate-400" />
+            <Eye className="w-3.5 h-3.5 text-slate-400" />
             <span>{isKhmer ? 'មើលគេហទំព័រផ្ទាល់' : 'View Live Site'}</span>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+            <ExternalLink className="w-3 h-3 text-slate-400" />
           </a>
 
           <button
             type="button"
             onClick={() => handleSubmit()}
             disabled={isSaving}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition cursor-pointer active:scale-98 disabled:opacity-50"
           >
             {isSaving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Save className="w-4 h-4" />
+              <Save className="w-3.5 h-3.5 text-white" />
             )}
             <span>
               {isSaving
@@ -360,468 +349,262 @@ export const AdminSettingsPage: React.FC = () => {
 
       <form onSubmit={handleSubmit}>
         {/* ======================================================== */}
-        {/* TAB 1: BRANDING & IDENTITY (LOGO, FAVICON, TITLE, SEO)    */}
+        {/* TAB 1: BRANDING & IDENTITY (CLEAN MINIMALIST UI)         */}
         {/* ======================================================== */}
         {activeTab === 'branding' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-150">
-            {/* Left 2 Columns: General Platform Information & SEO */}
+            {/* Left 2 Columns: General Platform Information */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gray-200/90 shadow-2xs space-y-5">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gray-200/90 shadow-2xs space-y-6">
+                <div>
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-blue-600" />
-                    <span>{isKhmer ? 'ព័ត៌មានទូទៅនៃគេហទំព័រ' : 'Website General Information'}</span>
+                    <span>{isKhmer ? 'ព័ត៌មានទូទៅនៃគេហទំព័រ' : 'General Website Information'}</span>
                   </h3>
-                  <span className="text-[11px] text-slate-400">
-                    {isKhmer ? 'បង្ហាញនៅលើ Header & SEO' : 'Header & Metadata'}
-                  </span>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {isKhmer
+                      ? 'កំណត់ឈ្មោះគេហទំព័រ ចំណងជើង និងការពិពណ៌នាសម្រាប់បង្ហាញជាសាធារណៈ'
+                      : 'Configure site name, page titles, and description displayed to users'}
+                  </p>
                 </div>
 
-                {/* Site Name (EN & KM) */}
+                {/* 1. Site Name */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ឈ្មោះគេហទំព័រ (English)' : 'Platform Name (English)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇬🇧 EN</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ឈ្មោះគេហទំព័រ (English)' : 'Site Name (English)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_name}
                       onChange={(e) => handleChange('site_name', e.target.value)}
                       placeholder="CambodiaJobs"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ឈ្មោះគេហទំព័រ (ភាសាខ្មែរ)' : 'Platform Name (Khmer)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇰🇭 KM</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ឈ្មោះគេហទំព័រ (ភាសាខ្មែរ)' : 'Site Name (Khmer)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_name_km}
                       onChange={(e) => handleChange('site_name_km', e.target.value)}
                       placeholder="ការងារកម្ពុជា"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                     />
                   </div>
                 </div>
 
-                {/* Site Title (EN & KM) */}
+                {/* 2. Browser Tab Title */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ចំណងជើងធំគេហទំព័រ (Title - English)' : 'Website Title (English)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇬🇧 EN</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ចំណងជើង Browser Tab (English)' : 'Browser Tab Title (English)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_title}
                       onChange={(e) => handleChange('site_title', e.target.value)}
-                      placeholder="Cambodia's Leading Job & Recruitment Platform"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      placeholder="CambodiaJobs | Job Search & Recruitment"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ចំណងជើងធំគេហទំព័រ (Title - ភាសាខ្មែរ)' : 'Website Title (Khmer)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇰🇭 KM</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ចំណងជើង Browser Tab (ភាសាខ្មែរ)' : 'Browser Tab Title (Khmer)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_title_km}
                       onChange={(e) => handleChange('site_title_km', e.target.value)}
-                      placeholder="វេទិកាការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      placeholder="ការងារកម្ពុជា | វេទិកាការងារឈានមុខ"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                     />
                   </div>
                 </div>
 
-                {/* Subtitle / Tagline (EN & KM) */}
+                {/* 3. Subtitle / Tagline */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ចំណងជើងរង / ពាក្យស្លោក (English)' : 'Subtitle / Tagline (English)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇬🇧 EN</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ពាក្យស្លោក (English)' : 'Tagline / Slogan (English)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_subtitle}
                       onChange={(e) => handleChange('site_subtitle', e.target.value)}
-                      placeholder="Find your dream career or hire top talent across Cambodia"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      placeholder="Find your dream career in Cambodia"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ចំណងជើងរង / ពាក្យស្លោក (ភាសាខ្មែរ)' : 'Subtitle / Tagline (Khmer)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇰🇭 KM</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ពាក្យស្លោក (ភាសាខ្មែរ)' : 'Tagline / Slogan (Khmer)'}
                     </label>
                     <input
                       type="text"
                       value={formData.site_subtitle_km}
                       onChange={(e) => handleChange('site_subtitle_km', e.target.value)}
-                      placeholder="ស្វែងរកការងារក្នុងក្តីស្រមៃ ឬជ្រើសរើសបុគ្គលិកឆ្នើមទូទាំងប្រទេសកម្ពុជា"
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
+                      placeholder="ស្វែងរកការងារក្នុងក្ដីស្រមៃរបស់អ្នកនៅកម្ពុជា"
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                     />
                   </div>
                 </div>
 
-                {/* Meta Description EN & KM (SEO) */}
-                <div className="space-y-4 pt-3 border-t border-slate-100">
+                {/* 4. Description (SEO) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ការពិពណ៌នាគេហទំព័រ (Meta Description - English SEO)' : 'Meta Description (English - SEO)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇬🇧 EN</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ការពិពណ៌នា (English)' : 'Description (English)'}
                     </label>
                     <textarea
                       rows={2}
                       value={formData.site_description || ''}
                       onChange={(e) => handleChange('site_description', e.target.value)}
-                      placeholder="CambodiaJobs is the premier job search and talent acquisition platform in Cambodia..."
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition leading-relaxed shadow-2xs"
+                      placeholder="Explore thousands of verified career opportunities across Cambodia..."
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition leading-relaxed resize-none"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>{isKhmer ? 'ការពិពណ៌នាគេហទំព័រ (Meta Description - ភាសាខ្មែរ SEO)' : 'Meta Description (Khmer - SEO)'}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">🇰🇭 KM</span>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {isKhmer ? 'ការពិពណ៌នា (ភាសាខ្មែរ)' : 'Description (Khmer)'}
                     </label>
                     <textarea
                       rows={2}
                       value={formData.site_description_km || ''}
                       onChange={(e) => handleChange('site_description_km', e.target.value)}
-                      placeholder="CambodiaJobs គឺជាវេទិកាស្វែងរកការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា..."
-                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition leading-relaxed shadow-2xs"
+                      placeholder="ស្វែងរកឱកាសការងាររាប់ពាន់កន្លែងដែលមានការផ្ទៀងផ្ទាត់ត្រឹមត្រូវនៅកម្ពុជា..."
+                      className="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition leading-relaxed resize-none"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: High-Grade Website Logo & Favicon with "Choose File on PC" + "URL Input" */}
+            {/* Right Column: Clean Minimalist Logo & Favicon Card */}
             <div className="space-y-6">
-              {/* ==================== 1. WEBSITE LOGO CARD ==================== */}
-              <div className="bg-white rounded-3xl p-6 border border-gray-200/90 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <div className="bg-white rounded-3xl p-6 border border-gray-200/90 shadow-2xs space-y-5">
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-blue-600" />
-                    <span>{isKhmer ? 'រូបសញ្ញាគេហទំព័រ (Logo)' : 'Website Logo'}</span>
+                    <span>{isKhmer ? 'Logo & Favicon' : 'Logo & Favicon'}</span>
                   </h3>
-                  {formData.logo_url && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage('logo')}
-                      className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition"
-                      title={isKhmer ? 'ដករូបចេញ' : 'Remove logo'}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>{isKhmer ? 'ដកចេញ' : 'Remove'}</span>
-                    </button>
-                  )}
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {isKhmer
+                      ? 'រូបភាពសម្រាប់ Header និង Icon លើ Browser Tab'
+                      : 'Image used for header logo and browser tab favicon'}
+                  </p>
                 </div>
 
-                {/* Visual Preview Container */}
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    setIsDragOverLogo(true)
-                  }}
-                  onDragLeave={() => setIsDragOverLogo(false)}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setIsDragOverLogo(false)
-                    const file = e.dataTransfer.files?.[0]
-                    if (file) handleFileUpload(file, 'logo')
-                  }}
-                  onClick={() => logoInputRef.current?.click()}
-                  className={`h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all cursor-pointer group ${
-                    isDragOverLogo
-                      ? 'border-blue-500 bg-blue-50/80 scale-[1.01]'
-                      : 'border-slate-200 hover:border-blue-400 bg-slate-50/80 hover:bg-blue-50/20'
-                  }`}
-                  title={isKhmer ? 'ចុចដើម្បីជ្រើសរើសរូបពីកុំព្យូទ័រ (Choose File from PC)' : 'Click or drop to choose file from PC'}
-                >
-                  {formData.logo_url ? (
-                    <div className="flex flex-col items-center justify-center w-full h-full">
+                {/* Logo Display / Dropzone */}
+                {formData.logo_url ? (
+                  <div className="space-y-3">
+                    <div className="h-32 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 flex items-center justify-center relative overflow-hidden group">
                       <img
                         src={getAssetUrl(formData.logo_url)}
                         alt="Website Logo"
-                        className="max-h-24 max-w-full object-contain transition-transform group-hover:scale-105"
-                        onError={() => {
-                          toast.error(
-                            isKhmer ? 'មិនអាចបង្ហាញរូបភាព Logo បានទេ' : 'Invalid logo URL',
-                            isKhmer ? 'សូមពិនិត្យមើលតំណភ្ជាប់រូបភាព' : 'Please verify image URL'
-                          )
-                        }}
+                        className="max-h-20 max-w-[200px] object-contain transition-transform group-hover:scale-105"
                       />
-                      <span className="text-[10px] text-slate-400 font-mono mt-1 truncate max-w-[200px]">
-                        {formData.logo_url}
-                      </span>
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center text-center text-slate-400">
-                      <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1.5 shadow-2xs group-hover:scale-110 transition-transform">
-                        <Upload className="w-5 h-5" />
-                      </div>
-                      <p className="text-xs font-bold text-slate-700">
-                        {isKhmer ? 'ជ្រើសរើសរូបពី PC ឬអូសទម្លាក់ទីនេះ' : 'Choose File from PC or Drop here'}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
-                        PNG, SVG, JPG, WEBP &bull; Max 5MB
-                      </p>
-                    </div>
-                  )}
 
-                  {/* Uploading Spinner Overlay */}
-                  {isUploadingLogo && (
-                    <div className="absolute inset-0 bg-white/90 backdrop-blur-xs flex flex-col items-center justify-center gap-1.5">
-                      <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs font-bold text-blue-600">
-                        {isKhmer ? 'កំពុងបញ្ចូលរូបពី PC...' : 'Uploading from PC...'}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={isUploadingLogo}
+                        className="flex-1 py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <FolderOpen className="w-3.5 h-3.5 text-blue-600" />
+                        <span>{isKhmer ? 'ផ្លាស់ប្តូររូបភាព' : 'Change Image'}</span>
+                      </button>
 
-                {/* Primary Button: Choose File on PC */}
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold flex items-center justify-center gap-1 transition cursor-pointer"
+                        title={isKhmer ? 'លុបរូបភាពចេញ' : 'Remove image'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{isKhmer ? 'ដកចេញ' : 'Remove'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setIsDragOverLogo(true)
+                    }}
+                    onDragLeave={() => setIsDragOverLogo(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setIsDragOverLogo(false)
+                      const file = e.dataTransfer.files?.[0]
+                      if (file) handleFileUpload(file)
+                    }}
+                    onClick={() => logoInputRef.current?.click()}
+                    className={`h-36 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${
+                      isDragOverLogo
+                        ? 'border-blue-500 bg-blue-50/80'
+                        : 'border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/20'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-105 transition shadow-2xs">
+                      <Upload className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-bold text-slate-700">
+                      {isKhmer ? 'ចុចជ្រើសរើសរូបពី PC' : 'Choose image from PC'}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      PNG, SVG, JPG, WEBP (Max 5MB)
+                    </p>
+                  </div>
+                )}
+
+                {/* Hidden File Input */}
                 <input
                   ref={logoInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.ico"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'logo')
+                    if (file) handleFileUpload(file)
                     if (e.target) e.target.value = ''
                   }}
                   className="hidden"
                 />
 
-                <button
-                  type="button"
-                  onClick={() => logoInputRef.current?.click()}
-                  disabled={isUploadingLogo}
-                  className="w-full py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer active:scale-98 disabled:opacity-50 shadow-2xs"
-                >
-                  <FolderOpen className="w-4 h-4 text-blue-600" />
-                  <span>
-                    {isUploadingLogo
-                      ? isKhmer
-                        ? 'កំពុងបញ្ចូល...'
-                        : 'Uploading...'
-                      : isKhmer
-                      ? 'ជ្រើសរើសរូបភាពពី PC (Choose File on PC)'
-                      : 'Choose File on PC'}
+                {/* Minimalist Browser Tab Simulation */}
+                <div className="pt-4 border-t border-slate-100 space-y-2">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {isKhmer ? 'ការបង្ហាញលើ Browser Tab' : 'Browser Tab Preview'}
                   </span>
-                </button>
-
-                {/* Input File / Image URL hybrid with attached "Browse PC" button */}
-                <div className="space-y-1.5 pt-1">
-                  <label className="block text-[11px] font-bold text-slate-600">
-                    {isKhmer ? 'ឬបញ្ចូលតំណភ្ជាប់រូបភាព (Or Image URL):' : 'Or Image URL / Path:'}
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative flex-1">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <LinkIcon className="w-3.5 h-3.5" />
-                      </div>
-                      <input
-                        type="text"
-                        value={formData.logo_url || ''}
-                        onChange={(e) => handleChange('logo_url', e.target.value)}
-                        placeholder="/media/site/logo.png or https://..."
-                        className="w-full pl-9 pr-8 py-2 text-xs font-mono rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 text-slate-700 shadow-2xs transition"
-                      />
-                      {formData.logo_url && (
-                        <button
-                          type="button"
-                          onClick={() => handleChange('logo_url', null)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 cursor-pointer"
-                          title="Clear URL"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Attached Browse PC Button */}
-                    <button
-                      type="button"
-                      onClick={() => logoInputRef.current?.click()}
-                      className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 shrink-0 transition cursor-pointer"
-                      title={isKhmer ? 'ជ្រើសរើសឯកសារពីកុំព្យូទ័រ' : 'Browse file on computer'}
-                    >
-                      <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="hidden sm:inline">{isKhmer ? 'ជ្រើសរើស' : 'Browse PC'}</span>
-                    </button>
-
-                    {/* Attached Copy URL Button */}
-                    {formData.logo_url && (
-                      <button
-                        type="button"
-                        onClick={() => handleCopyUrl(formData.logo_url, 'logo')}
-                        className={`p-2 rounded-xl border text-xs font-semibold flex items-center justify-center shrink-0 transition cursor-pointer ${
-                          copiedLogo
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-gray-200'
-                        }`}
-                        title={isKhmer ? 'ចម្លង URL' : 'Copy URL'}
-                      >
-                        {copiedLogo ? (
-                          <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <div className="bg-slate-100/90 p-2 rounded-xl border border-slate-200/60">
+                    <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs max-w-full">
+                      <div className="w-4 h-4 rounded shrink-0 overflow-hidden flex items-center justify-center">
+                        {formData.favicon_url || formData.logo_url ? (
+                          <img
+                            src={getAssetUrl(formData.favicon_url || formData.logo_url)}
+                            alt="Favicon"
+                            className="w-full h-full object-contain"
+                          />
                         ) : (
-                          <Copy className="w-3.5 h-3.5" />
+                          <Briefcase className="w-3.5 h-3.5 text-blue-600" />
                         )}
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400 leading-tight">
-                    {isKhmer
-                      ? 'ទំហំសមរម្យ: 240×60px (PNG, SVG, JPG, WEBP ក្រោម 5MB)។'
-                      : 'Recommended size: 240×60px (PNG, SVG, JPG, WEBP under 5MB).'}
-                  </p>
-                </div>
-              </div>
-
-              {/* ==================== 2. BROWSER FAVICON CARD ==================== */}
-              <div className="bg-white rounded-3xl p-6 border border-gray-200/90 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <span>{isKhmer ? 'Favicon (រូបតំណាង Browser)' : 'Browser Favicon'}</span>
-                  </h3>
-                  {formData.favicon_url && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage('favicon')}
-                      className="text-xs text-rose-500 hover:text-rose-700 flex items-center gap-1 cursor-pointer transition"
-                      title={isKhmer ? 'ដករូបចេញ' : 'Remove favicon'}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>{isKhmer ? 'ដកចេញ' : 'Remove'}</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Favicon Simulation Mockup (Shows what it looks like on real browser tab) */}
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    setIsDragOverFavicon(true)
-                  }}
-                  onDragLeave={() => setIsDragOverFavicon(false)}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setIsDragOverFavicon(false)
-                    const file = e.dataTransfer.files?.[0]
-                    if (file) handleFileUpload(file, 'favicon')
-                  }}
-                  onClick={() => faviconInputRef.current?.click()}
-                  title={isKhmer ? 'ចុច ឬអូសទម្លាក់ Favicon ពីកុំព្យូទ័រ' : 'Click or drop a favicon file from your computer'}
-                  className={`p-3 rounded-2xl border-2 border-dashed cursor-pointer transition ${
-                    isDragOverFavicon
-                      ? 'border-blue-500 bg-blue-50/80'
-                      : 'border-slate-200/80 bg-slate-100 hover:border-blue-400'
-                  }`}
-                >
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                    {isKhmer ? 'ការបង្ហាញលើ Browser Tab (Browser Tab Simulation)' : 'Browser Tab Mockup'}
-                  </span>
-                  <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs max-w-full">
-                    <div className="w-4 h-4 rounded shrink-0 overflow-hidden flex items-center justify-center">
-                      {formData.favicon_url ? (
-                        <img
-                          src={getAssetUrl(formData.favicon_url)}
-                          alt="Favicon"
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <Briefcase className="w-3.5 h-3.5 text-blue-600" />
-                      )}
-                    </div>
-                    <span className="text-xs font-semibold text-slate-800 truncate max-w-[160px]">
-                      {formData.site_name || 'CambodiaJobs'}
-                    </span>
-                    <X className="w-3 h-3 text-slate-400 shrink-0 ml-1" />
-                  </div>
-                </div>
-
-                {/* Favicon Upload on PC Button */}
-                <input
-                  ref={faviconInputRef}
-                  type="file"
-                  accept=".ico,.png,.svg,.jpg"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'favicon')
-                    if (e.target) e.target.value = ''
-                  }}
-                  className="hidden"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => faviconInputRef.current?.click()}
-                  disabled={isUploadingFavicon}
-                  className="w-full py-2 px-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer active:scale-98 disabled:opacity-50"
-                >
-                  <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
-                  <span>
-                    {isUploadingFavicon
-                      ? isKhmer
-                        ? 'កំពុងបញ្ចូល...'
-                        : 'Uploading...'
-                      : isKhmer
-                      ? 'ជ្រើសរើស Favicon ពី PC (Choose File on PC)'
-                      : 'Choose Favicon File on PC'}
-                  </span>
-                </button>
-
-                {/* Favicon URL Input with Attached Browse PC Button */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative flex-1">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <LinkIcon className="w-3.5 h-3.5" />
                       </div>
-                      <input
-                        type="text"
-                        value={formData.favicon_url || ''}
-                        onChange={(e) => handleChange('favicon_url', e.target.value)}
-                        placeholder="/media/site/favicon.ico or https://..."
-                        className="w-full pl-9 pr-8 py-1.5 text-xs font-mono rounded-xl bg-slate-50/60 focus:bg-white border border-gray-200 focus:outline-none focus:border-blue-500 text-slate-700 shadow-2xs transition"
-                      />
-                      {formData.favicon_url && (
-                        <button
-                          type="button"
-                          onClick={() => handleChange('favicon_url', null)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 cursor-pointer"
-                          title="Clear URL"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <span className="text-xs font-semibold text-slate-800 truncate max-w-[210px]">
+                        {getBrowserTabTitlePreview()}
+                      </span>
+                      <X className="w-3 h-3 text-slate-300 shrink-0 ml-1" />
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => faviconInputRef.current?.click()}
-                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 shrink-0 transition cursor-pointer"
-                      title={isKhmer ? 'ជ្រើសរើសពីកុំព្យូទ័រ' : 'Browse file on computer'}
-                    >
-                      <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="hidden sm:inline">{isKhmer ? 'ជ្រើសរើស' : 'Browse'}</span>
-                    </button>
                   </div>
-                  <p className="text-[10px] text-slate-400">
-                    .ico, .png, or .svg (32×32px recommended)
-                  </p>
                 </div>
               </div>
             </div>

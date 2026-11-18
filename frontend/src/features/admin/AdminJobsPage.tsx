@@ -221,44 +221,40 @@ export const AdminJobsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-              statusFilter === 'all'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${statusFilter === 'all'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+              }`}
           >
             {isKhmer ? 'ទាំងអស់' : 'All'} ({jobs.length})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              statusFilter === 'pending'
-                ? 'bg-amber-500 text-white shadow-2xs'
-                : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${statusFilter === 'pending'
+              ? 'bg-amber-500 text-white shadow-2xs'
+              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200/70'
+              }`}
           >
             {isKhmer ? 'រង់ចាំអនុម័ត' : 'Pending'} ({pendingCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('approved')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              statusFilter === 'approved'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${statusFilter === 'approved'
+              ? 'bg-emerald-600 text-white shadow-2xs'
+              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70'
+              }`}
           >
             {isKhmer ? 'អនុម័តរួច' : 'Approved'} ({approvedCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('rejected')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              statusFilter === 'rejected'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200/70'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${statusFilter === 'rejected'
+              ? 'bg-rose-600 text-white shadow-2xs'
+              : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200/70'
+              }`}
           >
             {isKhmer ? 'បដិសេធ' : 'Rejected'} ({rejectedCount})
           </button>
@@ -297,155 +293,154 @@ export const AdminJobsPage: React.FC = () => {
                 filteredJobs
                   .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                   .map((j) => {
-                  const isApproved = j.moderation_status === 'approved'
-                  const isPending = j.moderation_status === 'pending'
+                    const isApproved = j.moderation_status === 'approved'
+                    const isPending = j.moderation_status === 'pending'
 
-                  return (
-                    <tr key={j.id} className="hover:bg-slate-50/70 transition-colors group">
-                      {/* Column 1: Job Title */}
-                      <td className="py-2.5 px-4 align-middle">
-                        <div className="space-y-0.5 max-w-sm">
-                          <Link
-                            to={`/jobs/${j.slug}`}
-                            className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors block text-xs line-clamp-1"
-                          >
-                            {isKhmer && j.title_km ? j.title_km : j.title}
-                          </Link>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="px-2 py-0.2 rounded-md text-[10px] font-normal bg-blue-50 text-blue-700 border border-blue-200/50">
-                              {j.employment_type?.replace('_', ' ') || 'Full Time'}
-                            </span>
-                            <span className="px-2 py-0.2 rounded-md text-[10px] font-normal bg-slate-100 text-slate-600 border border-gray-200">
-                              {j.workplace_type || 'On Site'}
-                            </span>
+                    return (
+                      <tr key={j.id} className="hover:bg-slate-50/70 transition-colors group">
+                        {/* Column 1: Job Title */}
+                        <td className="py-2.5 px-4 align-middle">
+                          <div className="space-y-0.5 max-w-sm">
+                            <Link
+                              to={`/jobs/${j.slug}`}
+                              className="font-medium text-slate-800 group-hover:text-blue-600 transition-colors block text-xs line-clamp-1"
+                            >
+                              {isKhmer && j.title_km ? j.title_km : j.title}
+                            </Link>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="px-2 py-0.2 rounded-md text-[10px] font-normal bg-blue-50 text-blue-700 border border-blue-200/50">
+                                {j.employment_type?.replace('_', ' ') || 'Full Time'}
+                              </span>
+                              <span className="px-2 py-0.2 rounded-md text-[10px] font-normal bg-slate-100 text-slate-600 border border-gray-200">
+                                {j.workplace_type || 'On Site'}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Column 2: Company & Location */}
-                      <td className="py-2.5 px-3 align-middle">
-                        <div className="space-y-0.5">
-                          <span className="font-normal text-slate-800 block truncate">
-                            {j.company_name}
+                        {/* Column 2: Company & Location */}
+                        <td className="py-2.5 px-3 align-middle">
+                          <div className="space-y-0.5">
+                            <span className="font-normal text-slate-800 block truncate">
+                              {j.company_name}
+                            </span>
+                            <div className="flex items-center space-x-1 text-slate-400 text-[11px]">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              <span>{j.province || 'Phnom Penh'}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Column 3: Salary */}
+                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                          <span className="font-normal text-slate-700 text-xs">
+                            {formatSalaryRange(
+                              j.salary_min,
+                              j.salary_max,
+                              j.salary_currency,
+                              j.is_salary_negotiable,
+                              isKhmer ? 'ចរចា' : 'Negotiable'
+                            )}
                           </span>
-                          <div className="flex items-center space-x-1 text-slate-400 text-[11px]">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span>{j.province || 'Phnom Penh'}</span>
+                        </td>
+
+                        {/* Column 4: Applicants Count */}
+                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-normal text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-gray-200">
+                            <Users className="w-3 h-3 text-slate-400" />
+                            <span>{j.applications_count || 0}</span>
+                          </span>
+                        </td>
+
+                        {/* Column 5: Published Date */}
+                        <td className="py-2.5 px-3 align-middle text-slate-500 font-normal whitespace-nowrap">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{new Date(j.created_at).toLocaleDateString()}</span>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Column 3: Salary */}
-                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                        <span className="font-normal text-slate-700 text-xs">
-                          {formatSalaryRange(
-                            j.salary_min,
-                            j.salary_max,
-                            j.salary_currency,
-                            j.is_salary_negotiable,
-                            isKhmer ? 'ចរចា' : 'Negotiable'
-                          )}
-                        </span>
-                      </td>
-
-                      {/* Column 4: Applicants Count */}
-                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-normal text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-gray-200">
-                          <Users className="w-3 h-3 text-slate-400" />
-                          <span>{j.applications_count || 0}</span>
-                        </span>
-                      </td>
-
-                      {/* Column 5: Published Date */}
-                      <td className="py-2.5 px-3 align-middle text-slate-500 font-normal whitespace-nowrap">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{new Date(j.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </td>
-
-                      {/* Column 6: Status Badge */}
-                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-normal border ${
-                            isApproved
+                        {/* Column 6: Status Badge */}
+                        <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-normal border ${isApproved
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                               : isPending
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-rose-50 text-rose-700 border-rose-200'
-                          }`}
-                        >
-                          {isApproved ? (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          ) : isPending ? (
-                            <Clock className="w-3 h-3 text-amber-600" />
-                          ) : (
-                            <XCircle className="w-3 h-3 text-rose-600" />
-                          )}
-                          <span>
-                            {isApproved
-                              ? isKhmer ? 'អនុម័តរួច' : 'Approved'
-                              : isPending
-                              ? isKhmer ? 'រង់ចាំអនុម័ត' : 'Pending'
-                              : isKhmer ? 'បដិសេធ' : 'Rejected'}
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}
+                          >
+                            {isApproved ? (
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            ) : isPending ? (
+                              <Clock className="w-3 h-3 text-amber-600" />
+                            ) : (
+                              <XCircle className="w-3 h-3 text-rose-600" />
+                            )}
+                            <span>
+                              {isApproved
+                                ? isKhmer ? 'អនុម័តរួច' : 'Approved'
+                                : isPending
+                                  ? isKhmer ? 'រង់ចាំអនុម័ត' : 'Pending'
+                                  : isKhmer ? 'បដិសេធ' : 'Rejected'}
+                            </span>
                           </span>
-                        </span>
-                      </td>
+                        </td>
 
-                      {/* Column 7: Actions: View (Blue), Approve (Green), Delete (Red) */}
-                      <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end space-x-1.5">
-                          {/* View public job page */}
-                          <Link
-                            to={`/jobs/${j.slug}`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-slate-600 hover:text-blue-600 bg-white hover:bg-slate-50 border border-gray-200 transition shadow-2xs"
-                            title={isKhmer ? 'មើលការងារសាធារណៈ' : 'View Public Vacancy'}
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            <span className="hidden sm:inline">{isKhmer ? 'មើល' : 'View'}</span>
-                          </Link>
+                        {/* Column 7: Actions: View (Blue), Approve (Green), Delete (Red) */}
+                        <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            {/* View public job page */}
+                            <Link
+                              to={`/jobs/${j.slug}`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-slate-600 hover:text-blue-600 bg-white hover:bg-slate-50 border border-gray-200 transition shadow-2xs"
+                              title={isKhmer ? 'មើលការងារសាធារណៈ' : 'View Public Vacancy'}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              <span className="hidden sm:inline">{isKhmer ? 'មើល' : 'View'}</span>
+                            </Link>
 
-                          {/* Approve / Reject Button */}
-                          {!isApproved ? (
+                            {/* Approve / Reject Button */}
+                            {!isApproved ? (
+                              <button
+                                type="button"
+                                disabled={actionInProgress === j.id}
+                                onClick={() => handleModerateJob(j.id, 'approved')}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
+                                title={isKhmer ? 'អនុម័តការងារ' : 'Approve Job'}
+                              >
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="hidden sm:inline">{isKhmer ? 'អនុម័ត' : 'Approve'}</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={actionInProgress === j.id}
+                                onClick={() => handleModerateJob(j.id, 'rejected')}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
+                                title={isKhmer ? 'បដិសេធ' : 'Reject Job'}
+                              >
+                                <X className="w-3 h-3 text-amber-600" />
+                                <span className="hidden sm:inline">{isKhmer ? 'បដិសេធ' : 'Reject'}</span>
+                              </button>
+                            )}
+
+                            {/* Delete Button (Red) */}
                             <button
                               type="button"
-                              disabled={actionInProgress === j.id}
-                              onClick={() => handleModerateJob(j.id, 'approved')}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
-                              title={isKhmer ? 'អនុម័តការងារ' : 'Approve Job'}
+                              onClick={() => handleOpenDelete(j)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer shadow-2xs"
+                              title={isKhmer ? 'លុបការងារ' : 'Delete Vacancy'}
                             >
-                              <Check className="w-3 h-3 text-emerald-600" />
-                              <span className="hidden sm:inline">{isKhmer ? 'អនុម័ត' : 'Approve'}</span>
+                              <Trash2 className="w-3 h-3 text-rose-600" />
+                              <span className="hidden sm:inline">{isKhmer ? 'លុប' : 'Delete'}</span>
                             </button>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled={actionInProgress === j.id}
-                              onClick={() => handleModerateJob(j.id, 'rejected')}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
-                              title={isKhmer ? 'បដិសេធ' : 'Reject Job'}
-                            >
-                              <X className="w-3 h-3 text-amber-600" />
-                              <span className="hidden sm:inline">{isKhmer ? 'បដិសេធ' : 'Reject'}</span>
-                            </button>
-                          )}
-
-                          {/* Delete Button (Red) */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenDelete(j)}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer shadow-2xs"
-                            title={isKhmer ? 'លុបការងារ' : 'Delete Vacancy'}
-                          >
-                            <Trash2 className="w-3 h-3 text-rose-600" />
-                            <span className="hidden sm:inline">{isKhmer ? 'លុប' : 'Delete'}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
               )}
             </tbody>
           </table>

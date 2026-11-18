@@ -350,17 +350,6 @@ export const JobsPage: React.FC = () => {
             />
           </button>
 
-          {/* Create Job Alert Button */}
-          <button
-            type="button"
-            onClick={() => setIsJobAlertOpen(true)}
-            className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-700 text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
-            title={isKhmer ? 'បង្កើតការជូនដំណឹងការងារថ្មីៗ' : 'Create Job Alert'}
-          >
-            <Bell className="w-3.5 h-3.5 text-blue-600" />
-            <span className="hidden sm:inline">{isKhmer ? 'ជូនដំណឹងការងារ' : 'Job Alert'}</span>
-          </button>
-
           {/* View Mode Toggle: List Table vs Grid */}
           <div className="flex items-center p-0.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
             <button

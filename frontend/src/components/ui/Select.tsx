@@ -176,7 +176,7 @@ export const Select: React.FC<SelectProps> = ({
     lg: 'px-4 py-2.5 text-sm rounded-xl',
   }[size]
 
-  const popoverAlign = align === 'right' ? 'right-0 left-auto min-w-[190px]' : 'left-0 right-0 min-w-full'
+  const popoverAlign = align === 'right' ? 'right-0 left-auto min-w-[220px]' : 'left-0 min-w-full sm:min-w-[260px]'
 
   // Flat Design Trigger styling matching Input & Textarea - stable color when open
   const triggerBg = isGlass
@@ -186,11 +186,9 @@ export const Select: React.FC<SelectProps> = ({
       : 'bg-slate-50 border-gray-200 text-slate-900 hover:bg-slate-100/60 hover:border-gray-300'
 
   // Crisp elevated popover surface with defined border & depth
-  const popoverBg = isGlass
-    ? 'bg-slate-900/98 border border-slate-700 text-white shadow-xl'
-    : isDark
-      ? 'bg-slate-900 border border-slate-700 text-white shadow-xl'
-      : 'bg-white border border-gray-200 text-slate-900 shadow-xl'
+  const popoverBg = isDark
+    ? 'bg-slate-900 border border-slate-700 text-white shadow-xl'
+    : 'bg-white border border-gray-200 text-slate-900 shadow-2xl'
 
   return (
     <div className={`w-full space-y-1.5 font-sans relative ${isOpen ? 'z-[9999]' : 'z-10'} ${className}`} ref={containerRef}>
@@ -261,15 +259,15 @@ export const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <div
           role="listbox"
-          style={{ backgroundColor: isDark || isGlass ? undefined : '#ffffff', opacity: 1 }}
+          style={{ backgroundColor: isDark ? undefined : '#ffffff', opacity: 1 }}
           className={`absolute ${popoverAlign} mt-1.5 max-h-72 flex flex-col rounded-2xl border p-1.5 z-[9999] select-popover shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${popoverBg}`}
         >
 
           {isSearchable && (
-            <div className="p-1 pb-1.5 mb-1 border-b border-slate-200/40 dark:border-slate-700/50 shrink-0">
+            <div className="p-1 pb-1.5 mb-1 border-b border-gray-100 dark:border-slate-700/50 shrink-0">
               <div className="relative flex items-center">
                 <Search
-                  className={`w-3.5 h-3.5 absolute left-2.5 pointer-events-none ${isGlass || isDark ? 'text-slate-400' : 'text-slate-400'
+                  className={`w-3.5 h-3.5 absolute left-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'
                     }`}
                 />
                 <input
@@ -283,9 +281,8 @@ export const Select: React.FC<SelectProps> = ({
                     e.stopPropagation()
                     if (e.key === 'Escape') setIsOpen(false)
                   }}
-                  className={`w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border outline-none transition font-normal ${isGlass
-                    ? 'bg-white/10 border-white/20 text-white placeholder-slate-400 focus:border-blue-400 focus:bg-white/15'
-                    : isDark
+                  className={`w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border outline-none transition font-normal ${
+                    isDark
                       ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400 focus:border-blue-500'
                       : 'bg-slate-50 border-gray-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 shadow-2xs'
                     }`}
@@ -298,7 +295,7 @@ export const Select: React.FC<SelectProps> = ({
                       setSearchQuery('')
                       searchInputRef.current?.focus()
                     }}
-                    className={`absolute right-2 p-0.5 rounded-full hover:bg-white/20 transition ${isGlass || isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-600'
+                    className={`absolute right-2 p-0.5 rounded-full hover:bg-slate-100 transition ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-600'
                       }`}
                   >
                     <X className="w-3.5 h-3.5" />
@@ -334,21 +331,21 @@ export const Select: React.FC<SelectProps> = ({
                     className={`w-full flex items-center justify-between ${optionPadding} cursor-pointer transition-all border ${opt.disabled
                       ? 'opacity-40 cursor-not-allowed border-transparent'
                       : isItemOptionSelected
-                        ? isDark || isGlass
+                        ? isDark
                           ? 'bg-blue-600/25 text-blue-300 font-medium border-blue-500/40 shadow-2xs'
-                          : 'bg-blue-50 text-blue-600 font-medium border-blue-200 shadow-2xs'
-                        : isDark || isGlass
+                          : 'bg-blue-50 text-blue-600 font-semibold border-blue-200 shadow-2xs'
+                        : isDark
                           ? 'border-transparent hover:bg-slate-800 text-slate-300 hover:text-white'
-                          : 'border-transparent hover:bg-slate-50 text-slate-700 hover:text-slate-900'
+                          : 'border-transparent hover:bg-slate-100/80 text-slate-800 hover:text-slate-900 font-medium'
                       }`}
                   >
                     <div className="flex items-center space-x-2.5 min-w-0 flex-1 pr-2">
                       {opt.icon && <span className="shrink-0 flex items-center">{opt.icon}</span>}
                       <div className="min-w-0 flex-1 flex items-center justify-between">
-                        <p className="truncate leading-tight font-normal text-xs sm:text-sm">{opt.label}</p>
+                        <p className={`truncate leading-tight text-xs sm:text-sm ${isItemOptionSelected ? 'font-semibold' : 'font-medium'}`}>{opt.label}</p>
                         {opt.description && opt.description !== opt.label && (
                           <span
-                            className={`text-[10px] uppercase font-normal tracking-wider px-1.5 py-0.5 rounded ml-2 shrink-0 ${isDark || isGlass
+                            className={`text-[10px] uppercase font-normal tracking-wider px-1.5 py-0.5 rounded ml-2 shrink-0 ${isDark
                               ? 'bg-slate-800 text-slate-400 border border-slate-700'
                               : 'bg-slate-100 text-slate-500 border border-slate-200/70'
                               }`}
@@ -361,7 +358,7 @@ export const Select: React.FC<SelectProps> = ({
 
                     {isItemOptionSelected && (
                       <Check
-                        className={`w-4 h-4 shrink-0 stroke-[2.5] ml-1.5 ${isDark || isGlass ? 'text-blue-400' : 'text-blue-600'
+                        className={`w-4 h-4 shrink-0 stroke-[2.5] ml-1.5 ${isDark ? 'text-blue-400' : 'text-blue-600'
                           }`}
                       />
                     )}

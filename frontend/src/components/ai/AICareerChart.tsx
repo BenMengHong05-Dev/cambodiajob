@@ -39,54 +39,66 @@ export const AICareerChart: React.FC<AICareerChartProps> = ({ chart, className =
           </div>
           <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{isKhmer ? 'ទិន្នន័យផ្ទាល់' : 'Live DB'}</span>
+            <span>{isKhmer ? 'ទីផ្សារកម្ពុជា' : 'Cambodia Market'}</span>
           </span>
         </div>
 
         {/* Salary Bars */}
-        <div className="space-y-3">
-          {items.slice(0, 5).map((item, idx) => {
-            const label = isKhmer && item.label_km ? item.label_km : item.label
-            const minPercent = Math.max(5, (item.min / maxVal) * 100)
-            const maxPercent = Math.min(100, Math.max(minPercent + 10, (item.max / maxVal) * 100))
+        {items.length === 0 ? (
+          <div className="py-6 text-center text-slate-400">
+            <p className="text-xs">
+              {isKhmer ? 'មិនទាន់មានទិន្នន័យប្រាក់ខែលើប្រព័ន្ធទេ' : 'No salary data on platform yet'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {items.slice(0, 5).map((item, idx) => {
+              const label = isKhmer && item.label_km ? item.label_km : item.label
+              const minPercent = Math.max(5, (item.min / maxVal) * 100)
+              const maxPercent = Math.min(100, Math.max(minPercent + 10, (item.max / maxVal) * 100))
 
-            return (
-              <div key={idx} className="group">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <div className="truncate max-w-[60%]">
-                    <span className="font-semibold text-slate-800 block truncate text-[11.5px] group-hover:text-blue-600 transition-colors">
-                      {label}
-                    </span>
-                    {item.company ? (
-                      <span className="text-[10px] text-indigo-600 font-medium block truncate">
-                        {item.company}
+              return (
+                <div key={idx} className="group">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <div className="truncate max-w-[62%]">
+                      <span className="font-semibold text-slate-800 block truncate text-[11.5px] group-hover:text-blue-600 transition-colors">
+                        {label}
                       </span>
-                    ) : item.count !== undefined && item.count > 0 ? (
-                      <span className="text-[10px] text-slate-400 block truncate">
-                        {item.count} {isKhmer ? 'ការងារកំពុងជ្រើសរើស' : item.count === 1 ? 'open role' : 'open roles'}
-                      </span>
-                    ) : null}
+                      {item.count !== undefined && item.count > 0 ? (
+                        <span className="text-[10px] text-emerald-600 font-medium block truncate">
+                          {item.count} {isKhmer ? 'ការងារកំពុងជ្រើសរើស' : item.count === 1 ? 'open role' : 'open roles'}
+                        </span>
+                      ) : item.company ? (
+                        <span className="text-[10px] text-slate-500 font-medium block truncate">
+                          {item.company}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 block truncate">
+                          {isKhmer ? 'បទដ្ឋានទីផ្សារកម្ពុជា' : 'Cambodia Market Standard'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] font-mono shrink-0">
+                      <span className="text-slate-600 font-medium">{formatVal(item.min)}</span>
+                      <span className="text-slate-400">-</span>
+                      <span className="text-emerald-600 font-bold">{formatVal(item.max)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] font-mono shrink-0">
-                    <span className="text-slate-500 font-medium">{formatVal(item.min)}</span>
-                    <span className="text-slate-400">-</span>
-                    <span className="text-blue-600 font-bold">{formatVal(item.max)}</span>
+
+                  <div className="h-2 bg-slate-200/80 rounded-full relative overflow-hidden flex items-center p-0.5 border border-slate-200/50">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500"
+                      style={{
+                        marginLeft: `${minPercent}%`,
+                        width: `${maxPercent - minPercent}%`,
+                      }}
+                    />
                   </div>
                 </div>
-
-                <div className="h-2 bg-slate-200/80 rounded-full relative overflow-hidden flex items-center p-0.5 border border-slate-200/50">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-500"
-                    style={{
-                      marginLeft: `${minPercent}%`,
-                      width: `${maxPercent - minPercent}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-[10px] text-slate-400">
           <span>{isKhmer ? 'ប្រាក់ខែជាមធ្យមប្រចាំខែ' : 'Average monthly salary ranges'}</span>

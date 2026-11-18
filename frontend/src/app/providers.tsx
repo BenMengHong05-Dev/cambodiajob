@@ -235,13 +235,19 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
   // Update document title and favicon dynamically
   useEffect(() => {
     if (siteTitle) {
-      document.title = `${siteName} | ${siteTitle}`
-    }
-    if (faviconUrl) {
-      const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement
-      if (link) {
-        link.href = faviconUrl
+      if (siteName && siteTitle.toLowerCase().includes(siteName.toLowerCase())) {
+        document.title = siteTitle
+      } else if (siteName) {
+        document.title = `${siteName} | ${siteTitle}`
+      } else {
+        document.title = siteTitle
       }
+    } else if (siteName) {
+      document.title = siteName
+    }
+    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement
+    if (link) {
+      link.href = faviconUrl || '/favicon.svg?v=2'
     }
   }, [siteName, siteTitle, faviconUrl])
 

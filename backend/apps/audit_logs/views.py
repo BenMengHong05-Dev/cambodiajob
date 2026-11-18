@@ -700,7 +700,7 @@ def get_site_settings_dict() -> dict:
             "id": 1,
             "site_name": "CambodiaJobs",
             "site_name_km": "ការងារកម្ពុជា",
-            "site_title": "Cambodia's Leading Job & Recruitment Platform",
+            "site_title": "CambodiaJobs | Cambodia's #1 Job Search & Recruitment Platform",
             "site_title_km": "វេទិកាការងារ និងជ្រើសរើសបុគ្គលិកឈានមុខគេនៅកម្ពុជា",
             "site_subtitle": "Find your dream career or hire top talent across Cambodia",
             "site_subtitle_km": "ស្វែងរកការងារក្នុងក្តីស្រមៃ ឬជ្រើសរើសបុគ្គលិកឆ្នើមទូទាំងប្រទេសកម្ពុជា",

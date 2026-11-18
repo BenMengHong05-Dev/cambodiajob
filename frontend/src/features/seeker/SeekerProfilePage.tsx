@@ -450,7 +450,7 @@ export const SeekerProfilePage: React.FC = () => {
       </div>
 
       {/* 3. CV & Resume Files Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-2xs space-y-4 text-slate-900 z-20">
         <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
           <div className="w-9 h-9 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs">
             <FileText className="w-4 h-4" />

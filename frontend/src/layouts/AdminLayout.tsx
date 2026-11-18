@@ -16,7 +16,6 @@ import {
   Menu,
   X,
   LayoutDashboard,
-  Globe,
   Layers,
   ExternalLink,
   Settings,
@@ -124,11 +123,13 @@ export const AdminLayout: React.FC = () => {
           {!isCollapsed ? (
             <Link to="/" className="flex items-center space-x-3 text-left flex-1 min-w-0 group">
               {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={siteName}
-                  className="w-9 h-9 rounded-xl object-contain shadow-xs shrink-0 bg-white border border-slate-200/80 group-hover:scale-105 transition-transform"
-                />
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center p-1 shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt={siteName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               ) : (
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0 group-hover:scale-105 transition-transform">
                   <Briefcase className="w-4 h-4" />
@@ -147,11 +148,13 @@ export const AdminLayout: React.FC = () => {
               title={siteName}
             >
               {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={siteName}
-                  className="w-9 h-9 rounded-xl object-contain shadow-xs bg-white border border-slate-200/80"
-                />
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center p-1 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt={siteName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               ) : (
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
                   <Briefcase className="w-4 h-4" />
@@ -280,16 +283,6 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Button Go Back to Website */}
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-xs font-semibold text-slate-700 hover:text-blue-600 transition shadow-2xs backdrop-blur-md"
-              title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
-            >
-              <Globe className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">{isKhmer ? 'គេហទំព័រ' : 'Website'}</span>
-            </Link>
-
             <NotificationDropdown role="admin" />
             <LanguageDropdown />
 

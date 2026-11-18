@@ -23,13 +23,13 @@ export const AIAgentFloatingButton: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white text-blue-600 shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border border-slate-200/90 hover:border-blue-300 cursor-pointer"
+            className="group relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/35 hover:shadow-xl hover:shadow-blue-600/45 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border-2 border-white/20 cursor-pointer"
             aria-label="Open Career Assistant"
-            title={isKhmer ? 'ជំនួយការការងារ' : 'Career Assistant'}
+            title={isKhmer ? 'ជំនួយការការងារឆ្លាតវៃ' : 'Career Assistant'}
           >
             {/* Bot Icon */}
             <div className="relative flex items-center justify-center">
-              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 transition-transform duration-300 group-hover:rotate-12" />
+              <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-white transition-transform duration-300 group-hover:rotate-12" />
             </div>
           </button>
         </div>

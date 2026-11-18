@@ -332,7 +332,7 @@ def get_live_platform_stats() -> Dict[str, Any]:
 
 
 def get_market_chart_data(category_name: Optional[str] = None) -> Dict[str, Any]:
-    """Compatibility helper returning category benchmarks, province stats, and top skills."""
+    """Compatibility helper returning live platform salary benchmarks, province stats, and top skills."""
     platform_stats = get_live_platform_stats()
     province_stats = fetch_all(
         """
@@ -344,7 +344,89 @@ def get_market_chart_data(category_name: Optional[str] = None) -> Dict[str, Any]
         LIMIT 5
         """
     )
+
+    # Real published jobs from platform with salary data
+    recent_jobs = fetch_all(
+        """
+        SELECT j.id, j.title, j.title_km, j.salary_min, j.salary_max, j.salary_currency, c.name as company_name
+        FROM jobs j
+        LEFT JOIN companies c ON c.id = j.company_id
+        WHERE j.status = 'published' AND j.moderation_status = 'approved' AND (j.salary_min > 0 OR j.salary_max > 0)
+        ORDER BY j.created_at DESC
+        LIMIT 6
+        """
+    )
+    KHR_PER_USD = 4100
+    job_chart_items = []
+    for j in recent_jobs:
+        s_min = float(j.get("salary_min") or 0)
+        s_max = float(j.get("salary_max") or 0)
+        if j.get("salary_currency") == "KHR":
+            s_min = round(s_min / KHR_PER_USD)
+            s_max = round(s_max / KHR_PER_USD)
+        job_chart_items.append({
+            "label": j["title"],
+            "label_km": j.get("title_km") or j["title"],
+            "min": s_min,
+            "max": s_max,
+            "company": j.get("company_name") or "",
+        })
+
+    # Aggregate real category benchmarks from platform, rounded to clean standard market numbers
+    category_chart_items = []
+    live_cats = platform_stats.get("categories", [])
+    seen_names = set()
+
+    # Standard Cambodia market benchmarks by major fields
+    DEFAULT_CAMBODIA_BENCHMARKS = [
+        {"name_en": "Information Technology & Software", "name_km": "បច្ចេកវិទ្យាព័ត៌មាន និងកម្មវិធី", "min": 600, "max": 3000},
+        {"name_en": "Banking & Financial Services", "name_km": "ធនាគារ និងសេវាហិរញ្ញវត្ថុ", "min": 500, "max": 2500},
+        {"name_en": "Accounting & Auditing", "name_km": "គណនេយ្យ និងសវនកម្ម", "min": 500, "max": 1500},
+        {"name_en": "Sales, Retail & Business Development", "name_km": "ការលក់ និងអភិវឌ្ឍន៍អាជីវកម្ម", "min": 450, "max": 1400},
+        {"name_en": "Customer Support & Call Center", "name_km": "សេវាកម្មអតិថិជន", "min": 350, "max": 850},
+    ]
+
+    for cat in live_cats[:5]:
+        c_min = float(cat.get("min_salary_usd") or 0)
+        c_max = float(cat.get("max_salary_usd") or 0)
+        # Round cleanly to nearest $50 for realistic Cambodia benchmarks (no odd numbers like $488 or $854)
+        c_min_clean = max(200, round(c_min / 50) * 50) if c_min > 0 else 400
+        c_max_clean = max(c_min_clean + 200, round(c_max / 50) * 50) if c_max > 0 else 1200
+        job_cnt = int(cat.get("job_count", 0))
+        seen_names.add(cat.get("name_en", "").lower())
+        category_chart_items.append({
+            "label": cat.get("name_en", "General"),
+            "label_km": cat.get("name_km") or cat.get("name_en", "ទូទៅ"),
+            "min": c_min_clean,
+            "max": c_max_clean,
+            "count": job_cnt,
+        })
+
+    # If fewer than 5 categories have published jobs, supplement with standard Cambodia benchmarks
+    for bench in DEFAULT_CAMBODIA_BENCHMARKS:
+        if len(category_chart_items) >= 5:
+            break
+        if bench["name_en"].lower() not in seen_names:
+            category_chart_items.append({
+                "label": bench["name_en"],
+                "label_km": bench["name_km"],
+                "min": bench["min"],
+                "max": bench["max"],
+                "count": 0,
+            })
+            seen_names.add(bench["name_en"].lower())
+
+    chart_data = {
+        "type": "salary_benchmark",
+        "title": "Cambodia Market Salary Benchmarks",
+        "title_km": "កម្រិតប្រាក់ខែទីផ្សារការងារកម្ពុជា",
+        "items": category_chart_items,
+    }
+
     return {
+        "chart": chart_data,
+        "job_items": job_chart_items,
+        "category_items": category_chart_items,
         "categories_salary": platform_stats["categories"],
         "provinces": decimal_to_float(province_stats),
         "top_skills": platform_stats["top_skills"],
@@ -357,6 +439,7 @@ def call_gemini_api(
     system_instruction: Optional[str] = None,
     history: Optional[List[Dict[str, str]]] = None,
     preferred_model: Optional[str] = None,
+    max_tokens: int = 2048,
 ) -> Optional[str]:
     """
     Call Google Gemini REST API using the provided API key.
@@ -381,7 +464,7 @@ def call_gemini_api(
         "contents": contents,
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": 800,
+            "maxOutputTokens": max_tokens,
         },
     }
 
@@ -431,6 +514,7 @@ def call_openai_compatible_api(
     model: str = "gpt-4o-mini",
     system_instruction: Optional[str] = None,
     history: Optional[List[Dict[str, str]]] = None,
+    max_tokens: int = 2048,
 ) -> Optional[str]:
     """
     Call OpenAI, DeepSeek, Groq, OpenRouter, or any OpenAI-compatible Chat Completions API.
@@ -463,7 +547,7 @@ def call_openai_compatible_api(
         "model": model,
         "messages": messages,
         "temperature": 0.7,
-        "max_tokens": 800,
+        "max_tokens": max_tokens,
     }
 
     req = urllib.request.Request(
@@ -580,6 +664,7 @@ def call_universal_ai(
     provider_override: Optional[str] = None,
     model_override: Optional[str] = None,
     base_url_override: Optional[str] = None,
+    max_tokens: int = 2048,
 ) -> Tuple[Optional[str], str, str]:
     """
     Universal AI Dispatcher.
@@ -609,6 +694,7 @@ def call_universal_ai(
             system_instruction=system_instruction,
             history=history,
             preferred_model=model,
+            max_tokens=max_tokens,
         )
         # Automatic developer fallback: If Gemini fails, try DeepSeek if configured
         if not reply and not api_key_override:
@@ -622,6 +708,7 @@ def call_universal_ai(
                     model=ds_cfg["model"],
                     system_instruction=system_instruction,
                     history=history,
+                    max_tokens=max_tokens,
                 )
                 if reply:
                     return reply, "deepseek", ds_cfg["model"]
@@ -634,6 +721,7 @@ def call_universal_ai(
             model=model,
             system_instruction=system_instruction,
             history=history,
+            max_tokens=max_tokens,
         )
         # Automatic developer fallback: If DeepSeek fails, try Gemini if configured
         if not reply and not api_key_override:
@@ -646,6 +734,7 @@ def call_universal_ai(
                     system_instruction=system_instruction,
                     history=history,
                     preferred_model=gem_cfg["model"],
+                    max_tokens=max_tokens,
                 )
                 if reply:
                     return reply, "gemini", gem_cfg["model"]
@@ -658,6 +747,7 @@ def call_universal_ai(
             model=model,
             system_instruction=system_instruction,
             history=history,
+            max_tokens=max_tokens,
         )
 
     if reply:
@@ -841,8 +931,8 @@ INSTRUCTIONS FOR PLATFORM SEARCH:
                 })
             chart_data = {
                 "type": "salary_benchmark",
-                "title": "Cambodia Market Salary Benchmark (USD)",
-                "title_km": "តារាងប្រៀបធៀបប្រាក់ខែទីផ្សារការងារកម្ពុជា (USD)",
+                "title": "Platform Job Salary Benchmark (USD)",
+                "title_km": "តារាងប្រៀបធៀបប្រាក់ខែការងារលើប្រព័ន្ធ (USD)",
                 "items": chart_items,
             }
     elif user_id and any(k in query_lower for k in ["match", "fit", "skill", "profile", "cv", "ជំនាញ"]):
@@ -922,58 +1012,112 @@ def generate_ai_cover_letter(
     api_key: Optional[str] = None,
 ) -> str:
     """
-    Generate an engaging, professional cover letter tailored for a specific job and company.
-    Supports Khmer and English.
+    Generate an engaging, highly professional, tailored cover letter for a job opportunity.
+    Adheres strictly to modern Cambodian and international business writing standards.
     """
-    skills_str = ", ".join(candidate_skills) if candidate_skills else "relevant professional skills"
-    lang = "Khmer" if is_khmer else "English"
+    skills_str = ", ".join(candidate_skills) if candidate_skills else ("ជំនាញវិជ្ជាជីវៈពាក់ព័ន្ធ" if is_khmer else "relevant professional competencies")
+    clean_name = (candidate_name or "").strip()
+    if not clean_name or clean_name.lower() in ("candidate", "none", "null", "បេក្ខជន"):
+        clean_name = "បេក្ខជន" if is_khmer else "Candidate"
 
-    prompt = f"""Write a professional, concise, and compelling cover letter for the following position:
+    if is_khmer:
+        system_instruction = (
+            "អ្នកគឺជាអ្នកជំនាញសរសេរលិខិតណែនាំខ្លួន (Cover Letter / លិខិតស្នើសុំបម្រើការងារ) កម្រិតអាជីពជាន់ខ្ពស់នៅកម្ពុជា។ "
+            "អ្នកមានវោហារសព្ទការងារផ្លូវការ ថ្លៃថ្នូរ គួរសម ត្រឹមត្រូវតាមក្បួនខ្នាតវេយ្យាករណ៍ និងទំនៀមទម្លាប់ការទូតការងារក្នុងស្ថាប័នកម្ពុជា (Khmer Business Etiquette)។ "
+            "គោលដៅរបស់អ្នកគឺជួយឱ្យបេក្ខជនលេចធ្លោ មានភាពទាក់ទាញ និងបង្ហាញពីតម្លៃសមត្ថភាពជាក់ស្តែងជូននិយោជក។"
+        )
+        prompt = f"""សូមជួយរៀបចំ «លិខិតណែនាំខ្លួន / លិខិតស្នើសុំបម្រើការងារ» (Professional Cover Letter) មួយច្បាប់យ៉ាងប្រណិត ផ្លូវការ និងមានភាពទាក់ទាញបំផុត សម្រាប់ព័ត៌មានខាងក្រោម៖
+
+- មុខតំណែងការងារ៖ {job_title}
+- ស្ថាប័ន / ក្រុមហ៊ុន៖ {company_name}
+- ឈ្មោះបេក្ខជន៖ {clean_name}
+- ជំនាញស្នូលរបស់បេក្ខជន៖ {skills_str}
+- ប្រវត្តិនិងបទពិសោធន៍៖ {experience_summary or 'មានបទពិសោធន៍ និងសមត្ថភាពជំនាញរឹងមាំក្នុងការបំពេញការងារ'}
+- ការពិពណ៌នាការងារសង្ខេប៖ {job_description[:600] if job_description else 'តម្រូវការទូទៅសម្រាប់មុខតំណែង ' + job_title}
+
+គោលការណ៍ណែនាំតឹងរ៉ឹងក្នុងការសរសេរ (CRITICAL RULES)៖
+១. កុំដាក់ចំណងជើងក្បាលទំព័រដាច់ខាត ដូចជា **សេចក្តីថ្លែងការណ៍...** ឬ **Cover Letter** ឬ **ឈ្មោះ៖** ឬ **មុខតំណែង៖** ឡើយ។
+២. ត្រូវចាប់ផ្តើមភ្លាមៗដោយពាក្យគួរសមផ្លូវការ៖
+«សូមគោរពជូនចំពោះ គណៈគ្រប់គ្រង និងក្រុមការងារជ្រើសរើសបុគ្គលិកនៃ {company_name}»
+៣. រៀបចំជា ៣ ទៅ ៤ កថាខណ្ឌខ្លីៗ មានខ្លឹមសារស៊ីជម្រៅ៖
+   - កថាខណ្ឌទី១៖ បង្ហាញពីគោលបំណង និងការប្តេជ្ញាចិត្តដ៏មុតមាំក្នុងការស្នើសុំមុខតំណែង {job_title} នៅ {company_name}។
+   - កថាខណ្ឌទី២៖ បញ្ជាក់ពីសមត្ថភាព ចំណុចខ្លាំង ជំនាញស្នូល ({skills_str}) និងបទពិសោធន៍ជាក់ស្តែងដែលស្របទៅនឹងតម្រូវការរបស់ស្ថាប័ន ព្រមទាំងរបៀបដែលបេក្ខជនអាចរួមចំណែកដោះស្រាយការងារ និងអភិវឌ្ឍន៍ស្ថាប័ន។
+   - កថាខណ្ឌទី៣៖ បង្ហាញពីក្រមសីលធម៌ការងារ ស្មារតីការងារជាក្រុម ការបត់បែនរហ័ស និងភាពស្មោះត្រង់។
+   - កថាខណ្ឌទី៤៖ ការថ្លែងអំណរគុណយ៉ាងស្មោះស្ម័គ្រ និងបង្ហាញពីការត្រៀមខ្លួនជួបសម្ភាសន៍ពិភាក្សាដោយផ្ទាល់ (Call to Action)។
+៤. បញ្ចប់ដោយពាក្យ៖
+«ដោយសេចក្តីគោរពដ៏ខ្ពង់ខ្ពស់,
+{clean_name}»
+៥. ហាមដាច់ខាតកុំប្រើសញ្ញាវង់ក្រចក [ឈ្មោះ...] ឬ [កាលបរិច្ឆេទ] ឡើយ។ ត្រូវបំពេញឈ្មោះ {clean_name} និងឈ្មោះក្រុមហ៊ុន {company_name} ចូលក្នុងអត្ថបទដោយរលូន។
+៦. ហាមមានពាក្យសន្ទនាបន្ថែម (No AI conversation or preamble) ដូចជា "នេះជាលិខិត..." ឬ "Here is..." ឡើយ។ បញ្ចេញតែខ្លឹមសារលិខិតសុទ្ធប៉ុណ្ណោះ។"""
+
+    else:
+        system_instruction = (
+            "You are an executive career advisor and professional cover letter writer with over 15 years of recruitment experience. "
+            "You craft compelling, polished, and human-sounding cover letters tailored to modern hiring standards. "
+            "Your writing is persuasive, confident, articulate, and completely free of clichés and generic templates."
+        )
+        prompt = f"""Write an exceptional, highly engaging, and professional cover letter for the following position:
+
 - Job Title: {job_title}
-- Company: {company_name}
-- Candidate Name: {candidate_name}
-- Candidate Skills: {skills_str}
-- Candidate Background: {experience_summary or 'Experienced professional passionate about this role'}
-- Job Overview: {job_description[:500] if job_description else 'Standard requirements for ' + job_title}
+- Company Name: {company_name}
+- Candidate Name: {clean_name}
+- Key Skills: {skills_str}
+- Professional Background: {experience_summary or 'Proven track record of excellence, dedication, and impactful contribution'}
+- Job Overview: {job_description[:600] if job_description else 'Standard requirements and responsibilities for ' + job_title}
 
-RULES:
-- Language: Write the entire cover letter in {lang}.
-- Tone: Professional, enthusiastic, respectful, and articulate.
-- Length: Around 3-4 short, impactful paragraphs.
-- Do NOT include generic placeholder brackets like [Your Name] if the name is provided.
-- Conclude with a polite call-to-action regarding an interview."""
-
-    system_instruction = f"You are a professional career coach and expert resume writer in Cambodia writing in {lang}."
+CRITICAL FORMATTING & CONTENT RULES:
+1. DO NOT include any document titles (e.g. # Cover Letter, **Cover Letter**, Subject line, or metadata headers like Name, Position, Date).
+2. Start directly with the formal salutation:
+"Dear Hiring Team at {company_name},"
+3. Write 3 to 4 impactful, cohesive paragraphs:
+   - Paragraph 1 (The Hook): State your targeted interest in the {job_title} role at {company_name} with authentic enthusiasm, citing their respected reputation.
+   - Paragraph 2 (Value Proposition): Connect your background and core skills ({skills_str}) directly to the role's needs. Highlight how your expertise will solve challenges and drive value for the team.
+   - Paragraph 3 (Culture & Impact): Emphasize a strong work ethic, collaboration, continuous learning, and positive energy.
+   - Paragraph 4 (Closing & Next Steps): Thank the hiring committee respectfully and invite a conversation or interview.
+4. Conclude with:
+"Sincerely,
+{clean_name}"
+5. ABSOLUTELY NO generic brackets or placeholders (e.g., [Your Name], [Insert Date], [Phone Number]). Use the provided names seamlessly.
+6. NO AI conversational filler (e.g. "Here is your cover letter:", "Sure, I can help"). Return ONLY the finished letter text."""
 
     cover_letter, _, _ = call_universal_ai(
         prompt=prompt,
         system_instruction=system_instruction,
         api_key_override=api_key,
+        max_tokens=2048,
     )
 
     if cover_letter:
-        return cover_letter.strip()
+        cleaned = cover_letter.strip()
+        # Strip accidental code fences or leading markdown header if AI slipped
+        if cleaned.startswith("```"):
+            cleaned = cleaned.strip("`").strip()
+            if cleaned.startswith("markdown") or cleaned.startswith("text"):
+                cleaned = cleaned.split("\n", 1)[-1].strip()
+        return cleaned
 
     # Fallback template
     if is_khmer:
         return f"""សូមគោរពជូនចំពោះ គណៈគ្រប់គ្រង និងក្រុមការងារជ្រើសរើសបុគ្គលិកនៃ {company_name},
 
-ខ្ញុំបាទ/នាងខ្ញុំមានសេចក្តីសោមនស្សរីករាយយ៉ាងក្រៃលែងក្នុងការដាក់ពាក្យស្នើសុំមុខតំណែង {job_title} នៅក្រុមហ៊ុន {company_name}។ ជាមួយនឹងចំណេះដឹង បទពិសោធន៍ និងជំនាញពាក់ព័ន្ធដូចជា {skills_str} ខ្ញុំជឿជាក់យ៉ាងមុតមាំថាអាចរួមចំណែកយ៉ាងសកម្មដល់ការរីកចម្រើនរបស់ស្ថាប័ន។
+ខ្ញុំបាទ/នាងខ្ញុំមានកិត្តិយស និងសេចក្តីសោមនស្សរីករាយយ៉ាងក្រៃលែងក្នុងការដាក់ពាក្យស្នើសុំបម្រើការងារក្នុងមុខតំណែង «{job_title}» នៅក្រុមហ៊ុន {company_name}។ ដោយបានតាមដាន និងកោតសរសើរចំពោះភាពរីកចម្រើន កេរ្តិ៍ឈ្មោះ និងការអភិវឌ្ឍប្រកបដោយវិជ្ជាជីវៈរបស់ស្ថាប័ន ខ្ញុំមានបំណងប្រាថ្នាយ៉ាងមុតមាំក្នុងការចូលរួមជាផ្នែកមួយនៃក្រុមការងារ។
 
-ខ្ញុំមានការកោតសរសើរចំពោះកេរ្តិ៍ឈ្មោះ និងភាពរីកចម្រើនរបស់ {company_name} ហើយមានបំណងប្រាថ្នាយ៉ាងខ្លាំងក្នុងការយកសមត្ថភាព និងការប្តេជ្ញាចិត្តរបស់ខ្ញុំមកបម្រើការងារជូនក្រុមហ៊ុន។
+ជាមួយនឹងចំណេះដឹង បទពិសោធន៍ និងជំនាញស្នូលពាក់ព័ន្ធដូចជា {skills_str} ខ្ញុំជឿជាក់យ៉ាងមុតមាំថានឹងអាចចូលរួមចំណែកយ៉ាងសកម្មក្នុងការបំពេញភារកិច្ច និងសម្រេចបាននូវគោលដៅយុទ្ធសាស្ត្ររបស់ស្ថាប័ន។ ខ្ញុំជាមនុស្សដែលមានស្មារតីទទួលខុសត្រូវខ្ពស់ ស្រឡាញ់ការងារ ឧស្សាហ៍ព្យាយាម រៀនសូត្ររហ័ស និងមានភាពបត់បែនល្អក្នុងការធ្វើការងារជាក្រុម។
 
-ខ្ញុំសង្ឃឹមយ៉ាងមុតមាំថានឹងទទួលបានឱកាសជួបសម្ភាសន៍ដោយផ្ទាល់ ដើម្បីពិភាក្សាលម្អិតបន្ថែមអំពីការរួមចំណែករបស់ខ្ញុំ។
+ខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះពេលវេលា និងការពិចារណាលើពាក្យស្នើសុំរបស់ខ្ញុំ។ ខ្ញុំសង្ឃឹមយ៉ាងមុតមាំថានឹងទទួលបានឱកាសជួបសម្ភាសន៍ដោយផ្ទាល់ ដើម្បីបង្ហាញលម្អិតបន្ថែមអំពីសមត្ថភាព និងការរួមចំណែករបស់ខ្ញុំជូនស្ថាប័ន។
 
-ដោយក្តីគោរពដ៏ខ្ពង់ខ្ពស់,
-{candidate_name}"""
+ដោយសេចក្តីគោរពដ៏ខ្ពង់ខ្ពស់,
+{clean_name}"""
     else:
         return f"""Dear Hiring Team at {company_name},
 
-I am writing to express my strong interest in the {job_title} position at {company_name}. With my background, dedication, and proficiency in {skills_str}, I am confident in my ability to make a meaningful and immediate contribution to your team.
+I am writing to express my enthusiastic interest in the {job_title} position at {company_name}. Having closely followed your organization's impressive growth and commitment to excellence, I am eager to contribute my energy, skills, and professional dedication to your team.
 
-I have followed {company_name}'s growth with great admiration and would be thrilled to bring my proactive mindset, technical capabilities, and collaborative spirit to this role.
+With a strong foundation in {skills_str} alongside {experience_summary or 'demonstrated experience in achieving results'}, I am confident in my ability to hit the ground running and add immediate value to your ongoing initiatives. Throughout my career, I have prided myself on solving complex challenges, maintaining rigorous quality standards, and fostering productive, cross-functional collaboration.
 
-Thank you very much for your time and consideration. I welcome the opportunity to discuss my qualifications with you in an interview.
+Beyond technical expertise, I bring a proactive problem-solving mindset, a deep passion for continuous growth, and an unwavering commitment to operational excellence. I am excited about the opportunity to align my dedication with {company_name}'s mission.
+
+Thank you very much for your time and thoughtful consideration. I welcome the opportunity to discuss how my background and qualifications will benefit your team in an interview.
 
 Sincerely,
-{candidate_name}"""
+{clean_name}"""

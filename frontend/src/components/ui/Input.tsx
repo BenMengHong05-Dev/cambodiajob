@@ -35,8 +35,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const containerBg = isGlass
       ? 'bg-white/10 border-white/20 text-white placeholder-slate-300 hover:bg-white/15 focus:bg-white/20 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-md'
       : isDark
-      ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500 hover:border-slate-600 focus:bg-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
-      : 'bg-slate-50 border-gray-200 text-slate-900 placeholder-slate-400 font-medium hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10'
+        ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500 hover:border-slate-600 focus:bg-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+        : 'bg-slate-50 border-gray-200 text-slate-900 placeholder-slate-400 font-medium hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10'
 
     const errorBorder = error
       ? '!border-red-500 !focus:border-red-500 focus:!ring-red-500/15'

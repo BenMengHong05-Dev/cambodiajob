@@ -29,12 +29,13 @@ import {
   X,
   Check,
   AlertTriangle,
-  FolderTree,
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
   Copy,
   CheckCheck,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react'
 
 interface JobCategory {
@@ -234,11 +235,17 @@ export const AdminCategoriesPage: React.FC = () => {
 
     setIsSubmitting(true)
     try {
+      const generatedSlug = formNameEn
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+
       const payload = {
         name_en: formNameEn.trim(),
         name_km: formNameKm.trim(),
-        slug: formSlug.trim() || undefined,
-        icon: formIcon.trim() || 'briefcase',
+        slug: formSlug.trim() || generatedSlug || undefined,
+        icon: editingCategory?.icon || formIcon || 'briefcase',
       }
 
       if (editingCategory) {
@@ -332,375 +339,305 @@ export const AdminCategoriesPage: React.FC = () => {
     return categories.filter((c) => (c.jobs_count || 0) > 0).length
   }, [categories])
 
+  if (isLoading) {
+    return (
+      <div className="py-24 text-center font-sans">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="mt-3 text-xs font-normal text-slate-400">
+          {isKhmer ? 'កំពុងផ្ទុកផ្នែកការងារ...' : 'Loading categories...'}
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
-      {/* 1. Header Banner */}
-      <div className="glass-card bg-white rounded-2xl p-6 sm:p-7 border border-gray-200/90 shadow-2xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-              <Layers className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                {isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories Management'}
-              </h1>
-              <p className="text-xs text-slate-500">
-                {isKhmer
-                  ? 'បង្កើត កែសម្រួល និងគ្រប់គ្រងប្រភេទការងារដែលបង្ហាញនៅលើទំព័រដើម និងទំព័រស្វែងរក'
-                  : 'Create, modify, and configure job categories displayed across the homepage and job explorer'}
-              </p>
-            </div>
+    <div className="w-full space-y-3.5 font-sans pb-12">
+      {/* 1. Header Bar: Title on left, Search on right, Create Button (Following Job Moderation UI) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              {isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories & Sectors'}
+            </h1>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-gray-200">
+              <Layers className="w-3 h-3 text-blue-600" />
+              <span>{categories.length} {isKhmer ? 'ផ្នែកសរុប' : 'Total'}</span>
+            </span>
+            {categoriesWithJobsCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                {categoriesWithJobsCount} {isKhmer ? 'មានការងារ' : 'With Jobs'}
+              </span>
+            )}
           </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {isKhmer
+              ? 'បង្កើត កែសម្រួល និងគ្រប់គ្រងប្រភេទការងារដែលបង្ហាញនៅលើទំព័រដើម និងទំព័រស្វែងរក'
+              : 'Review and manage career categories and sectors before they appear live on the directory'}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3 z-10 shrink-0">
+        {/* Search Input on Top / Header & Button Create Category */}
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto w-full sm:w-auto">
+          <div className="relative w-full sm:w-64 md:w-72">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={
+                isKhmer
+                  ? 'ស្វែងរកផ្នែកការងារ...'
+                  : 'Search categories by name or slug...'
+              }
+              className="w-full pl-8 pr-8 py-1.5 text-xs bg-slate-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 font-medium transition text-slate-800 shadow-2xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={handleOpenCreateModal}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/25 active:scale-98 transition flex items-center gap-2 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-2xs cursor-pointer shrink-0"
           >
-            <Plus className="w-4 h-4 text-white" />
-            <span>{isKhmer ? 'បង្កើតផ្នែកការងារថ្មី' : 'Create New Category'}</span>
+            <Plus className="w-3.5 h-3.5 text-white" />
+            <span>{isKhmer ? 'បង្កើតផ្នែកការងារ' : 'Create Category'}</span>
           </button>
         </div>
       </div>
 
+      {/* 2. Filter Toolbar (Clean pills on right) */}
+      <div className="flex items-center justify-between gap-2 bg-white px-4 py-2.5 rounded-2xl border border-gray-200 shadow-2xs overflow-x-auto">
+        <span className="text-[11px] font-medium text-slate-400 shrink-0 hidden sm:inline">
+          {isKhmer ? 'ច្រោះតាមស្ថានភាព៖' : 'Filter by Status:'}
+        </span>
 
-      {/* 3. Search, Filter Toolbar & View Mode Toggle */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-gray-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
-        {/* Search Input */}
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              isKhmer
-                ? 'ស្វែងរកផ្នែកការងារ (អង់គ្លេស / ខ្មែរ / slug)...'
-                : 'Search categories by name or slug...'
-            }
-            className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50/80 border border-gray-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition shadow-2xs"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Filter Pills & View Switcher */}
-        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full md:w-auto">
-          {/* Status Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setFilterType('all')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                filterType === 'all'
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-              }`}
-            >
-              {isKhmer ? 'ទាំងអស់' : 'All'} ({categories.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterType('has_jobs')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                filterType === 'has_jobs'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70'
-              }`}
-            >
-              {isKhmer ? 'មានការងារ' : 'With Jobs'} ({categoriesWithJobsCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterType('empty')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                filterType === 'empty'
-                  ? 'bg-slate-700 text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-              }`}
-            >
-              {isKhmer ? 'គ្មានការងារ' : 'Empty'} ({categories.length - categoriesWithJobsCount})
-            </button>
-          </div>
+        <div className="flex items-center space-x-1.5 ml-auto">
+          <button
+            type="button"
+            onClick={() => setFilterType('all')}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
+              filterType === 'all'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+            }`}
+          >
+            {isKhmer ? 'ទាំងអស់' : 'All'} ({categories.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterType('has_jobs')}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
+              filterType === 'has_jobs'
+                ? 'bg-emerald-600 text-white shadow-2xs'
+                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70'
+            }`}
+          >
+            {isKhmer ? 'មានការងារ' : 'With Jobs'} ({categoriesWithJobsCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterType('empty')}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
+              filterType === 'empty'
+                ? 'bg-slate-700 text-white shadow-2xs'
+                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+            }`}
+          >
+            {isKhmer ? 'គ្មានការងារ' : 'Empty'} ({categories.length - categoriesWithJobsCount})
+          </button>
         </div>
       </div>
 
-      {/* 4. Main Content: Table View OR Grid View */}
-      {isLoading ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-gray-200 shadow-2xs">
-          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-slate-500">
-            {isKhmer ? 'កំពុងផ្ទុកផ្នែកការងារ...' : 'Loading categories...'}
-          </p>
-        </div>
-      ) : sortedCategories.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-gray-200 shadow-2xs">
-          <FolderTree className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-700">
-            {isKhmer ? 'រកមិនឃើញផ្នែកការងារទេ' : 'No categories found'}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-            {searchQuery
-              ? isKhmer
-                ? `ពាក្យគន្លឹះ "${searchQuery}" មិនមានលទ្ធផលទេ។`
-                : `No categories match query "${searchQuery}".`
-              : isKhmer
-              ? 'សូមចុចប៊ូតុង "បង្កើតផ្នែកការងារថ្មី" ដើម្បីបន្ថែមប្រភេទការងារដំបូង។'
-              : 'Click "Create New Category" to add your first job category.'}
-          </p>
-        </div>
-      ) : (
-        /* ======================== 4. PROFESSIONAL LIST TABLE VIEW ======================== */
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50/90 border-b border-gray-200 text-slate-500 uppercase tracking-wider font-semibold text-[10px]">
-                  {/* ID Column */}
-                  <th className="py-3 px-4 w-16">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('id')}
-                      className="flex items-center gap-1 hover:text-slate-800 transition cursor-pointer"
-                    >
-                      <span># ID</span>
-                      {sortField === 'id' ? (
-                        sortOrder === 'asc' ? (
-                          <ChevronUp className="w-3 h-3 text-blue-600" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3 text-blue-600" />
-                        )
+      {/* 3. Modern SaaS Data Table (Clean, Compact, Standard UI - Exactly matching Job Moderation) */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-gray-200 text-slate-500 uppercase tracking-wider font-normal text-[10px]">
+                <th className="py-2.5 px-4">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('name')}
+                    className="flex items-center gap-1 hover:text-slate-800 transition cursor-pointer"
+                  >
+                    <span>{isKhmer ? 'ឈ្មោះផ្នែកការងារ (អង់គ្លេស)' : 'Category Title (EN)'}</span>
+                    {sortField === 'name' ? (
+                      sortOrder === 'asc' ? (
+                        <ChevronUp className="w-3 h-3 text-blue-600" />
                       ) : (
-                        <ArrowUpDown className="w-2.5 h-2.5 text-slate-400" />
-                      )}
-                    </button>
-                  </th>
-
-                  {/* Category Name Column */}
-                  <th className="py-3 px-4 min-w-[220px]">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('name')}
-                      className="flex items-center gap-1 hover:text-slate-800 transition cursor-pointer"
-                    >
-                      <span>{isKhmer ? 'ឈ្មោះផ្នែកការងារ' : 'Category Name'}</span>
-                      {sortField === 'name' ? (
-                        sortOrder === 'asc' ? (
-                          <ChevronUp className="w-3 h-3 text-blue-600" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3 text-blue-600" />
-                        )
+                        <ChevronDown className="w-3 h-3 text-blue-600" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-2.5 h-2.5 text-slate-400" />
+                    )}
+                  </button>
+                </th>
+                <th className="py-2.5 px-3">{isKhmer ? 'ឈ្មោះផ្នែកការងារ (ខ្មែរ)' : 'Category Title (KH)'}</th>
+                <th className="py-2.5 px-3">
+                  <button
+                    type="button"
+                    onClick={() => handleSort('jobs_count')}
+                    className="flex items-center gap-1 hover:text-slate-800 transition cursor-pointer"
+                  >
+                    <span>{isKhmer ? 'ចំនួនការងារ' : 'Total Jobs'}</span>
+                    {sortField === 'jobs_count' ? (
+                      sortOrder === 'asc' ? (
+                        <ChevronUp className="w-3 h-3 text-blue-600" />
                       ) : (
-                        <ArrowUpDown className="w-2.5 h-2.5 text-slate-400" />
-                      )}
-                    </button>
-                  </th>
-
-                  {/* Slug / URL Path Column */}
-                  <th className="py-3 px-4 min-w-[170px]">
-                    {isKhmer ? 'ផ្លូវ URL (Slug)' : 'Slug / URL Path'}
-                  </th>
-
-                  {/* Icon Identifier */}
-                  <th className="py-3 px-3 min-w-[110px] hidden md:table-cell">
-                    {isKhmer ? 'រូបតំណាង' : 'Icon Preset'}
-                  </th>
-
-                  {/* Vacancies / Job Count Column */}
-                  <th className="py-3 px-4 min-w-[130px]">
-                    <button
-                      type="button"
-                      onClick={() => handleSort('jobs_count')}
-                      className="flex items-center gap-1 hover:text-slate-800 transition cursor-pointer"
-                    >
-                      <span>{isKhmer ? 'ការងារសកម្ម' : 'Active Vacancies'}</span>
-                      {sortField === 'jobs_count' ? (
-                        sortOrder === 'asc' ? (
-                          <ChevronUp className="w-3 h-3 text-blue-600" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3 text-blue-600" />
-                        )
-                      ) : (
-                        <ArrowUpDown className="w-2.5 h-2.5 text-slate-400" />
-                      )}
-                    </button>
-                  </th>
-
-                  {/* Status Column */}
-                  <th className="py-3 px-3 min-w-[110px] hidden sm:table-cell">
-                    {isKhmer ? 'ស្ថានភាព' : 'Status'}
-                  </th>
-
-                  {/* Actions Column */}
-                  <th className="py-3 px-4 text-right min-w-[130px]">
-                    {isKhmer ? 'សកម្មភាព' : 'Actions'}
-                  </th>
+                        <ChevronDown className="w-3 h-3 text-blue-600" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-2.5 h-2.5 text-slate-400" />
+                    )}
+                  </button>
+                </th>
+                <th className="py-2.5 px-3">{isKhmer ? 'ស្ថានភាព' : 'Status'}</th>
+                <th className="py-2.5 px-4 text-right">{isKhmer ? 'សកម្មភាព' : 'Actions'}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-sans">
+              {paginatedCategories.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                    <Briefcase className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                    <p className="text-xs font-normal text-slate-700">
+                      {isKhmer ? 'មិនមានទិន្នន័យផ្នែកការងារទេ' : 'No categories found'}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {searchQuery
+                        ? isKhmer
+                          ? `ពាក្យគន្លឹះ "${searchQuery}" មិនមានលទ្ធផលទេ។`
+                          : `No categories match query "${searchQuery}".`
+                        : isKhmer
+                        ? 'សូមចុចប៊ូតុង "បង្កើតផ្នែកការងារ" ដើម្បីបន្ថែមប្រភេទការងារដំបូង។'
+                        : 'Click "Create Category" to add your first job category.'}
+                    </p>
+                  </td>
                 </tr>
-              </thead>
-
-              <tbody className="divide-y divide-slate-100 font-sans">
-                {paginatedCategories.map((cat, idx) => {
+              ) : (
+                paginatedCategories.map((cat) => {
                   const hasJobs = (cat.jobs_count || 0) > 0
-                  const isCopied = copiedSlugId === cat.id
 
                   return (
-                    <tr
-                      key={cat.id}
-                      className="hover:bg-slate-50/80 transition-colors group cursor-default"
-                    >
-                      {/* ID */}
-                      <td className="py-3 px-4 align-middle text-slate-400 font-mono text-[11px]">
-                        #{cat.id}
-                      </td>
-
-                      {/* Category Name & Icon */}
-                      <td className="py-3 px-4 align-middle">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100/90 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-2xs">
-                            {renderCategoryIcon(cat.icon || cat.slug, 'w-4 h-4')}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-xs truncate">
-                              {cat.name_en}
-                            </h4>
-                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
-                              {cat.name_km}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Slug with Copy Pill */}
-                      <td className="py-3 px-4 align-middle">
+                    <tr key={cat.id} className="hover:bg-slate-50/70 transition-colors group">
+                      {/* Column 1: Category Title (EN) */}
+                      <td className="py-2.5 px-4 align-middle">
                         <button
                           type="button"
-                          onClick={(e) => handleCopySlug(cat, e)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono transition border cursor-pointer ${
-                            isCopied
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-gray-200'
-                          }`}
-                          title={isKhmer ? 'ចុចដើម្បីចម្លង slug' : 'Click to copy slug'}
+                          onClick={() => handleOpenEditModal(cat)}
+                          className="font-medium text-blue-600 hover:text-blue-700 transition-colors block text-xs line-clamp-1 text-left cursor-pointer"
                         >
-                          {isCopied ? (
-                            <CheckCheck className="w-3 h-3 text-emerald-600 shrink-0" />
-                          ) : (
-                            <Copy className="w-3 h-3 text-slate-400 shrink-0" />
-                          )}
-                          <span className="truncate max-w-[140px]">/{cat.slug}</span>
+                          {cat.name_en}
                         </button>
                       </td>
 
-                      {/* Icon Preset Name */}
-                      <td className="py-3 px-3 align-middle hidden md:table-cell">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium">
-                          {renderCategoryIcon(cat.icon || cat.slug, 'w-3 h-3 text-slate-500')}
-                          <span>{cat.icon || 'briefcase'}</span>
+                      {/* Column 2: Category Title (KH) */}
+                      <td className="py-2.5 px-3 align-middle">
+                        <span className="font-normal text-slate-800 block truncate text-xs">
+                          {cat.name_km || '—'}
                         </span>
                       </td>
 
-                      {/* Vacancies / Job Count */}
-                      <td className="py-3 px-4 align-middle">
-                        {hasJobs ? (
-                          <Link
-                            to={`/jobs?category=${cat.id}`}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition shadow-2xs group/link"
-                            title={isKhmer ? 'ចុចមើលការងារទាំងអស់ក្នុងផ្នែកនេះ' : 'View all jobs in this category'}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                            <span>
-                              {cat.jobs_count} {isKhmer ? 'ការងារ' : 'vacancies'}
-                            </span>
-                            <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover/link:opacity-100" />
-                          </Link>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                            <span>0 {isKhmer ? 'ការងារ' : 'vacancies'}</span>
-                          </span>
-                        )}
+                      {/* Column 3: Total Jobs */}
+                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                        <span className="font-normal text-slate-700 text-xs">
+                          {cat.jobs_count || 0} {isKhmer ? 'ការងារ' : 'Jobs'}
+                        </span>
                       </td>
 
-                      {/* Status */}
-                      <td className="py-3 px-3 align-middle hidden sm:table-cell">
-                        {hasJobs ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/70 text-[10px] font-semibold">
-                            {isKhmer ? 'មានការងារសកម្ម' : 'Active Listed'}
+                      {/* Column 4: Status (Have Job មានការងារ / Not Job គ្មានការងារ) */}
+                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-normal border ${
+                            hasJobs
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-50 text-slate-600 border-gray-200'
+                          }`}
+                        >
+                          {hasJobs ? (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Clock className="w-3 h-3 text-slate-400" />
+                          )}
+                          <span>
+                            {hasJobs
+                              ? isKhmer ? 'មានការងារ' : 'Have Job'
+                              : isKhmer ? 'គ្មានការងារ' : 'Not Job'}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200 text-[10px] font-normal">
-                            {isKhmer ? 'មិនទាន់មានការងារ' : 'Available'}
-                          </span>
-                        )}
+                        </span>
                       </td>
 
-                      {/* Actions */}
-                      <td className="py-3 px-4 align-middle text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* View Jobs Link */}
-                          <Link
-                            to={`/jobs?category=${cat.id}`}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
-                            title={isKhmer ? 'មើលការងារក្នុងផ្នែកនេះ' : 'Explore Jobs'}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
+                      {/* Column 5: Actions: [View (White/Grey)] [Edit (Amber)] [Delete (Red)] */}
+                      <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1.5">
+                          {/* View Button */}
+                          {hasJobs && (
+                            <Link
+                              to={`/jobs?category=${cat.id}`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-slate-600 hover:text-blue-600 bg-white hover:bg-slate-50 border border-gray-200 transition shadow-2xs"
+                              title={isKhmer ? 'មើលការងារក្នុងផ្នែកនេះ' : 'View Category Jobs'}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              <span className="hidden sm:inline">{isKhmer ? 'មើល' : 'View'}</span>
+                            </Link>
+                          )}
 
-                          {/* Quick Edit */}
+                          {/* Edit Button (Amber) */}
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(cat)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
-                            title={isKhmer ? 'កែសម្រួល' : 'Edit Category'}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs"
+                            title={isKhmer ? 'កែសម្រួលផ្នែកការងារ' : 'Edit Category'}
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-3 h-3 text-amber-600" />
+                            <span className="hidden sm:inline">{isKhmer ? 'កែប្រែ' : 'Edit'}</span>
                           </button>
 
-                          {/* Delete */}
+                          {/* Delete Button (Red) */}
                           <button
                             type="button"
                             onClick={() => {
                               setCategoryToDelete(cat)
                               setDeleteModalOpen(true)
                             }}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                            title={isKhmer ? 'លុប' : 'Delete Category'}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-normal text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer shadow-2xs"
+                            title={isKhmer ? 'លុបផ្នែកការងារ' : 'Delete Category'}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3 text-rose-600" />
+                            <span className="hidden sm:inline">{isKhmer ? 'លុប' : 'Delete'}</span>
                           </button>
                         </div>
                       </td>
                     </tr>
                   )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Pagination */}
-          <TablePagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalItems={sortedCategories.length}
-            onPageChange={(page) => setCurrentPage(page)}
-            onPageSizeChange={(newSize) => {
-              setPageSize(newSize)
-              setCurrentPage(1)
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-          />
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {/* Table Pagination */}
+        <TablePagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalItems={sortedCategories.length}
+          onPageChange={(page) => setCurrentPage(page)}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setCurrentPage(1)
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
+        />
+      </div>
 
       {/* 5. Create / Edit Category Modal */}
       {modalOpen && (
@@ -781,87 +718,6 @@ export const AdminCategoriesPage: React.FC = () => {
                   placeholder="ឧ. បច្ចេកវិទ្យាព័ត៌មាន & កម្មវិធី"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
                 />
-              </div>
-
-              {/* Slug with Auto Generator */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-slate-700">
-                    Slug (URL identifier)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAutoSlug}
-                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
-                  >
-                    {isKhmer ? 'បង្កើតពីឈ្មោះស្វ័យប្រវត្តិ' : 'Auto-generate from English'}
-                  </button>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">
-                    /
-                  </span>
-                  <input
-                    type="text"
-                    value={formSlug}
-                    onChange={(e) => setFormSlug(e.target.value)}
-                    placeholder="e.g. information-technology-software"
-                    className="w-full pl-6 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 font-mono placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
-                  />
-                </div>
-              </div>
-
-              {/* Icon Selector */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  {isKhmer ? 'ជ្រើសរើសរូបតំណាង (Icon)' : 'Select Icon Preset'}
-                </label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-36 overflow-y-auto p-1 bg-slate-50/60 rounded-xl border border-slate-200/70">
-                  {PRESET_ICONS.map((p) => {
-                    const isSelected = formIcon === p.name
-                    return (
-                      <button
-                        key={p.name}
-                        type="button"
-                        onClick={() => setFormIcon(p.name)}
-                        className={`flex flex-col items-center justify-center p-2 rounded-lg text-center transition cursor-pointer ${
-                          isSelected
-                            ? 'bg-blue-600 text-white shadow-xs font-bold'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80'
-                        }`}
-                        title={p.label}
-                      >
-                        <div className="mb-1">{p.icon}</div>
-                        <span className="text-[9px] truncate max-w-full">
-                          {p.name}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Live Preview Card */}
-              <div className="pt-2">
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                  {isKhmer ? 'ទម្រង់បង្ហាញនៅលើទំព័រដើម (Live Card Preview)' : 'Live Preview (Homepage Style)'}
-                </label>
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 shadow-2xs flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                      {renderCategoryIcon(formIcon, 'w-4 h-4')}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 line-clamp-1">
-                        {formNameEn.trim() || 'Category Name'}
-                      </div>
-                      <div className="text-[11px] text-slate-500 line-clamp-1">
-                        {formNameKm.trim() || 'ឈ្មោះផ្នែកការងារ'} &bull; 0 vacancies
-                      </div>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
-                </div>
               </div>
 
               {/* Actions */}

@@ -4,10 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
-import { aiService } from '../../services/ai.service'
-import { Application, Job, SeekerProfile, AIChartData } from '../../types'
+import { Application, Job, SeekerProfile } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
-import { AICareerChart } from '../../components/ai/AICareerChart'
 import { StatCard } from '../../components/dashboard/StatCard'
 import { QuickActions } from '../../components/dashboard/QuickActions'
 import { getAssetUrl } from '../../utils/assets'
@@ -19,7 +17,6 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  TrendingUp,
   Building,
   Video,
   ChevronRight,
@@ -42,8 +39,6 @@ export const SeekerDashboardPage: React.FC = () => {
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([])
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all')
   const [appSearchQuery, setAppSearchQuery] = useState<string>('')
-  const [activeChartTab, setActiveChartTab] = useState<'salary' | 'skills'>('salary')
-  const [liveSalaryChart, setLiveSalaryChart] = useState<AIChartData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -51,20 +46,16 @@ export const SeekerDashboardPage: React.FC = () => {
     if (!quiet) setIsLoading(true)
     else setIsRefreshing(true)
     try {
-      const [profData, appsData, savedData, jobsRes, marketRes] = await Promise.all([
+      const [profData, appsData, savedData, jobsRes] = await Promise.all([
         seekerService.getProfile().catch(() => null),
         seekerService.getApplications().catch(() => []),
         seekerService.getSavedJobs().catch(() => []),
-        jobsService.getJobs({ page_size: 3 }).catch(() => ({ results: [] } as any)),
-        aiService.getMarketChart().catch(() => null),
+        jobsService.getJobs({ page_size: 4 }).catch(() => ({ results: [] } as any)),
       ])
       setProfile(profData)
       setApplications(appsData || [])
       setSavedJobs(savedData || [])
       setRecommendedJobs(jobsRes?.results || [])
-      if (marketRes?.chart) {
-        setLiveSalaryChart(marketRes.chart)
-      }
     } catch (err) {
       console.error('Failed to load seeker dashboard data:', err)
     } finally {
@@ -137,98 +128,55 @@ export const SeekerDashboardPage: React.FC = () => {
     return isKhmer ? 'សាយណ្ហសួស្តី' : 'Good evening'
   }
 
-  // Live Market Benchmark Charts with Database fallback
-  const salaryBenchmarkChart: AIChartData = liveSalaryChart || {
-    type: 'salary_benchmark',
-    title: isKhmer ? 'កម្រិតប្រាក់ខែទីផ្សារការងារកម្ពុជា' : 'Cambodia Tech & Business Salary Benchmarks',
-    title_km: 'កម្រិតប្រាក់ខែទីផ្សារការងារកម្ពុជា',
-    items: [
-      { label: 'Senior Fullstack Engineer', label_km: 'វិស្វករ Fullstack ជាន់ខ្ពស់', min: 1400, max: 3200, count: 18 },
-      { label: 'Frontend / React Developer', label_km: 'អ្នកអភិវឌ្ឍន៍ Frontend / React', min: 800, max: 2200, count: 24 },
-      { label: 'Backend Developer (Python/Node)', label_km: 'អ្នកអភិវឌ្ឍន៍ Backend', min: 900, max: 2400, count: 21 },
-      { label: 'UI/UX & Product Designer', label_km: 'អ្នករចនា UI/UX និងផលិតផល', min: 700, max: 1900, count: 15 },
-      { label: 'Product / Project Manager', label_km: 'ប្រធានគ្រប់គ្រងគម្រោង IT', min: 1100, max: 2600, count: 12 },
-    ],
-  }
-
-  // Dynamic Skill Match Chart based on candidate profile skills
-  const userSkillNames = (profile?.skills || []).map((s) => s.name.toLowerCase())
-  const marketSkills = [
-    'React / Next.js & TypeScript',
-    'Python / Django REST APIs',
-    'Relational Database (MySQL/PostgreSQL)',
-    'UI/UX & Mobile Design',
-    'Docker & Cloud Deployment',
-  ]
-  const dynamicSkillItems = marketSkills.map((sk) => ({
-    skill: sk,
-    user_has: userSkillNames.some(
-      (us) => sk.toLowerCase().includes(us) || us.includes(sk.toLowerCase().split(' ')[0])
-    ),
-  }))
-  const matchedSkillCount = dynamicSkillItems.filter((i) => i.user_has).length
-  const dynamicMatchScore = Math.max(
-    40,
-    Math.min(100, Math.round((matchedSkillCount / dynamicSkillItems.length) * 100) || 75)
-  )
-
-  const skillMatchChart: AIChartData = {
-    type: 'skill_match',
-    title: isKhmer ? 'ជំនាញដែលមានតម្រូវការខ្ពស់' : 'In-Demand Market Competencies',
-    title_km: 'ជំនាញដែលមានតម្រូវការខ្ពស់',
-    match_score: dynamicMatchScore,
-    items: dynamicSkillItems,
-  }
-
   const getDynamicStatusBadge = (status: string) => {
     switch (status) {
       case 'submitted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/25 backdrop-blur-md shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-            <span>{isKhmer ? 'បានដាក់ពាក្យ' : 'Submitted'}</span>
+            <span className="whitespace-nowrap">{isKhmer ? 'បានដាក់ពាក្យ' : 'Submitted'}</span>
           </span>
         )
       case 'screening':
       case 'reviewing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-400/25 backdrop-blur-md shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            <span>{isKhmer ? 'កំពុងត្រួតពិនិត្យ' : 'In Review'}</span>
+            <span className="whitespace-nowrap">{isKhmer ? 'កំពុងត្រួតពិនិត្យ' : 'In Review'}</span>
           </span>
         )
       case 'shortlisted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-700 border border-purple-400/25 backdrop-blur-md shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-            <span>{isKhmer ? 'ជាប់បញ្ជីសម្រាំង' : 'Shortlisted'}</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200/80 shadow-2xs whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+            <span className="whitespace-nowrap">{isKhmer ? 'ជាប់បញ្ជីសម្រាំង' : 'Shortlisted'}</span>
           </span>
         )
       case 'interview':
       case 'interview_scheduled':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-700 border border-indigo-400/25 backdrop-blur-md shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-            <span>{isKhmer ? 'ណាត់សម្ភាសន៍' : 'Interview'}</span>
+            <span className="whitespace-nowrap">{isKhmer ? 'ណាត់សម្ភាសន៍' : 'Interview'}</span>
           </span>
         )
       case 'offered':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-400/25 backdrop-blur-md shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce" />
-            <span>{isKhmer ? 'បានទទួលការងារ' : 'Offer Received'}</span>
+            <span className="whitespace-nowrap">{isKhmer ? 'បានទទួលការងារ' : 'Offer Received'}</span>
           </span>
         )
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-700 border border-rose-400/25 backdrop-blur-md shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-2xs whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>{isKhmer ? 'មិនបានជ្រើសរើស' : 'Not Selected'}</span>
+            <span className="whitespace-nowrap">{isKhmer ? 'មិនបានជ្រើសរើស' : 'Not Selected'}</span>
           </span>
         )
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100/80 text-slate-700 border border-slate-200/70 backdrop-blur-md capitalize">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap capitalize">
             {status}
           </span>
         )
@@ -510,20 +458,20 @@ export const SeekerDashboardPage: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      <th className="py-3 px-4">{isKhmer ? 'តំណែងការងារ និងក្រុមហ៊ុន' : 'Job & Company'}</th>
-                      <th className="py-3 px-4 hidden md:table-cell">{isKhmer ? 'ទីតាំង' : 'Location'}</th>
-                      <th className="py-3 px-4 hidden sm:table-cell">{isKhmer ? 'ប្រាក់ខែ' : 'Salary'}</th>
-                      <th className="py-3 px-4">{isKhmer ? 'ស្ថានភាព' : 'Status'}</th>
-                      <th className="py-3 px-4 hidden lg:table-cell">{isKhmer ? 'កាលបរិច្ឆេទ' : 'Applied Date'}</th>
-                      <th className="py-3 px-4 text-right">{isKhmer ? 'សកម្មភាព' : 'Action'}</th>
+                      <th className="py-3 px-4 min-w-[240px]">{isKhmer ? 'តំណែងការងារ និងក្រុមហ៊ុន' : 'Job & Company'}</th>
+                      <th className="py-3 px-4 hidden md:table-cell whitespace-nowrap min-w-[120px]">{isKhmer ? 'ទីតាំង' : 'Location'}</th>
+                      <th className="py-3 px-4 hidden sm:table-cell whitespace-nowrap min-w-[140px]">{isKhmer ? 'ប្រាក់ខែ' : 'Salary'}</th>
+                      <th className="py-3 px-4 whitespace-nowrap min-w-[140px]">{isKhmer ? 'ស្ថានភាព' : 'Status'}</th>
+                      <th className="py-3 px-4 hidden lg:table-cell whitespace-nowrap min-w-[120px]">{isKhmer ? 'កាលបរិច្ឆេទ' : 'Applied Date'}</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap min-w-[85px]">{isKhmer ? 'សកម្មភាព' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
                     {filteredApplications.slice(0, 5).map((app: any) => (
                       <tr key={app.id} className="hover:bg-blue-50/30 transition-colors group">
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4 min-w-[240px]">
                           <div className="flex items-center space-x-3">
-                            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 shadow-2xs p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-2xs p-1 shrink-0 flex items-center justify-center overflow-hidden">
                               {app.company_logo ? (
                                 <img src={getAssetUrl(app.company_logo)} alt={app.company_name} className="w-full h-full object-contain rounded-lg" />
                               ) : (
@@ -533,7 +481,7 @@ export const SeekerDashboardPage: React.FC = () => {
                             <div className="min-w-0">
                               <Link
                                 to={`/jobs/${app.job_slug}`}
-                                className="font-bold text-slate-900 group-hover:text-blue-600 transition truncate block max-w-xs text-xs"
+                                className="font-bold text-slate-900 group-hover:text-blue-600 transition truncate block max-w-xs text-xs sm:text-sm"
                               >
                                 {app.job_title}
                               </Link>
@@ -543,34 +491,36 @@ export const SeekerDashboardPage: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 hidden md:table-cell text-slate-600">
-                          <span className="inline-flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <td className="py-3.5 px-4 hidden md:table-cell text-slate-600 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             {app.province}
                           </span>
                         </td>
-                        <td className="py-3 px-4 hidden sm:table-cell">
+                        <td className="py-3.5 px-4 hidden sm:table-cell whitespace-nowrap">
                           {app.salary_min ? (
-                            <span className="text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 text-[11px]">
+                            <span className="inline-flex items-center px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold shadow-2xs whitespace-nowrap">
                               {formatSalaryRange(app.salary_min, app.salary_max, app.salary_currency)}
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[11px]">{isKhmer ? 'ចរចា' : 'Negotiable'}</span>
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-xl bg-slate-100/80 text-slate-500 text-xs font-medium border border-slate-200/60 whitespace-nowrap">
+                              {isKhmer ? 'ចរចា' : 'Negotiable'}
+                            </span>
                           )}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           {getDynamicStatusBadge(app.status)}
                         </td>
-                        <td className="py-3 px-4 hidden lg:table-cell text-slate-400 text-[11px]">
+                        <td className="py-3.5 px-4 hidden lg:table-cell text-slate-500 text-xs whitespace-nowrap">
                           {new Date(app.created_at).toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <Link
                             to={`/jobs/${app.job_slug}`}
-                            className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white hover:bg-blue-600 hover:text-white text-slate-600 border border-slate-200 text-[11px] font-semibold transition-all shadow-2xs group/btn"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-600 text-slate-700 hover:text-white border border-slate-200/90 hover:border-blue-600 text-xs font-semibold transition-all duration-150 shadow-2xs hover:shadow-xs group/btn cursor-pointer"
                           >
                             <span>{isKhmer ? 'មើល' : 'View'}</span>
-                            <ExternalLink className="w-3 h-3 ml-1 group-hover/btn:translate-x-0.5 transition-transform" />
+                            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover/btn:text-white group-hover/btn:translate-x-0.5 transition-all" />
                           </Link>
                         </td>
                       </tr>
@@ -603,46 +553,60 @@ export const SeekerDashboardPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {recommendedJobs.slice(0, 3).map((job) => (
-                <Link
-                  key={job.id}
-                  to={`/jobs/${job.slug}`}
-                  className="glass-card-hover p-4 rounded-xl border border-white/90 shadow-2xs hover:border-blue-400/60 transition-all flex flex-col justify-between group hover:shadow-xs"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 p-1 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs">
-                        {job.company_logo ? (
-                          <img src={getAssetUrl(job.company_logo)} alt={job.company_name} className="w-full h-full object-contain rounded-lg" />
-                        ) : (
-                          <Building className="w-4 h-4 text-slate-400" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[9.5px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 uppercase tracking-wider inline-block">
-                          {job.category_name_en || (isKhmer ? 'ឱកាសការងារ' : 'Opportunity')}
-                        </span>
-                        <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition line-clamp-1 mt-1">
-                          {job.title}
-                        </h4>
-                        <p className="text-[11px] text-slate-500 truncate mt-0.5">{job.company_name}</p>
+            {recommendedJobs.length === 0 ? (
+              <div className="text-center py-8 text-xs text-slate-400 font-normal">
+                {isKhmer ? 'មិនទាន់មានការងារណែនាំនៅឡើយទេ' : 'No recommended jobs available right now.'}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                {recommendedJobs.slice(0, 4).map((job) => (
+                  <Link
+                    key={job.id}
+                    to={`/jobs/${job.slug}`}
+                    className="bg-white/85 hover:bg-white p-4 sm:p-4.5 rounded-2xl border border-slate-200/80 hover:border-blue-400/70 transition-all duration-200 shadow-2xs hover:shadow-md flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-start gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 shadow-2xs p-1.5 shrink-0 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                          {job.company_logo ? (
+                            <img
+                              src={getAssetUrl(job.company_logo)}
+                              alt={job.company_name}
+                              className="w-full h-full object-contain rounded-lg"
+                            />
+                          ) : (
+                            <Building className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60 uppercase tracking-wide inline-block truncate max-w-[200px]">
+                            {isKhmer
+                              ? job.category_name_km || job.category_name_en || 'ឱកាសការងារ'
+                              : job.category_name_en || job.category_name_km || 'Opportunity'}
+                          </span>
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mt-1">
+                            {isKhmer && job.title_km ? job.title_km : job.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                            {job.company_name}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 font-bold text-[11px]">
-                      {formatSalaryRange(job.salary_min, job.salary_max, job.salary_currency, job.is_salary_negotiable)}
-                    </span>
-                    <span className="text-slate-500 text-[11px] flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400" />
-                      {job.province}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                    <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-bold text-xs shadow-2xs whitespace-nowrap">
+                        {formatSalaryRange(job.salary_min, job.salary_max, job.salary_currency, job.is_salary_negotiable)}
+                      </span>
+                      <span className="text-slate-500 text-xs font-medium flex items-center gap-1 shrink-0 whitespace-nowrap">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{job.province}</span>
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -752,47 +716,6 @@ export const SeekerDashboardPage: React.FC = () => {
               <span>{isKhmer ? 'កែលម្អប្រវត្តិរូប' : 'Update Profile'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
-
-          {/* AI Career & Market Salary Intelligence Card */}
-          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-2xs">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                </div>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                  {isKhmer ? 'ទិន្នន័យទីផ្សារការងារ AI' : 'AI Market Intelligence'}
-                </h3>
-              </div>
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-semibold">
-                <button
-                  type="button"
-                  onClick={() => setActiveChartTab('salary')}
-                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                    activeChartTab === 'salary' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {isKhmer ? 'ប្រាក់ខែ' : 'Salaries'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveChartTab('skills')}
-                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                    activeChartTab === 'skills' ? 'bg-white text-blue-600 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {isKhmer ? 'ជំនាញ' : 'Skills'}
-                </button>
-              </div>
-            </div>
-
-            {/* Embedded Live Career Chart */}
-            {activeChartTab === 'salary' ? (
-              <AICareerChart chart={salaryBenchmarkChart} />
-            ) : (
-              <AICareerChart chart={skillMatchChart} />
-            )}
           </div>
         </div>
       </div>

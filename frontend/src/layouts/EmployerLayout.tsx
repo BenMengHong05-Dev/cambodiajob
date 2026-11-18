@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Outlet, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAuth } from '../app/providers'
+import { useAuth, useSiteSettings } from '../app/providers'
 import { LanguageDropdown } from '../components/layout/LanguageDropdown'
 import { NotificationDropdown } from '../components/layout/NotificationDropdown'
 import { AIAgentFloatingButton } from '../components/ai/AIAgentFloatingButton'
@@ -17,13 +17,13 @@ import {
   Menu,
   X,
   Search,
-  Globe,
   Plus,
   ExternalLink,
 } from 'lucide-react'
 
 export const EmployerLayout: React.FC = () => {
   const { user, isLoading, logout } = useAuth()
+  const { siteName, logoUrl } = useSiteSettings()
   const { i18n } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -118,22 +118,44 @@ export const EmployerLayout: React.FC = () => {
         >
           {!isCollapsed ? (
             <Link to="/" className="flex items-center space-x-3 text-left flex-1 min-w-0 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20 shrink-0 group-hover:scale-105 transition-transform">
-                <Briefcase className="w-4 h-4" />
-              </div>
+              {logoUrl ? (
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center p-1 shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt={siteName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 shrink-0 group-hover:scale-105 transition-transform">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+              )}
               <div className="text-left flex-1 min-w-0">
-                <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight">
-                  Cambodia<span className="text-blue-600">Jobs</span>
+                <span className="text-base font-bold tracking-tight text-slate-900 block leading-tight truncate">
+                  {siteName}
                 </span>
               </div>
             </Link>
           ) : (
             <Link
               to="/"
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20 group hover:scale-105 transition-transform"
-              title="CambodiaJobs"
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold group hover:scale-105 transition-transform"
+              title={siteName}
             >
-              <Briefcase className="w-4 h-4" />
+              {logoUrl ? (
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center p-1 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
+                  <img
+                    src={logoUrl}
+                    alt={siteName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+              )}
             </Link>
           )}
 
@@ -259,16 +281,6 @@ export const EmployerLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            {/* Button Go Back to Website */}
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-xs font-semibold text-slate-700 hover:text-blue-600 transition shadow-2xs backdrop-blur-md"
-              title={isKhmer ? 'ត្រឡប់ទៅគេហទំព័រ' : 'Go to Website'}
-            >
-              <Globe className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden sm:inline">{isKhmer ? 'គេហទំព័រ' : 'Website'}</span>
-            </Link>
-
             <NotificationDropdown role="employer" />
             <LanguageDropdown />
 

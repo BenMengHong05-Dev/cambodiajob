@@ -140,44 +140,40 @@ export const AdminAuditPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setEntityFilter('all')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              entityFilter === 'all'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${entityFilter === 'all'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+              }`}
           >
             {isKhmer ? 'ទាំងអស់' : 'All'} ({auditLogs.length})
           </button>
           <button
             type="button"
             onClick={() => setEntityFilter('company')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              entityFilter === 'company'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${entityFilter === 'company'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+              }`}
           >
             {isKhmer ? 'ក្រុមហ៊ុន' : 'Company'} ({companyCount})
           </button>
           <button
             type="button"
             onClick={() => setEntityFilter('job')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              entityFilter === 'job'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${entityFilter === 'job'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+              }`}
           >
             {isKhmer ? 'ការងារ' : 'Job'} ({jobCount})
           </button>
           <button
             type="button"
             onClick={() => setEntityFilter('user')}
-            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${
-              entityFilter === 'user'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
-            }`}
+            className={`px-3 py-1 rounded-xl text-xs font-normal transition cursor-pointer shrink-0 ${entityFilter === 'user'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-gray-200'
+              }`}
           >
             {isKhmer ? 'អ្នកប្រើប្រាស់' : 'User'} ({userCount})
           </button>
@@ -215,65 +211,65 @@ export const AdminAuditPage: React.FC = () => {
                 filteredLogs
                   .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                   .map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/70 transition-colors group">
-                    {/* Action */}
-                    <td className="py-2.5 px-4 align-middle whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-normal border uppercase tracking-wide ${getActionBadgeColor(log.action)}`}>
-                        {log.action?.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-
-                    {/* Target Entity */}
-                    <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                      <span className="font-medium text-slate-800 text-xs capitalize">
-                        {log.entity_type}
-                      </span>
-                      <span className="text-slate-400 text-xs ml-1 font-mono">
-                        #{log.entity_id}
-                      </span>
-                    </td>
-
-                    {/* Triggered By */}
-                    <td className="py-2.5 px-3 align-middle">
-                      <div className="space-y-0.5 max-w-[180px]">
-                        <span className="font-normal text-slate-800 block truncate text-xs">
-                          {log.user_name || 'System Administrator'}
+                    <tr key={log.id} className="hover:bg-slate-50/70 transition-colors group">
+                      {/* Action */}
+                      <td className="py-2.5 px-4 align-middle whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-normal border uppercase tracking-wide ${getActionBadgeColor(log.action)}`}>
+                          {log.action?.replace(/_/g, ' ')}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono block truncate">
-                          {log.user_email || 'admin@cambodiajobs.kh'}
+                      </td>
+
+                      {/* Target Entity */}
+                      <td className="py-2.5 px-3 align-middle whitespace-nowrap">
+                        <span className="font-medium text-slate-800 text-xs capitalize">
+                          {log.entity_type}
                         </span>
-                      </div>
-                    </td>
+                        <span className="text-slate-400 text-xs ml-1 font-mono">
+                          #{log.entity_id}
+                        </span>
+                      </td>
 
-                    {/* Details Snippet */}
-                    <td className="py-2.5 px-3 align-middle max-w-xs">
-                      <span className="text-[11px] text-slate-500 font-mono truncate block bg-slate-50 px-2 py-1 rounded-md border border-gray-100">
-                        {log.details ? log.details.slice(0, 50) + (log.details.length > 50 ? '...' : '') : '-'}
-                      </span>
-                    </td>
+                      {/* Triggered By */}
+                      <td className="py-2.5 px-3 align-middle">
+                        <div className="space-y-0.5 max-w-[180px]">
+                          <span className="font-normal text-slate-800 block truncate text-xs">
+                            {log.user_name || 'System Administrator'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono block truncate">
+                            {log.user_email || 'admin@cambodiajobs.kh'}
+                          </span>
+                        </div>
+                      </td>
 
-                    {/* Timestamp */}
-                    <td className="py-2.5 px-3 align-middle text-slate-500 font-normal whitespace-nowrap">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span>{new Date(log.created_at).toLocaleString()}</span>
-                      </div>
-                    </td>
+                      {/* Details Snippet */}
+                      <td className="py-2.5 px-3 align-middle max-w-xs">
+                        <span className="text-[11px] text-slate-500 font-mono truncate block bg-slate-50 px-2 py-1 rounded-md border border-gray-100">
+                          {log.details ? log.details.slice(0, 50) + (log.details.length > 50 ? '...' : '') : '-'}
+                        </span>
+                      </td>
 
-                    {/* Inspect Payload Button (Blue Base) */}
-                    <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedLog(log)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-normal text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer shadow-2xs"
-                        title={isKhmer ? 'មើលព័ត៌មានលម្អិត' : 'View Payload Details'}
-                      >
-                        <Eye className="w-3 h-3 text-blue-600" />
-                        <span className="hidden sm:inline">{isKhmer ? 'លម្អិត' : 'Inspect'}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      {/* Timestamp */}
+                      <td className="py-2.5 px-3 align-middle text-slate-500 font-normal whitespace-nowrap">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{new Date(log.created_at).toLocaleString()}</span>
+                        </div>
+                      </td>
+
+                      {/* Inspect Payload Button (Blue Base) */}
+                      <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLog(log)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-normal text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer shadow-2xs"
+                          title={isKhmer ? 'មើលព័ត៌មានលម្អិត' : 'View Payload Details'}
+                        >
+                          <Eye className="w-3 h-3 text-blue-600" />
+                          <span className="hidden sm:inline">{isKhmer ? 'លម្អិត' : 'Inspect'}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>
