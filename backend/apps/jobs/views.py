@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 
-from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker
+from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, HasCustomPermission
 from common.database import fetch_one, fetch_all, fetch_scalar, execute_insert, execute_sql, atomic_transaction
 from common.pagination import paginate_raw_query
 from common.validators import slugify_string
@@ -305,7 +305,10 @@ class EmployerJobManagementView(APIView):
     """
     Employer endpoints: list vacancies and create new vacancy.
     """
-    permission_classes = [IsEmployer]
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsEmployer(), HasCustomPermission.with_perm("jobs:create")()]
+        return [IsEmployer(), HasCustomPermission.with_perm("employer:access")()]
 
     def get(self, request):
         em = fetch_one("SELECT company_id FROM employer_members WHERE user_id = %s", [request.user.id])
@@ -331,7 +334,7 @@ class EmployerJobManagementView(APIView):
     def post(self, request):
         em = fetch_one(
             """
-            SELECT em.company_id, c.name AS company_name, c.verification_status 
+            SELECT em.company_id, em.role AS member_role, c.name AS company_name, c.verification_status 
             FROM employer_members em
             INNER JOIN companies c ON c.id = em.company_id
             WHERE em.user_id = %s
@@ -340,6 +343,9 @@ class EmployerJobManagementView(APIView):
         )
         if not em:
             raise ValidationError("You must belong to an employer company to post vacancies.")
+
+        if not getattr(request.user, "has_permission", lambda p: False)("jobs:create"):
+            raise PermissionDenied("You do not have permission to post new job vacancies.")
 
         if em.get("verification_status") != "verified":
             raise PermissionDenied(
@@ -400,9 +406,14 @@ class EmployerJobManagementView(APIView):
 
 class EmployerJobDetailView(APIView):
     """
-    Employer endpoints: update vacancy details, update vacancy status.
+    Employer endpoints: update vacancy details, update vacancy status, delete vacancy.
     """
-    permission_classes = [IsEmployer]
+    def get_permissions(self):
+        if self.request.method in ["PATCH", "PUT"]:
+            return [IsEmployer(), HasCustomPermission.with_perm("jobs:edit")()]
+        if self.request.method == "DELETE":
+            return [IsEmployer(), HasCustomPermission.with_perm("jobs:delete")()]
+        return [IsEmployer(), HasCustomPermission.with_perm("employer:access")()]
 
     def _get_employer_job(self, job_id, user_id):
         sql = """
@@ -472,7 +483,7 @@ class EmployerJobDetailView(APIView):
 
 
 class EmployerJobStatusView(APIView):
-    permission_classes = [IsEmployer]
+    permission_classes = [IsEmployer, HasCustomPermission.with_perm("jobs:edit")]
 
     def patch(self, request, pk):
         sql = """

@@ -5,4 +5,5 @@ export * from './Textarea'
 export * from './Badge'
 export * from './Dropdown'
 export * from './Toast'
+export * from './Dialog'
 

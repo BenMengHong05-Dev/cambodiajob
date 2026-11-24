@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { companiesService } from '../../services/companies.service'
 import { Company } from '../../types'
 import { getAssetUrl } from '../../utils/assets'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import {
   Search,
   Building2,
@@ -294,25 +295,26 @@ export const CompaniesPage: React.FC = () => {
                         </div>
                       )}
                     </div>
-
-                    {company.verification_status === 'verified' && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
-                        <ShieldCheck className="w-3 h-3 text-blue-600" />
-                        <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Verified'}</span>
-                      </span>
-                    )}
                   </div>
 
                   {/* 3. Company Info Section */}
                   <div className="p-4 pt-2.5 space-y-2.5 flex-1">
                     {/* Name & Title */}
                     <div>
-                      <h3
-                        className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate tracking-tight"
-                        title={company.name}
-                      >
-                        {company.name}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3
+                          className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate tracking-tight"
+                          title={company.name}
+                        >
+                          {company.name}
+                        </h3>
+                        {company.verification_status === 'verified' && (
+                          <FacebookVerifiedBadge
+                            className="w-4 h-4 shrink-0"
+                            title={isKhmer ? 'ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ផ្លូវការ' : 'Officially Verified Company'}
+                          />
+                        )}
+                      </div>
 
                       {/* Industry */}
                       <p className="text-[11px] font-semibold text-blue-600/90 truncate mt-0.5">

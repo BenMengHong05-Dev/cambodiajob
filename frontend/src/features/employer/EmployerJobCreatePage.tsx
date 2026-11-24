@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '../../app/providers'
 import { employerService } from '../../services/employer.service'
 import { jobsService } from '../../services/jobs.service'
 import { companiesService } from '../../services/companies.service'
+import { aiService } from '../../services/ai.service'
 import { JobCategory, Skill, Company } from '../../types'
 import { Select } from '../../components/ui/Select'
+import { Dialog } from '../../components/ui/Dialog'
 import {
   Briefcase,
   AlertCircle,
@@ -24,7 +26,40 @@ import {
   Save,
   Globe,
   Radio,
+  Wand2,
+  Lightbulb,
+  RefreshCw,
+  CheckCircle2,
+  ChevronRight,
 } from 'lucide-react'
+
+const AI_SAMPLE_PROMPTS = [
+  {
+    title_en: 'Senior Full-Stack Developer (React & Python)',
+    title_km: 'អ្នកអភិវឌ្ឍន៍ Full-Stack ជាន់ខ្ពស់',
+    prompt: 'Senior Full-Stack Developer with 3+ years experience in React, Python Django, PostgreSQL, $1500-$2500 in Phnom Penh, hybrid',
+  },
+  {
+    title_en: 'Digital Marketing & Social Media Specialist',
+    title_km: 'មន្ត្រីទីផ្សារឌីជីថល និងបណ្តាញសង្គម',
+    prompt: 'Digital Marketing Specialist experienced in Facebook Ads, TikTok content, SEO, $600-$1000 in Phnom Penh, full-time',
+  },
+  {
+    title_en: 'Senior Accountant & Tax Specialist',
+    title_km: 'មន្ត្រីគណនេយ្យ និងពន្ធដារជាន់ខ្ពស់',
+    prompt: 'Senior Accountant with experience in GDT tax filing, monthly financial reports, QuickBooks, $800-$1400 in Phnom Penh',
+  },
+  {
+    title_en: 'UI/UX & Graphic Designer',
+    title_km: 'អ្នករចនា UI/UX និងក្រាហ្វិក',
+    prompt: 'UI/UX Designer proficient in Figma, Adobe Illustrator, mobile & web mockups, $700-$1300, hybrid or remote',
+  },
+  {
+    title_en: 'HR & Talent Acquisition Executive',
+    title_km: 'មន្ត្រីធនធានមនុស្ស និងជ្រើសរើសបុគ្គលិក',
+    prompt: 'HR Officer handling end-to-end recruitment, labor law compliance, staff onboarding, $500-$900 in Phnom Penh',
+  },
+]
 
 const POPULAR_SKILL_SUGGESTIONS = [
   'Khmer Language',
@@ -81,6 +116,75 @@ export const EmployerJobCreatePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [company, setCompany] = useState<Company | null>(null)
   const [isLoadingCompany, setIsLoadingCompany] = useState(true)
+
+  // AI Creation States
+  const [searchParams] = useSearchParams()
+  const [isAiModalOpen, setIsAiModalOpen] = useState(searchParams.get('ai') === 'true')
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [isAiGenerating, setIsAiGenerating] = useState(false)
+  const [aiGeneratedData, setAiGeneratedData] = useState<any | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+
+  const handleGenerateWithAi = async (customPrompt?: string) => {
+    const textToUse = (typeof customPrompt === 'string' ? customPrompt : aiPrompt).trim()
+    if (!textToUse) {
+      setAiError(isKhmer ? 'សូមបញ្ចូលចំណងជើងការងារ ឬ Prompt ជាមុនសិន' : 'Please enter a job title or prompt first.')
+      return
+    }
+
+    setAiError(null)
+    setIsAiGenerating(true)
+    setAiGeneratedData(null)
+
+    try {
+      const result = await aiService.generateJob({
+        prompt: textToUse,
+        industry: company?.industry || undefined,
+      })
+      setAiGeneratedData(result)
+    } catch (err: any) {
+      console.error('Failed to generate job with AI:', err)
+      setAiError(
+        err.response?.data?.message ||
+        (isKhmer
+          ? 'មិនអាចបង្កើតការងារដោយ AI បានទេ។ សូមសាកល្បងម្តងទៀត។'
+          : 'Failed to generate vacancy with AI. Please try again.')
+      )
+    } finally {
+      setIsAiGenerating(false)
+    }
+  }
+
+  const handleApplyAiData = () => {
+    if (!aiGeneratedData) return
+
+    if (aiGeneratedData.title) setTitle(aiGeneratedData.title)
+    if (aiGeneratedData.title_km) setTitleKm(aiGeneratedData.title_km)
+    if (aiGeneratedData.category_id) setCategoryId(aiGeneratedData.category_id)
+    if (aiGeneratedData.employment_type) setEmploymentType(aiGeneratedData.employment_type)
+    if (aiGeneratedData.workplace_type) setWorkplaceType(aiGeneratedData.workplace_type)
+    if (aiGeneratedData.experience_level) setExperienceLevel(aiGeneratedData.experience_level)
+    if (aiGeneratedData.education_level) setEducationLevel(aiGeneratedData.education_level)
+    if (aiGeneratedData.province) setProvince(aiGeneratedData.province)
+    if (aiGeneratedData.salary_min != null) setSalaryMin(String(aiGeneratedData.salary_min))
+    if (aiGeneratedData.salary_max != null) setSalaryMax(String(aiGeneratedData.salary_max))
+    if (aiGeneratedData.salary_currency) setSalaryCurrency(aiGeneratedData.salary_currency)
+    if (aiGeneratedData.vacancies_count) setVacanciesCount(aiGeneratedData.vacancies_count)
+    if (aiGeneratedData.description) setDescription(aiGeneratedData.description)
+    if (aiGeneratedData.description_km) setDescriptionKm(aiGeneratedData.description_km)
+    if (aiGeneratedData.requirements) setRequirements(aiGeneratedData.requirements)
+    if (Array.isArray(aiGeneratedData.skill_ids) && aiGeneratedData.skill_ids.length > 0) {
+      setSelectedSkillIds(aiGeneratedData.skill_ids)
+    }
+
+    setIsAiModalOpen(false)
+    toast.success(
+      isKhmer ? 'ជោគជ័យ' : 'Success',
+      isKhmer
+        ? 'ព័ត៌មានការងារត្រូវបានបង្កើត និងបំពេញដោយស្វ័យប្រវត្តិតាមរយៈ AI!'
+        : 'Job vacancy specifications auto-filled successfully by AI!'
+    )
+  }
 
   // 1. Load Catalogs
   useEffect(() => {
@@ -335,19 +439,19 @@ export const EmployerJobCreatePage: React.FC = () => {
   const employmentTypeOptions = [
     { value: 'full_time', label: isKhmer ? 'ពេញម៉ោង (Full-Time)' : 'Full-Time' },
     { value: 'part_time', label: isKhmer ? 'ក្រៅម៉ោង (Part-Time)' : 'Part-Time' },
-    { value: 'internship', label: isKhmer ? 'កម្មសិក្សា (Internship)' : 'Internship' },
-    { value: 'contract', label: isKhmer ? 'កិច្ចសន្យា (Contract)' : 'Contract' },
-    { value: 'freelance', label: isKhmer ? 'ការងារឯករាជ្យ (Freelance)' : 'Freelance' },
+    { value: 'internship', label: isKhmer ? 'កម្មសិក្សា' : 'Internship' },
+    { value: 'contract', label: isKhmer ? 'កិច្ចសន្យា' : 'Contract' },
+    { value: 'freelance', label: isKhmer ? 'ការងារឯករាជ្យ' : 'Freelance' },
   ]
 
   const workplaceTypeOptions = [
     { value: 'on_site', label: isKhmer ? 'នៅការិយាល័យ (On-Site)' : 'On-Site' },
-    { value: 'hybrid', label: isKhmer ? 'កាត់ការិយាល័យ/ផ្ទះ (Hybrid)' : 'Hybrid' },
-    { value: 'remote', label: isKhmer ? 'ពីចម្ងាយទាំងស្រុង (Remote)' : 'Remote' },
+    { value: 'hybrid', label: isKhmer ? 'កូនកាត់' : 'Hybrid' },
+    { value: 'remote', label: isKhmer ? 'ពីចម្ងាយ' : 'Remote' },
   ]
 
   const experienceLevelOptions = [
-    { value: 'fresh_graduate', label: isKhmer ? 'និស្សិតទើបបញ្ចប់ (Fresh Graduate)' : 'Fresh Graduate' },
+    { value: 'fresh_graduate', label: isKhmer ? 'និស្សិតទើបបញ្ចប់' : 'Fresh Graduate' },
     { value: 'entry', label: isKhmer ? 'កម្រិតដំបូង (Entry Level: 0-1 yr)' : 'Entry Level (0-1 yr)' },
     { value: 'mid', label: isKhmer ? 'កម្រិតមធ្យម (Mid Level: 2-4 yrs)' : 'Mid Level (2-4 yrs)' },
     { value: 'senior', label: isKhmer ? 'កម្រិតជាន់ខ្ពស់ (Senior: 5+ yrs)' : 'Senior Level (5+ yrs)' },
@@ -396,10 +500,10 @@ export const EmployerJobCreatePage: React.FC = () => {
         <span className="text-[11px] font-semibold text-slate-400">
           {isEditMode
             ? isKhmer
-              ? 'ការកែសម្រួលឱកាសការងារ (Edit Vacancy)'
+              ? 'ការកែសម្រួលឱកាសការងារ'
               : 'Editing Vacancy'
             : isKhmer
-              ? 'ការបង្កើតឱកាសការងារថ្មី (Post Vacancy)'
+              ? 'ការបង្កើតឱកាសការងារថ្មី'
               : 'Create New Job Opening'}
         </span>
       </div>
@@ -434,38 +538,81 @@ export const EmployerJobCreatePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden sm:block">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border shadow-2xs ${jobStatus === 'published'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : jobStatus === 'closed'
-                  ? 'bg-rose-50 text-rose-700 border-rose-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsAiModalOpen(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
             >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              <span>{isKhmer ? 'បង្កើតការងារដោយ AI' : 'Generate with AI'}</span>
+            </button>
+
+            <div className="hidden sm:block">
               <span
-                className={`w-2 h-2 rounded-full ${jobStatus === 'published'
-                  ? 'bg-emerald-500'
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border shadow-2xs ${jobStatus === 'published'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : jobStatus === 'closed'
-                    ? 'bg-rose-500'
-                    : 'bg-amber-500'
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
-              />
-              <span>
-                {jobStatus === 'published'
-                  ? isKhmer
-                    ? 'ស្ថានភាព: ផ្សាយផ្ទាល់'
-                    : 'Status: Published'
-                  : jobStatus === 'closed'
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${jobStatus === 'published'
+                    ? 'bg-emerald-500'
+                    : jobStatus === 'closed'
+                      ? 'bg-rose-500'
+                      : 'bg-amber-500'
+                    }`}
+                />
+                <span>
+                  {jobStatus === 'published'
                     ? isKhmer
-                      ? 'ស្ថានភាព: បានបិទ'
-                      : 'Status: Closed'
-                    : isKhmer
-                      ? 'ស្ថានភាព: សេចក្តីព្រាង'
-                      : 'Status: Draft'}
+                      ? 'ស្ថានភាព: ផ្សាយផ្ទាល់'
+                      : 'Status: Published'
+                    : jobStatus === 'closed'
+                      ? isKhmer
+                        ? 'ស្ថានភាព: បានបិទ'
+                        : 'Status: Closed'
+                      : isKhmer
+                        ? 'ស្ថានភាព: សេចក្តីព្រាង'
+                        : 'Status: Draft'}
+                </span>
               </span>
-            </span>
+            </div>
           </div>
+        </div>
+
+        {/* AI Auto-Generate Prompt Banner */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-purple-50/90 border border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
+              <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900">
+                  {isKhmer ? 'បង្កើតការងារស្វ័យប្រវត្តិតាមរយៈ AI' : 'Auto-Generate Vacancy with AI'}
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white tracking-wide uppercase">
+                  AI Smart
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {isKhmer
+                  ? 'បញ្ចូល Prompt សង្ខេប (ឧ. មុខតំណែង បទពិសោធន៍ ប្រាក់ខែ) AI នឹងបង្កើតទិន្នន័យការងារ និងជំនាញទាំងអស់ដោយស្វ័យប្រវត្តិ។'
+                  : 'Enter a short prompt (e.g. role, experience, salary), and AI will draft full descriptions, requirements, and match skills automatically.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAiModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>{isKhmer ? 'សរសេរ Prompt បង្កើត' : 'Create with Prompt'}</span>
+          </button>
         </div>
 
         {/* Error Alert */}
@@ -483,7 +630,7 @@ export const EmployerJobCreatePage: React.FC = () => {
             <div className="space-y-1">
               <h4 className="font-bold text-amber-900 text-xs">
                 {isKhmer
-                  ? 'ក្រុមហ៊ុនកំពុងរង់ចាំការអនុម័តពី Admin (Awaiting Admin Confirmation)'
+                  ? 'ក្រុមហ៊ុនកំពុងរង់ចាំការអនុម័តពីអ្នកគ្រប់គ្រង'
                   : 'Company Awaiting Administrator Confirmation'}
               </h4>
               <p className="text-amber-800 leading-relaxed font-normal text-xs">
@@ -589,7 +736,7 @@ export const EmployerJobCreatePage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'ចំនួនជ្រើសរើស (Openings) *' : 'Vacancies Count *'}
+                {isKhmer ? 'ចំនួនជ្រើសរើស *' : 'Vacancies Count *'}
               </label>
               <input
                 type="number"
@@ -644,7 +791,7 @@ export const EmployerJobCreatePage: React.FC = () => {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-xs font-semibold text-slate-600">
-                  {isKhmer ? 'អាចចរចាបាន (Negotiable)' : 'Negotiable'}
+                  {isKhmer ? 'អាចចរចាបាន' : 'Negotiable'}
                 </span>
               </label>
             </div>
@@ -693,7 +840,7 @@ export const EmployerJobCreatePage: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'ការពិពណ៌នាអំពីការងារ (Job Description) *' : 'Job Description *'}
+                {isKhmer ? 'ការពិពណ៌នាអំពីការងារ *' : 'Job Description *'}
               </label>
               <textarea
                 required
@@ -707,7 +854,7 @@ export const EmployerJobCreatePage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'ការពិពណ៌នាជាភាសាខ្មែរ (Description in Khmer)' : 'Job Description (Khmer)'}
+                {isKhmer ? 'ការពិពណ៌នាជាភាសាខ្មែរ' : 'Job Description (Khmer)'}
               </label>
               <textarea
                 rows={4}
@@ -720,7 +867,7 @@ export const EmployerJobCreatePage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {isKhmer ? 'លក្ខខណ្ឌតម្រូវការងារ (Requirements & Qualifications)' : 'Requirements & Qualifications'}
+                {isKhmer ? 'លក្ខខណ្ឌតម្រូវការងារ' : 'Requirements & Qualifications'}
               </label>
               <textarea
                 rows={4}
@@ -738,7 +885,7 @@ export const EmployerJobCreatePage: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Tag className="w-3.5 h-3.5 text-blue-600" />
-                  <span>{isKhmer ? 'ជំនាញចាំបាច់ (Required Skills)' : 'Required Skills'}</span>
+                  <span>{isKhmer ? 'ជំនាញចាំបាច់' : 'Required Skills'}</span>
                 </label>
                 <p className="text-[11px] text-slate-400">
                   {isKhmer
@@ -841,7 +988,7 @@ export const EmployerJobCreatePage: React.FC = () => {
             {/* Popular Suggestions */}
             <div className="pt-2 border-t border-gray-200/60">
               <span className="block text-[11px] font-semibold text-slate-500 mb-2">
-                {isKhmer ? 'ជំនាញដែលពេញនិយម (Suggested Skills):' : 'Suggested Skills:'}
+                {isKhmer ? 'ជំនាញដែលពេញនិយម:' : 'Suggested Skills:'}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {POPULAR_SKILL_SUGGESTIONS.map((sug) => {
@@ -884,7 +1031,7 @@ export const EmployerJobCreatePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-slate-500" />
                 <label className="text-xs font-bold text-slate-800">
-                  {isKhmer ? 'ស្ថានភាពការងារ និងការផ្សាយជាសាធារណៈ (Publishing Status)' : 'Publishing Status & Visibility'}
+                  {isKhmer ? 'ស្ថានភាពការងារ និងការផ្សាយជាសាធារណៈ' : 'Publishing Status & Visibility'}
                 </label>
               </div>
               <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
@@ -1087,10 +1234,10 @@ export const EmployerJobCreatePage: React.FC = () => {
                       : 'Saving...'
                     : isEditMode
                       ? isKhmer
-                        ? 'រក្សាទុក & ផ្សាយផ្ទាល់ការងារ (Save & Post)'
+                        ? 'រក្សាទុក និងផ្សាយផ្ទាល់ការងារ'
                         : 'Save & Post Vacancy'
                       : isKhmer
-                        ? 'ចុះផ្សាយការងារឥឡូវនេះ (Publish Live)'
+                        ? 'ចុះផ្សាយការងារឥឡូវនេះ'
                         : 'Publish Vacancy Now'}
                 </span>
               </button>
@@ -1098,6 +1245,266 @@ export const EmployerJobCreatePage: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* ================= AI CREATE JOB MODAL ================= */}
+      <Dialog
+        isOpen={isAiModalOpen}
+        onClose={() => !isAiGenerating && setIsAiModalOpen(false)}
+        size="lg"
+        icon={<Sparkles className="w-5 h-5 text-indigo-600" />}
+        iconClassName="bg-indigo-50 border border-indigo-200/70"
+        title={
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-900 font-bold">
+              {isKhmer ? 'បង្កើតការងារដោយស្វ័យប្រវត្តិតាមរយៈ AI' : 'Create Job with AI Assistant'}
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 tracking-wide uppercase">
+              AI Smart
+            </span>
+          </div>
+        }
+        description={
+          isKhmer
+            ? 'គ្រាន់តែសរសេរ Prompt ឬចំណងជើងការងារ AI នឹងរៀបចំព័ត៌មានការងារ ប្រាក់ខែ កម្រិតបទពិសោធន៍ ជំនាញ និងលក្ខខណ្ឌទាំងអស់ដោយស្វ័យប្រវត្តិ។'
+            : 'Just write a prompt or job title. AI automatically infers role details, salary range, experience, workplace type, and matched skills.'
+        }
+        footer={
+          <div className="flex items-center justify-between gap-3 w-full">
+            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+              {isKhmer
+                ? 'ស្វ័យប្រវត្តិ 100% ពី Prompt របស់អ្នក'
+                : '100% automated from your prompt'}
+            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                type="button"
+                disabled={isAiGenerating}
+                onClick={() => setIsAiModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer disabled:opacity-50"
+              >
+                {isKhmer ? 'បោះបង់' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                disabled={isAiGenerating || !aiPrompt.trim()}
+                onClick={() => handleGenerateWithAi()}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAiGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <span>{isKhmer ? 'AI កំពុងរៀបចំ...' : 'Generating...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4 text-indigo-100" />
+                    <span>
+                      {aiGeneratedData
+                        ? isKhmer
+                          ? 'បង្កើតម្តងទៀត'
+                          : 'Regenerate'
+                        : isKhmer
+                        ? 'បង្កើតទិន្នន័យការងារដោយ AI'
+                        : 'Generate with AI'}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-4 font-sans">
+          {/* Prompt Input Card */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                <span>{isKhmer ? 'បញ្ចូល Prompt ឬចំណងជើងការងារ' : 'Enter Job Prompt or Title'}</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              {aiPrompt && !isAiGenerating && (
+                <button
+                  type="button"
+                  onClick={() => setAiPrompt('')}
+                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  <span>{isKhmer ? 'សម្អាត' : 'Clear'}</span>
+                </button>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-500/10 bg-white shadow-2xs overflow-hidden transition-all">
+              <textarea
+                rows={4}
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && aiPrompt.trim() && !isAiGenerating) {
+                    e.preventDefault()
+                    handleGenerateWithAi()
+                  }
+                }}
+                disabled={isAiGenerating}
+                placeholder={
+                  isKhmer
+                    ? 'ឧទាហរណ៍៖ Senior Full-Stack Developer (React & Python), បទពិសោធន៍ ៣ ឆ្នាំឡើង, ប្រាក់ខែ $1,500 - $2,500 នៅភ្នំពេញ, ពេញម៉ោង...'
+                    : 'e.g. Senior Full-Stack Developer with 3+ years experience in React & Python Django, $1,500 - $2,500 in Phnom Penh, hybrid...'
+                }
+                className="w-full px-4 pt-3.5 pb-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 font-medium leading-relaxed bg-transparent focus:outline-none resize-none"
+              />
+              <div className="px-4 py-2 bg-slate-50/75 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                <span>
+                  {isKhmer
+                    ? 'AI នឹងកំណត់ចំណងជើង ប្រាក់ខែ ជំនាញ និងលក្ខខណ្ឌដោយស្វ័យប្រវត្តិ'
+                    : 'Auto-detects title, salary, level, workplace & skills'}
+                </span>
+                <span className="hidden sm:inline text-[10px] font-semibold text-slate-400">
+                  Ctrl + Enter
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Prompt Templates */}
+          <div className="p-3.5 rounded-2xl bg-slate-50/75 border border-slate-200/80 space-y-2.5">
+            <span className="block text-xs font-bold text-slate-700">
+              {isKhmer ? 'គំរូ Prompt រហ័ស (ចុចដើម្បីបង្កើតភ្លាមៗ)' : 'Quick AI Prompts (Click to generate)'}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {AI_SAMPLE_PROMPTS.map((sample, idx) => {
+                const isSelected = aiPrompt === sample.prompt
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isAiGenerating}
+                    onClick={() => {
+                      setAiPrompt(sample.prompt)
+                      handleGenerateWithAi(sample.prompt)
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer disabled:opacity-50 ${
+                      isSelected
+                        ? 'bg-indigo-50 text-indigo-700 border-indigo-300 shadow-2xs'
+                        : 'bg-white hover:bg-indigo-50/60 text-slate-700 hover:text-indigo-700 border-slate-200/90 hover:border-indigo-200 shadow-2xs'
+                    }`}
+                  >
+                    {isKhmer ? sample.title_km : sample.title_en}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Generating Shimmer Indicator */}
+          {isAiGenerating && (
+            <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-200/70 flex items-center gap-3 animate-pulse">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                <Loader2 className="w-4 h-4 animate-spin" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-900">
+                  {isKhmer ? 'AI កំពុងវិភាគ Prompt និងបង្កើតព័ត៌មានការងារ...' : 'AI is analyzing your prompt & crafting the job post...'}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {isKhmer ? 'សូមរង់ចាំបន្តិច' : 'Structuring responsibilities, skills, and market salary range'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Error inside modal */}
+          {aiError && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-medium text-rose-700 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>{aiError}</span>
+            </div>
+          )}
+
+          {/* AI Result Preview Card */}
+          {aiGeneratedData && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-indigo-200/80 space-y-3.5 shadow-2xs animate-in fade-in duration-200">
+              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/80">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs font-bold text-slate-900">
+                    {isKhmer ? 'លទ្ធផលបង្កើតដោយ AI (សូមត្រួតពិនិត្យ)' : 'AI Generated Preview'}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {isKhmer ? 'រួចរាល់' : 'Ready to Apply'}
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-sm sm:text-base font-extrabold text-slate-900">{aiGeneratedData.title}</h4>
+                {aiGeneratedData.title_km && (
+                  <p className="text-xs font-medium text-slate-600 mt-0.5">{aiGeneratedData.title_km}</p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                {aiGeneratedData.salary_min != null && (
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                    ${aiGeneratedData.salary_min} - ${aiGeneratedData.salary_max || aiGeneratedData.salary_min} USD
+                  </span>
+                )}
+                {aiGeneratedData.workplace_type && (
+                  <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-semibold capitalize">
+                    {aiGeneratedData.workplace_type.replace('_', ' ')}
+                  </span>
+                )}
+                {aiGeneratedData.experience_level && (
+                  <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold capitalize">
+                    {aiGeneratedData.experience_level}
+                  </span>
+                )}
+                {aiGeneratedData.province && (
+                  <span className="px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 font-semibold">
+                    {aiGeneratedData.province}
+                  </span>
+                )}
+              </div>
+
+              {Array.isArray(aiGeneratedData.recommended_skills) && aiGeneratedData.recommended_skills.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-slate-700 block">
+                    {isKhmer ? 'ជំនាញដែលបានផ្គូផ្គង៖' : 'Matched Skills:'}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {aiGeneratedData.recommended_skills.map((s: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-0.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-[11px] font-semibold"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2.5 flex items-center justify-end gap-2 border-t border-slate-200/80">
+                <button
+                  type="button"
+                  onClick={() => setAiGeneratedData(null)}
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  {isKhmer ? 'បដិសេធ' : 'Discard'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyAiData}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isKhmer ? 'អនុវត្តទៅលើទម្រង់ការងារ' : 'Apply to Form'}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Dialog>
     </div>
   )
 }

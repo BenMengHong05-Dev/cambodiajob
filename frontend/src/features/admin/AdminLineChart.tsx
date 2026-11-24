@@ -206,7 +206,7 @@ export const AdminLineChart: React.FC<AdminLineChartProps> = ({ analytics }) => 
                 y1={tick.y}
                 x2={width - padRight}
                 y2={tick.y}
-                stroke="#e2e8f0"
+                className="stroke-slate-200 dark:stroke-slate-700/70"
                 strokeDasharray="4 4"
                 strokeWidth="1"
               />

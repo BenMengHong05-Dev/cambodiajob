@@ -13,6 +13,8 @@ class CompanySerializer(serializers.Serializer):
     province = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     city = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     address = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    national_id_card = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    business_license_no = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     verification_status = serializers.CharField(read_only=True)
     verified_at = serializers.DateTimeField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)

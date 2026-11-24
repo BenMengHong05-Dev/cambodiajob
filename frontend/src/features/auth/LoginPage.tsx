@@ -295,8 +295,47 @@ export const LoginPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Quick Demo Credentials Autofill */}
+            <div className="pt-3 border-t border-gray-100">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 text-center">
+                {isKhmer ? 'ចុចដើម្បីបំពេញគណនីសាកល្បង (Demo Logins)' : 'Quick Fill Test Accounts (Password: 123456)'}
+              </span>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('admin@gmail.com')
+                    setPassword('123456')
+                  }}
+                  className="px-2 py-1.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 text-blue-700 text-[11px] font-semibold transition cursor-pointer text-center"
+                >
+                  Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('hr@gmail.com')
+                    setPassword('123456')
+                  }}
+                  className="px-2 py-1.5 rounded-xl border border-sky-200 bg-sky-50/60 hover:bg-sky-100/70 text-sky-700 text-[11px] font-semibold transition cursor-pointer text-center"
+                >
+                  Employer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('jobseeker@gmail.com')
+                    setPassword('123456')
+                  }}
+                  className="px-2 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/70 text-emerald-700 text-[11px] font-semibold transition cursor-pointer text-center"
+                >
+                  Seeker
+                </button>
+              </div>
+            </div>
+
             {/* Switch to Register */}
-            <div className="pt-4 border-t border-gray-100 text-center text-xs text-slate-500">
+            <div className="pt-3 border-t border-gray-100 text-center text-xs text-slate-500">
               {t('auth.noAccount')}{' '}
               <Link
                 to="/register"

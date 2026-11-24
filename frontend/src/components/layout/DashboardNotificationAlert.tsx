@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../services/api'
+import {
+  NotificationDetailDialog,
+  NotificationItem,
+} from './NotificationDetailDialog'
 import {
   Bell,
   Calendar,
@@ -24,10 +28,12 @@ export const DashboardNotificationAlert: React.FC<DashboardNotificationAlertProp
 }) => {
   const { i18n } = useTranslation()
   const isKhmer = i18n.language === 'km'
+  const navigate = useNavigate()
 
-  const [latestNotification, setLatestNotification] = useState<any | null>(null)
+  const [latestNotification, setLatestNotification] = useState<NotificationItem | null>(null)
   const [unreadCount, setUnreadCount] = useState<number>(0)
   const [isDismissed, setIsDismissed] = useState<boolean>(false)
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -124,34 +130,67 @@ export const DashboardNotificationAlert: React.FC<DashboardNotificationAlertProp
 
         {/* Action Button & Dismiss */}
         <div className="flex items-center space-x-2 shrink-0 self-end sm:self-auto">
-          <Link
-            to={
-              isInterviewAlert
-                ? '/seeker/applications'
-                : role === 'employer'
-                ? '/employer/applications'
-                : '/seeker/notifications'
-            }
-            className={`inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition ${
-              isInterviewAlert
-                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
-                : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
-            }`}
-          >
-            <span>{isKhmer ? 'មើលព័ត៌មានលម្អិត' : 'View Details'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          {latestNotification ? (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!latestNotification.is_read) {
+                  try {
+                    await api.patch(`/notifications/${latestNotification.id}/read/`)
+                    setUnreadCount((prev) => Math.max(0, prev - 1))
+                  } catch (err) {
+                    // Ignore
+                  }
+                }
+                setIsDialogOpen(true)
+              }}
+              className={`inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition cursor-pointer active:scale-95 ${
+                isInterviewAlert
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+              }`}
+            >
+              <span>{isKhmer ? 'មើលព័ត៌មានលម្អិត' : 'View Details'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <Link
+              to={
+                isInterviewAlert
+                  ? '/seeker/applications'
+                  : role === 'employer'
+                  ? '/employer/applications'
+                  : '/seeker/notifications'
+              }
+              className={`inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition ${
+                isInterviewAlert
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
+                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+              }`}
+            >
+              <span>{isKhmer ? 'មើលព័ត៌មានលម្អិត' : 'View Details'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          )}
 
           <button
             type="button"
             onClick={() => setIsDismissed(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-black/5 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-black/5 transition cursor-pointer"
             title={isKhmer ? 'បិទ' : 'Dismiss'}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       </div>
+
+      {/* Notification Detail Dialog Modal */}
+      <NotificationDetailDialog
+        notification={latestNotification}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        role={role}
+      />
     </div>
   )
 }

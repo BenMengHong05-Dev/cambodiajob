@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import NotFound, ValidationError
 
-from common.permissions import IsAdmin
+from common.permissions import HasCustomPermission
 from common.database import fetch_all, fetch_one, execute_insert, execute_sql, atomic_transaction
 from .serializers import JobCategoryCreateUpdateSerializer
 
@@ -31,7 +31,7 @@ def generate_unique_slug(name_en: str, current_id: int = None) -> str:
 class CategoryListView(APIView):
     def get_permissions(self):
         if self.request.method == "POST":
-            return [IsAdmin()]
+            return [HasCustomPermission.with_perm("categories:manage")()]
         return [AllowAny()]
 
     def get(self, request):
@@ -120,7 +120,7 @@ class CategoryListView(APIView):
 class CategoryDetailView(APIView):
     def get_permissions(self):
         if self.request.method in ["PUT", "PATCH", "DELETE"]:
-            return [IsAdmin()]
+            return [HasCustomPermission.with_perm("categories:manage")()]
         return [AllowAny()]
 
     def get(self, request, pk):

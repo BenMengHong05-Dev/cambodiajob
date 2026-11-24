@@ -6,6 +6,7 @@ import { Job, JobCategory, ProvinceItem } from '../../types'
 import { useAuth, usePreferences, useToast } from '../../app/providers'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import { Select } from '../../components/ui'
 import { TablePagination } from '../../components/common/TablePagination'
 import {
@@ -362,7 +363,7 @@ export const JobsPage: React.FC = () => {
                 ? 'bg-blue-600 text-white shadow-xs font-bold'
                 : 'text-slate-400 hover:text-slate-700'
                 }`}
-              title={isKhmer ? 'ទិដ្ឋភាពតារាង (List Table)' : 'List Table View'}
+              title={isKhmer ? 'ទិដ្ឋភាពតារាង' : 'List Table View'}
               aria-label="Table view"
             >
               <List className="w-4 h-4" />
@@ -377,7 +378,7 @@ export const JobsPage: React.FC = () => {
                 ? 'bg-blue-600 text-white shadow-xs font-bold'
                 : 'text-slate-400 hover:text-slate-700'
                 }`}
-              title={isKhmer ? 'ទិដ្ឋភាពក្រឡា (Grid Cards)' : 'Grid Cards View'}
+              title={isKhmer ? 'ទិដ្ឋភាពក្រឡា' : 'Grid Cards View'}
               aria-label="Grid view"
             >
               <LayoutGrid className="w-4 h-4" />
@@ -536,8 +537,8 @@ export const JobsPage: React.FC = () => {
               {[
                 { id: '', label: isKhmer ? 'ទាំងអស់' : 'All' },
                 { id: 'on_site', label: isKhmer ? 'នៅកន្លែងធ្វើការ' : 'On-site' },
-                { id: 'hybrid', label: isKhmer ? 'កូនកាត់ (Hybrid)' : 'Hybrid' },
-                { id: 'remote', label: isKhmer ? 'ពីចម្ងាយ (Remote)' : 'Remote' },
+                { id: 'hybrid', label: isKhmer ? 'កូនកាត់' : 'Hybrid' },
+                { id: 'remote', label: isKhmer ? 'ពីចម្ងាយ' : 'Remote' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -953,9 +954,7 @@ export const JobsPage: React.FC = () => {
                               {job.company_name}
                             </span>
                             {job.company_verification === 'verified' && (
-                              <span title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Company'}>
-                                <ShieldCheck className="w-3.5 h-3.5 text-blue-600 fill-blue-50 shrink-0" />
-                              </span>
+                              <FacebookVerifiedBadge className="w-3.5 h-3.5 shrink-0" title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Company'} />
                             )}
                           </div>
                         </div>
@@ -1082,8 +1081,8 @@ export const JobsPage: React.FC = () => {
 
       {/* Job Alert Subscription Modal */}
       {isJobAlertOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 text-slate-900 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2.5">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 border border-gray-200 text-blue-600 flex items-center justify-center">
@@ -1153,8 +1152,8 @@ export const JobsPage: React.FC = () => {
                   onChange={(e) => setAlertFrequency(e.target.value)}
                   className="w-full text-xs p-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition shadow-2xs"
                 >
-                  <option value="daily">{isKhmer ? 'រៀងរាល់ថ្ងៃ (Daily)' : 'Daily digest'}</option>
-                  <option value="weekly">{isKhmer ? 'រៀងរាល់សប្តាហ៍ (Weekly)' : 'Weekly digest'}</option>
+                  <option value="daily">{isKhmer ? 'រៀងរាល់ថ្ងៃ' : 'Daily digest'}</option>
+                  <option value="weekly">{isKhmer ? 'រៀងរាល់សប្តាហ៍' : 'Weekly digest'}</option>
                 </select>
               </div>
 

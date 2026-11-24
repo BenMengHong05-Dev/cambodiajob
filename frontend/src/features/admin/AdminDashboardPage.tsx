@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
 import { AdminLineChart } from './AdminLineChart'
 import { StatCard } from '../../components/dashboard/StatCard'
-import { QuickActions } from '../../components/dashboard/QuickActions'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
+import { PermissionGuard } from '../../components/auth/PermissionGuard'
+import { PERMISSIONS, getSystemRoleLabel } from '../../utils/permissions'
 import { getAssetUrl } from '../../utils/assets'
 import {
   Users,
@@ -15,13 +18,24 @@ import {
   AlertTriangle,
   ArrowRight,
   History,
-  Layers,
   Plus,
+  CheckCircle2,
+  Video,
+  TrendingUp,
+  Award,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react'
 
 export const AdminDashboardPage: React.FC = () => {
+  const { user, isSuperAdmin } = useAuth()
   const { i18n } = useTranslation()
   const isKhmer = i18n.language === 'km'
+
+  const primaryRoleKey =
+    user?.id === 1 || user?.roles?.includes('super_admin')
+      ? 'super_admin'
+      : user?.roles?.[0] || user?.role || 'admin'
 
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -128,20 +142,129 @@ export const AdminDashboardPage: React.FC = () => {
   const pendingReviewTotal =
     (stats.pending_verifications || 0) + (stats.pending_moderation_jobs || 0)
 
+  const formatAuditLabel = (log: any) => {
+    const action = (log.action || '').toLowerCase()
+    const target = log.target_name || (log.entity_id ? `#${log.entity_id}` : '')
+    const map: Record<string, { en: string; km: string }> = {
+      verify_company: { en: 'Verified company', km: 'បានផ្ទៀងផ្ទាត់ក្រុមហ៊ុន' },
+      approve_company: { en: 'Approved company', km: 'បានអនុម័តក្រុមហ៊ុន' },
+      reject_company: { en: 'Rejected company', km: 'បានបដិសេធក្រុមហ៊ុន' },
+      moderate_job: { en: 'Moderated job', km: 'បានត្រួតពិនិត្យការងារ' },
+      approve_job: { en: 'Approved job', km: 'បានអនុម័តការងារ' },
+      reject_job: { en: 'Rejected job', km: 'បានបដិសេធការងារ' },
+      feature_job: { en: 'Featured job', km: 'បានដាក់ការងារពិសេស' },
+      create_user: { en: 'Created user', km: 'បានបង្កើតគណនី' },
+      update_user: { en: 'Updated user', km: 'បានកែប្រែគណនី' },
+      update_user_roles: { en: 'Updated user role/perms', km: 'បានកែប្រែតួនាទី និងសិទ្ធិ' },
+      toggle_user_status: { en: 'Toggled user status', km: 'បានប្តូរស្ថានភាពគណនី' },
+      delete_user: { en: 'Deleted user', km: 'បានលុបគណនី' },
+      create_role: { en: 'Created role', km: 'បានបង្កើតតួនាទី' },
+      delete_role: { en: 'Deleted role', km: 'បានលុបតួនាទី' },
+      update_role_permissions: { en: 'Updated role permissions', km: 'បានកែប្រែសិទ្ធិតួនាទី' },
+      update_settings: { en: 'Updated settings', km: 'បានកែប្រែការកំណត់ប្រព័ន្ធ' },
+      create_category: { en: 'Created category', km: 'បានបង្កើតផ្នែកការងារ' },
+      update_category: { en: 'Updated category', km: 'បានកែប្រែផ្នែកការងារ' },
+      delete_category: { en: 'Deleted category', km: 'បានលុបផ្នែកការងារ' },
+    }
+    const entry = map[action]
+    const baseText = entry
+      ? isKhmer
+        ? entry.km
+        : entry.en
+      : action.replace(/_/g, ' ')
+    return target ? `${baseText}: ${target}` : baseText
+  }
+
   return (
     <div className="relative w-full space-y-4 sm:space-y-5 font-sans pb-16">
-      {/* Ambient glowing mesh backdrop for glassmorphism refraction */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
-        <div
-          className="absolute -top-24 right-1/4 w-[480px] h-[480px] bg-gradient-to-br from-blue-200/40 via-indigo-200/25 to-transparent rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '8s' }}
-        />
-        <div className="absolute top-[380px] -left-20 w-[420px] h-[420px] bg-gradient-to-tr from-sky-200/35 via-blue-100/25 to-transparent rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-tl from-indigo-100/35 via-purple-100/20 to-transparent rounded-full blur-3xl" />
+      {/* 1. Executive Admin Command Header */}
+      <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+              <span>
+                {isSuperAdmin
+                  ? getSystemRoleLabel('super_admin', isKhmer)
+                  : getSystemRoleLabel(primaryRoleKey, isKhmer)}
+              </span>
+            </span>
+            <span className="text-[11px] font-medium text-slate-400">
+              {new Date().toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight truncate">
+            {isKhmer
+              ? `សួស្តី ${user?.full_name || 'អ្នកគ្រប់គ្រង'} — មជ្ឈមណ្ឌលគ្រប់គ្រងប្រព័ន្ធ`
+              : `Welcome back, ${user?.full_name || 'Administrator'}`}
+          </h1>
+          <p className="text-xs text-slate-500">
+            {isKhmer
+              ? 'តាមដានទិដ្ឋភាពទូទៅ ការផ្ទៀងផ្ទាត់ក្រុមហ៊ុន ការត្រួតពិនិត្យការងារ និងសុវត្ថិភាពតួនាទី'
+              : 'Monitor platform growth, enterprise verifications, job moderation, and RBAC security'}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <PermissionGuard permission={PERMISSIONS.VERIFY_COMPANIES}>
+            <Link
+              to="/admin/companies"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 border border-slate-200 text-xs font-semibold shadow-2xs transition"
+            >
+              <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន' : 'Verify Companies'}</span>
+              {(stats.pending_verifications || 0) > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                  {stats.pending_verifications}
+                </span>
+              )}
+            </Link>
+          </PermissionGuard>
+
+          <PermissionGuard permission={PERMISSIONS.MODERATE_JOBS}>
+            <Link
+              to="/admin/jobs"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 border border-slate-200 text-xs font-semibold shadow-2xs transition"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-sky-600" />
+              <span>{isKhmer ? 'ត្រួតពិនិត្យការងារ' : 'Moderate Jobs'}</span>
+              {(stats.pending_moderation_jobs || 0) > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                  {stats.pending_moderation_jobs}
+                </span>
+              )}
+            </Link>
+          </PermissionGuard>
+
+          <PermissionGuard permission={PERMISSIONS.MANAGE_USERS}>
+            <Link
+              to="/admin/users"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>{isKhmer ? 'អ្នកប្រើ និងតួនាទី' : 'Users & Roles'}</span>
+            </Link>
+          </PermissionGuard>
+
+          <button
+            type="button"
+            onClick={() => loadDashboard(true)}
+            disabled={isRefreshing}
+            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh dashboard'}
+            className="p-2 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-2xs transition cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* 2. Glassmorphic Four Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      {/* 2. Consolidated 6 Executive KPI Metric Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* Metric 1: Total Users */}
         <StatCard
           to="/admin/users"
@@ -150,6 +273,14 @@ export const AdminDashboardPage: React.FC = () => {
           icon={Users}
           accent="blue"
           badge={isKhmer ? 'គណនី' : 'Accounts'}
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'គណនីប្រព័ន្ធ' : 'Accounts'}</span>
+              <span className="text-blue-600 text-[10px] font-semibold shrink-0">
+                {isKhmer ? 'សកម្ម' : 'Active'}
+              </span>
+            </div>
+          }
         />
 
         {/* Metric 2: Registered Companies */}
@@ -160,48 +291,105 @@ export const AdminDashboardPage: React.FC = () => {
           icon={Building2}
           accent="indigo"
           badge={isKhmer ? 'សហគ្រាស' : 'Companies'}
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'សហគ្រាសដៃគូ' : 'Partners'}</span>
+              <span className="text-indigo-600 text-[10px] font-semibold shrink-0">
+                {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Verified'}
+              </span>
+            </div>
+          }
         />
 
-        {/* Metric 3: Published Live Jobs */}
+        {/* Metric 3: Published Jobs & Moderation Queue (Combines Published Jobs + Pending Review) */}
         <StatCard
           to="/admin/jobs"
-          label={isKhmer ? 'ការងារផ្សាយសកម្ម' : 'Published Jobs'}
+          label={isKhmer ? 'ការងារផ្សាយ & ពិនិត្យ' : 'Published & Review'}
           value={stats.published_jobs || 0}
           icon={Briefcase}
           accent="sky"
-          badge={isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live now'}
-          tone="success"
+          badge={
+            pendingReviewTotal > 0 ? (
+              <span className="text-amber-700 font-medium">
+                {pendingReviewTotal} {isKhmer ? 'រង់ចាំ' : 'Pending'}
+              </span>
+            ) : (
+              isKhmer ? 'ផ្សាយផ្ទាល់' : 'Live now'
+            )
+          }
+          tone={pendingReviewTotal > 0 ? 'warning' : 'success'}
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'រង់ចាំពិនិត្យ' : 'Pending'}</span>
+              <span
+                className={`font-semibold text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                  pendingReviewTotal > 0
+                    ? 'text-amber-700 bg-amber-50 border border-amber-200'
+                    : 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                }`}
+              >
+                {pendingReviewTotal > 0
+                  ? `${pendingReviewTotal}`
+                  : (isKhmer ? '0 (រួចរាល់)' : '0 Clear')}
+              </span>
+            </div>
+          }
         />
 
-        {/* Metric 4: Moderation Queue */}
+        {/* Metric 4: Completed Placements & Success Rate (Combines Completed Applications + Placement Rate) */}
         <StatCard
-          to="/admin/companies"
-          label={isKhmer ? 'រង់ចាំការត្រួតពិនិត្យ' : 'Pending Review'}
-          value={pendingReviewTotal}
-          icon={AlertCircle}
-          accent={pendingReviewTotal > 0 ? 'amber' : 'blue'}
-          valueClassName={pendingReviewTotal > 0 ? 'text-amber-600' : undefined}
-          tone={pendingReviewTotal > 0 ? 'warning' : 'neutral'}
-          badge={pendingReviewTotal > 0 ? (isKhmer ? 'ត្រូវការពិនិត្យ' : 'Queue') : (isKhmer ? 'រួចរាល់' : 'Clear')}
+          label={isKhmer ? 'ពាក្យសុំជោគជ័យ' : 'Completed Placements'}
+          value={stats.completed_applications || 0}
+          icon={CheckCircle2}
+          accent="emerald"
+          badge={isKhmer ? 'ផ្តល់ការងារ' : 'Offered'}
+          tone="success"
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'អត្រាជោគជ័យ' : 'Success'}</span>
+              <span className="font-bold text-emerald-700 text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                {stats.placement_rate || 0}%
+              </span>
+            </div>
+          }
+        />
+
+        {/* Metric 5: Total Applications */}
+        <StatCard
+          label={isKhmer ? 'ពាក្យសុំការងារសរុប' : 'Total Applications'}
+          value={stats.total_applications || 0}
+          icon={FileCheck}
+          accent="indigo"
+          badge={isKhmer ? 'ដាក់ពាក្យ' : 'Candidates'}
+          tone="info"
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'បេក្ខជនសរុប' : 'Submissions'}</span>
+              <span className="text-slate-400 text-[10px] font-semibold shrink-0">
+                {isKhmer ? 'សរុប' : 'Total'}
+              </span>
+            </div>
+          }
+        />
+
+        {/* Metric 6: Total Interviews Conducted */}
+        <StatCard
+          label={isKhmer ? 'ការសម្ភាសន៍សរុប' : 'Total Interviews'}
+          value={stats.total_interviews || 0}
+          icon={Video}
+          accent="purple"
+          badge={isKhmer ? 'សម្ភាសន៍' : 'Scheduled'}
+          tone="info"
+          subtext={
+            <div className="flex items-center justify-between w-full">
+              <span className="truncate">{isKhmer ? 'សម្ភាសន៍ Meet' : 'Google Meet'}</span>
+              <span className="text-purple-600 text-[10px] font-semibold shrink-0">
+                {isKhmer ? 'តាម Meet' : 'Meet'}
+              </span>
+            </div>
+          }
         />
       </div>
-
-      {/* 2.5 Quick Action Hub */}
-      <QuickActions
-        hint={isKhmer ? 'ទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាពផ្ទាល់' : 'Synced with MySQL Database'}
-        actions={[
-          {
-            to: '/admin/categories',
-            label: isKhmer ? 'ផ្នែកការងារ & បង្កើត' : 'Job Categories',
-            icon: Layers,
-            badge: stats.total_categories || 12,
-          },
-          { to: '/admin/users', label: isKhmer ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់' : 'Users & Roles', icon: Users },
-          { to: '/admin/companies', label: isKhmer ? 'ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន' : 'Verify Companies', icon: Building2 },
-          { to: '/admin/jobs', label: isKhmer ? 'ត្រួតពិនិត្យការងារ' : 'Moderate Jobs', icon: Briefcase },
-          { to: '/admin/audit', label: isKhmer ? 'កំណត់ហេតុ Audit' : 'Audit Trail', icon: History },
-        ]}
-      />
 
       {/* 3. Attention Alert Banner if pending items exist */}
       {pendingReviewTotal > 0 && (
@@ -418,11 +606,19 @@ export const AdminDashboardPage: React.FC = () => {
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <span className="font-bold text-slate-900 group-hover:text-blue-600 transition block truncate max-w-[130px]">
-                                  {comp.name}
-                                </span>
-                                <span className="text-[10px] text-slate-400 block truncate max-w-[130px]">
-                                  {comp.industry || 'Enterprise'}
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-slate-900 group-hover:text-blue-600 transition block truncate max-w-[125px]">
+                                    {comp.name}
+                                  </span>
+                                  {isVerified && (
+                                    <FacebookVerifiedBadge
+                                      className="w-3.5 h-3.5"
+                                      title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Organization'}
+                                    />
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-slate-400 block truncate max-w-[140px]">
+                                  {comp.industry || (isKhmer ? 'សហគ្រាស' : 'Enterprise')}
                                 </span>
                               </div>
                             </div>
@@ -493,22 +689,20 @@ export const AdminDashboardPage: React.FC = () => {
                   {isKhmer ? 'មិនទាន់មានកំណត់ហេតុសកម្មភាពទេ' : 'No audit entries recorded.'}
                 </div>
               ) : (
-                recentAuditLogs.slice(0, 4).map((log: any) => (
+                recentAuditLogs.slice(0, 5).map((log: any) => (
                   <div
                     key={log.id}
                     className="p-2.5 rounded-xl bg-white/70 hover:bg-white/90 border border-white/80 shadow-2xs transition-all flex items-center justify-between gap-2 text-xs"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center space-x-1.5">
-                        <span className="font-semibold text-[11px] text-slate-800 capitalize truncate">
-                          {log.action?.replace(/_/g, ' ')}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          ({log.entity_type})
+                        <span className="font-semibold text-[11px] text-slate-800 truncate">
+                          {formatAuditLabel(log)}
                         </span>
                       </div>
                       <span className="text-[10px] text-slate-500 block truncate mt-0.5">
-                        By {log.user_name || log.user_email || 'Super Admin'}
+                        {isKhmer ? 'ដោយ ' : 'By '}
+                        {log.user_name || log.user_email || (isKhmer ? 'អ្នកគ្រប់គ្រង' : 'Administrator')}
                       </span>
                     </div>
 

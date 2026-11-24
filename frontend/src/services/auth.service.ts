@@ -71,6 +71,16 @@ export const authService = {
     return res.data.data
   },
 
+  async updateMe(payload: { full_name?: string; phone_number?: string }): Promise<User> {
+    const res = await api.patch<ApiResponse<User>>('/auth/me/', payload)
+    return res.data.data
+  },
+
+  async changePassword(payload: { current_password: string; new_password: string }): Promise<{ success: boolean; message: string }> {
+    const res = await api.post<{ success: boolean; message: string }>('/auth/change-password/', payload)
+    return res.data
+  },
+
   async logout(): Promise<void> {
     const refresh = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
     try {

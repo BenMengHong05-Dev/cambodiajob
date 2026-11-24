@@ -20,8 +20,23 @@ def custom_exception_handler(exc, context):
             "details": response.data,
             "status_code": response.status_code,
         }
-        if isinstance(response.data, dict) and "detail" in response.data:
-            custom_data["error"] = str(response.data["detail"])
+        if isinstance(response.data, dict):
+            if "detail" in response.data:
+                custom_data["error"] = str(response.data["detail"])
+            elif "message" in response.data:
+                custom_data["error"] = str(response.data["message"])
+            elif "error" in response.data:
+                custom_data["error"] = str(response.data["error"])
+            else:
+                for k, v in response.data.items():
+                    if isinstance(v, list) and v:
+                        custom_data["error"] = str(v[0])
+                        break
+                    elif isinstance(v, str):
+                        custom_data["error"] = v
+                        break
+        elif isinstance(response.data, list) and response.data:
+            custom_data["error"] = str(response.data[0])
         elif isinstance(response.data, str):
             custom_data["error"] = response.data
 

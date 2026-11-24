@@ -40,8 +40,8 @@ export const AIAgentChatModal: React.FC<AIAgentChatModalProps> = ({ isOpen, onCl
       suggested_actions: [
         isKhmer ? '🎯 ការងារ IT នៅភ្នំពេញ' : '🎯 Tech jobs in Phnom Penh',
         isKhmer ? '📊 តារាងប្រាក់ខែទីផ្សារកម្ពុជា' : '📊 Salary Benchmark Chart',
-        isKhmer ? '📧 ជំនួយការគាំទ្រ (Email)' : '📧 Email Support',
-        isKhmer ? '🏢 របៀបផុសការងារ (Employer)' : '🏢 How to post a job',
+        isKhmer ? '📧 ជំនួយការគាំទ្រ' : '📧 Email Support',
+        isKhmer ? '🏢 របៀបផុសការងារ' : '🏢 How to post a job',
       ],
     },
   ]
@@ -111,12 +111,18 @@ export const AIAgentChatModal: React.FC<AIAgentChatModalProps> = ({ isOpen, onCl
       }
 
       setMessages((prev) => [...prev, agentMsg])
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI chat error:', error)
+      const isRateLimit = error?.response?.status === 429
+      const retryAfter = error?.response?.data?.retry_after
       const errorMsg: AIChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'agent',
-        text: isKhmer
+        text: isRateLimit
+          ? isKhmer
+            ? `⚠️ អ្នកបានផ្ញើសំណើញឹកញាប់ពេក (ប្រព័ន្ធកំណត់ត្រឹម ១០ សំណើក្នុង ១ នាទីដើម្បីការពារ Spam)។ ${retryAfter ? `សូមរង់ចាំប្រហែល ${retryAfter} វិនាទី!` : 'សូមរង់ចាំមួយភ្លែតសិន!'}`
+            : `⚠️ Rate limit reached: Maximum 10 requests per minute to prevent spam. ${retryAfter ? `Please wait about ${retryAfter}s before trying again!` : 'Please wait a moment!'}`
+          : isKhmer
           ? 'សូមអភ័យទោស ប្រព័ន្ធមានបញ្ហាក្នុងការតភ្ជាប់បណ្តោះអាសន្ន។ សូមព្យាយាមម្តងទៀត!'
           : 'Sorry, I encountered a temporary connection issue. Please try again!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

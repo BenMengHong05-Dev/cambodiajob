@@ -46,3 +46,14 @@ class NotificationMarkAllReadView(APIView):
     def post(self, request):
         return self.patch(request)
 
+
+class NotificationDetailView(APIView):
+    permission_classes = [IsAuthenticatedCustom]
+
+    def delete(self, request, pk):
+        execute_sql(
+            "DELETE FROM notifications WHERE id = %s AND user_id = %s",
+            [pk, request.user.id],
+        )
+        return Response({"success": True, "message": "Notification deleted."})
+

@@ -171,24 +171,27 @@ export const Select: React.FC<SelectProps> = ({
   }[size]
 
   const optionPadding = {
-    sm: 'px-3 py-1.5 text-xs rounded-lg',
-    md: 'px-3 py-2 text-xs sm:text-sm rounded-xl',
-    lg: 'px-4 py-2.5 text-sm rounded-xl',
+    sm: 'px-2.5 py-1.5 text-xs rounded-lg',
+    md: 'px-3 py-2 text-xs sm:text-sm rounded-lg',
+    lg: 'px-3.5 py-2.5 text-sm rounded-xl',
   }[size]
 
-  const popoverAlign = align === 'right' ? 'right-0 left-auto min-w-[220px]' : 'left-0 min-w-full sm:min-w-[260px]'
+  const popoverAlign =
+    align === 'right'
+      ? 'right-0 left-auto min-w-full w-max max-w-[min(92vw,360px)]'
+      : 'left-0 w-full min-w-full'
 
-  // Flat Design Trigger styling matching Input & Textarea - stable color when open
+  // Stable trigger styling matching Input & Textarea - keep button appearance unchanged when open
   const triggerBg = isGlass
     ? 'bg-white/10 border-white/20 text-white hover:bg-white/15 backdrop-blur-md'
     : isDark
       ? 'bg-slate-900 border-slate-700 text-white hover:border-slate-600'
-      : 'bg-slate-50 border-gray-200 text-slate-900 hover:bg-slate-100/60 hover:border-gray-300'
+      : 'bg-slate-50/75 border-slate-200/90 text-slate-900 hover:bg-slate-100/60 hover:border-slate-300 shadow-2xs'
 
   // Crisp elevated popover surface with defined border & depth
   const popoverBg = isDark
     ? 'bg-slate-900 border border-slate-700 text-white shadow-xl'
-    : 'bg-white border border-gray-200 text-slate-900 shadow-2xl'
+    : 'bg-white border border-slate-200/90 text-slate-900 shadow-xl shadow-slate-900/10'
 
   return (
     <div className={`w-full space-y-1.5 font-sans relative ${isOpen ? 'z-[9999]' : 'z-10'} ${className}`} ref={containerRef}>
@@ -249,18 +252,18 @@ export const Select: React.FC<SelectProps> = ({
 
         {/* Chevron Arrow */}
         <ChevronDown
-          className={`${chevronSize} shrink-0 ${
-            isDark || isGlass ? 'text-slate-300' : 'text-slate-400'
-          }`}
+          className={`${chevronSize} shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          } ${isDark || isGlass ? 'text-slate-300' : 'text-slate-400'}`}
         />
       </div>
 
-      {/* HeroUI Dropdown Popover Listbox */}
+      {/* Dropdown Popover Listbox */}
       {isOpen && (
         <div
           role="listbox"
           style={{ backgroundColor: isDark ? undefined : '#ffffff', opacity: 1 }}
-          className={`absolute ${popoverAlign} mt-1.5 max-h-72 flex flex-col rounded-2xl border p-1.5 z-[9999] select-popover shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${popoverBg}`}
+          className={`absolute ${popoverAlign} mt-1 max-h-72 flex flex-col rounded-xl border p-1.5 z-[9999] select-popover animate-in fade-in zoom-in-95 duration-100 ${popoverBg}`}
         >
 
           {isSearchable && (
@@ -328,15 +331,15 @@ export const Select: React.FC<SelectProps> = ({
                     role="option"
                     aria-selected={isItemOptionSelected}
                     onClick={() => handleSelect(opt)}
-                    className={`w-full flex items-center justify-between ${optionPadding} cursor-pointer transition-all border ${opt.disabled
-                      ? 'opacity-40 cursor-not-allowed border-transparent'
+                    className={`w-full flex items-center justify-between ${optionPadding} cursor-pointer transition-colors ${opt.disabled
+                      ? 'opacity-40 cursor-not-allowed'
                       : isItemOptionSelected
                         ? isDark
-                          ? 'bg-blue-600/25 text-blue-300 font-medium border-blue-500/40 shadow-2xs'
-                          : 'bg-blue-50 text-blue-600 font-semibold border-blue-200 shadow-2xs'
+                          ? 'bg-blue-600/20 text-blue-300 font-semibold'
+                          : 'bg-blue-50/90 text-blue-700 font-semibold'
                         : isDark
-                          ? 'border-transparent hover:bg-slate-800 text-slate-300 hover:text-white'
-                          : 'border-transparent hover:bg-slate-100/80 text-slate-800 hover:text-slate-900 font-medium'
+                          ? 'hover:bg-slate-800 text-slate-300 hover:text-white'
+                          : 'hover:bg-slate-100/80 text-slate-700 hover:text-slate-900 font-medium'
                       }`}
                   >
                     <div className="flex items-center space-x-2.5 min-w-0 flex-1 pr-2">

@@ -6,6 +6,7 @@ import { Company } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
 import { useToast } from '../../app/providers'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import {
   Building2,
   MapPin,
@@ -216,13 +217,10 @@ export const CompanyDetailPage: React.FC = () => {
                   {company.name}
                 </h1>
                 {company.verification_status === 'verified' && (
-                  <span
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/70 shadow-2xs"
-                    title={isKhmer ? 'ស្ថាប័នបានផ្ទៀងផ្ទាត់' : 'Verified Organization'}
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    <span>{isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Verified'}</span>
-                  </span>
+                  <FacebookVerifiedBadge
+                    className="w-5 h-5 shrink-0"
+                    title={isKhmer ? 'ស្ថាប័នបានផ្ទៀងផ្ទាត់ផ្លូវការ' : 'Officially Verified Organization'}
+                  />
                 )}
               </div>
 

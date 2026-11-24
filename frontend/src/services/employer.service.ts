@@ -38,6 +38,11 @@ export const employerService = {
     return res.data.data
   },
 
+  async getAllApplicants(): Promise<Application[]> {
+    const res = await api.get<ApiResponse<Application[]>>('/applications/employer/recent/?limit=all')
+    return res.data.data
+  },
+
   async updateApplicantStatus(appId: number, status: string, notes?: string): Promise<void> {
     await api.patch(`/applications/employer/${appId}/status/`, { status, notes })
   },

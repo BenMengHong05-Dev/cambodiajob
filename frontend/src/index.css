@@ -1,4 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Noto+Sans+Khmer:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* =========================================================================
    1. Official Google Sans & Noto Sans Khmer Direct Font-Face
@@ -55,29 +57,31 @@
 }
 
 /* =========================================================================
-   2. Tailwind CSS Theme Setup
+   2. Tailwind CSS Theme Setup - Google Sans & Noto Sans Khmer
    ========================================================================= */
 @theme {
-  --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-khmer: 'Noto Sans Khmer', 'Google Sans', sans-serif;
+  --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-khmer: 'Noto Sans Khmer', 'Kantumruy Pro', 'Google Sans', sans-serif;
+  --font-serif: 'Google Sans', 'Noto Sans Khmer', sans-serif;
 }
 
 @layer base {
   :root {
-    --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-khmer: 'Noto Sans Khmer', 'Google Sans', sans-serif;
+    --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-khmer: 'Noto Sans Khmer', 'Kantumruy Pro', 'Google Sans', sans-serif;
+    --font-serif: 'Google Sans', 'Noto Sans Khmer', sans-serif;
   }
 
   html,
   body {
-    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -0.01em;
     @apply bg-slate-50/70 text-slate-900 antialiased min-h-screen;
   }
 
   /* Universal Google Sans typography */
   * {
-    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   /* Custom scrollbar */
@@ -215,6 +219,220 @@ samp {
   box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 }
 
+/* =========================================================================
+   3. Platform-Wide Dark Mode Theme System
+   ========================================================================= */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #060b16 !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Dark Glassmorphism Surfaces (Layered Elevation) */
+html.dark .glass-card,
+html.dark .glass-card-hover,
+html.dark .card-clear,
+html.dark .card-clear-hover {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-color: rgba(51, 65, 85, 0.78) !important;
+  box-shadow: 0 8px 28px -6px rgba(2, 6, 23, 0.55), 0 1px 3px 0 rgba(2, 6, 23, 0.35) !important;
+}
+
+html.dark .glass-card-hover:hover,
+html.dark .card-clear-hover:hover {
+  background: rgba(20, 30, 51, 0.96) !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+}
+
+html.dark .glass-header {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(23, 35, 58, 0.88) 100%) !important;
+  border-color: rgba(51, 65, 85, 0.82) !important;
+}
+
+html.dark .glass-sidebar {
+  background: rgba(9, 14, 26, 0.95) !important;
+  border-right-color: rgba(30, 41, 59, 0.95) !important;
+}
+
+html.dark .glass-topbar {
+  background: rgba(9, 14, 26, 0.9) !important;
+  border-bottom-color: rgba(30, 41, 59, 0.95) !important;
+}
+
+/* Elevated Floating Modals, Popovers & Dropdowns */
+html.dark .glass-dropdown,
+html.dark .select-popover,
+html.dark [role="listbox"],
+html.dark [role="dialog"] {
+  background-color: #151f33 !important;
+  background: #151f33 !important;
+  border-color: rgba(71, 85, 105, 0.75) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(148, 163, 184, 0.08) !important;
+}
+
+html.dark .workspace-layout main div.bg-white.rounded-2xl:not(.select-popover):not([role="listbox"]):not([role="dialog"]):not(button):not(a):not(.printable-cv-sheet),
+html.dark .workspace-layout main div.bg-white.rounded-xl:not(.select-popover):not([role="listbox"]):not([role="dialog"]):not(button):not(a):not(.printable-cv-sheet),
+html.dark .workspace-layout main .card-clear {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border-color: rgba(51, 65, 85, 0.78) !important;
+  box-shadow: 0 8px 28px -6px rgba(2, 6, 23, 0.5) !important;
+}
+
+/* Global Dark Surface Mapping (preserving printable CV & elevated popovers) */
+html.dark :where(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\/85, .bg-white\/80, .bg-white\/75, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40):not(.printable-cv-sheet):not(.printable-cv-sheet *):not([role="dialog"]):not(.select-popover):not([role="listbox"]) {
+  background-color: #0f172a !important;
+}
+
+html.dark :where(.bg-slate-50, .bg-slate-50\/90, .bg-slate-50\/80, .bg-slate-50\/75, .bg-slate-50\/70, .bg-slate-50\/60, .bg-slate-50\/50, .bg-gray-50):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  background-color: rgba(22, 32, 51, 0.85) !important;
+}
+
+html.dark :where(.bg-slate-100, .bg-slate-100\/90, .bg-slate-100\/80, .bg-gray-100):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  background-color: rgba(30, 41, 59, 0.92) !important;
+}
+
+html.dark :where(.bg-slate-200, .bg-slate-200\/80, .bg-gray-200):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  background-color: rgba(51, 65, 85, 0.85) !important;
+}
+
+/* Tables & Row Hovers */
+html.dark table thead tr {
+  background-color: rgba(22, 32, 51, 0.95) !important;
+}
+
+html.dark table tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+}
+
+/* Dark Typography Hierarchy */
+html.dark :where(.text-slate-900, .text-gray-900):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  color: #f8fafc !important;
+}
+
+html.dark :where(.text-slate-800, .text-gray-800):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  color: #e2e8f0 !important;
+}
+
+html.dark :where(.text-slate-700, .text-gray-700):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  color: #cbd5e1 !important;
+}
+
+html.dark :where(.text-slate-600, .text-gray-600, .text-slate-500, .text-gray-500, .text-slate-400, .text-gray-400):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  color: #94a3b8 !important;
+}
+
+/* Dark Borders & Dividers */
+html.dark :where(.border-slate-200, .border-gray-200, .border-slate-200\/90, .border-slate-200\/80, .border-slate-200\/70, .border-gray-200\/90, .border-gray-200\/80, .border-slate-100, .border-gray-100, .border-white, .border-white\/90, .border-white\/80):not(.printable-cv-sheet):not(.printable-cv-sheet *) {
+  border-color: rgba(51, 65, 85, 0.78) !important;
+}
+
+html.dark :where(.divide-gray-100, .divide-gray-200, .divide-slate-100, .divide-slate-200) > :not(:last-child) {
+  border-color: rgba(51, 65, 85, 0.68) !important;
+}
+
+/* Dark Form Controls (preserve glass & transparent inputs) */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]),
+html.dark textarea:not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]),
+html.dark select:not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]) {
+  background-color: rgba(22, 32, 51, 0.92) !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(51, 65, 85, 0.9) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]):focus,
+html.dark textarea:not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]):focus,
+html.dark select:not(.bg-transparent):not([class*="bg-white/1"]):not([class*="bg-white/2"]):focus {
+  background-color: #162033 !important;
+  border-color: rgba(59, 130, 246, 0.75) !important;
+}
+
+html.dark input:not([class*="bg-white/1"]):not([class*="bg-white/2"])::placeholder,
+html.dark textarea:not([class*="bg-white/1"]):not([class*="bg-white/2"])::placeholder {
+  color: #64748b !important;
+}
+
+/* Dark Hover States */
+html.dark :where(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-white, .hover\:bg-slate-50\/80, .hover\:bg-slate-100\/80):hover {
+  background-color: rgba(51, 65, 85, 0.7) !important;
+}
+
+html.dark :where(.hover\:bg-blue-50, .hover\:bg-blue-50\/40, .hover\:bg-blue-50\/30, .hover\:bg-indigo-50):hover {
+  background-color: rgba(37, 99, 235, 0.2) !important;
+}
+
+html.dark :where(.hover\:bg-rose-50, .hover\:bg-red-50):hover {
+  background-color: rgba(244, 63, 94, 0.2) !important;
+}
+
+/* Soft Tinted Badges & Alerts in Dark Mode */
+html.dark :where(.bg-blue-50, .bg-blue-50\/80, .bg-blue-50\/70, .bg-blue-50\/40) {
+  background-color: rgba(37, 99, 235, 0.16) !important;
+}
+html.dark :where(.bg-indigo-50, .bg-indigo-50\/80, .bg-indigo-50\/70, .bg-indigo-50\/50) {
+  background-color: rgba(79, 70, 229, 0.18) !important;
+}
+html.dark :where(.bg-emerald-50, .bg-emerald-50\/40, .bg-emerald-100\/70) {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+html.dark :where(.bg-amber-50, .bg-amber-50\/80) {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+html.dark :where(.bg-rose-50, .bg-rose-50\/80) {
+  background-color: rgba(244, 63, 94, 0.16) !important;
+}
+html.dark :where(.bg-purple-50, .bg-purple-100) {
+  background-color: rgba(147, 51, 234, 0.18) !important;
+}
+html.dark :where(.bg-sky-50, .bg-sky-100) {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+}
+
+html.dark :where(.text-blue-700, .text-blue-600) {
+  color: #60a5fa !important;
+}
+html.dark :where(.text-indigo-700, .text-indigo-600, .text-indigo-900) {
+  color: #a5b4fc !important;
+}
+html.dark :where(.text-emerald-700, .text-emerald-800) {
+  color: #34d399 !important;
+}
+html.dark :where(.text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950) {
+  color: #fbbf24 !important;
+}
+html.dark :where(.text-rose-700, .text-rose-600) {
+  color: #fb7185 !important;
+}
+html.dark :where(.text-purple-700, .text-purple-800) {
+  color: #c084fc !important;
+}
+html.dark :where(.border-blue-200, .border-blue-200\/80, .border-blue-100) {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+html.dark :where(.border-indigo-200, .border-indigo-200\/80, .border-indigo-100) {
+  border-color: rgba(99, 102, 241, 0.35) !important;
+}
+html.dark :where(.border-emerald-200, .border-emerald-200\/80) {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+html.dark :where(.border-amber-200, .border-amber-300) {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+html.dark :where(.border-rose-200) {
+  border-color: rgba(244, 63, 94, 0.35) !important;
+}
+
 /* ==========================================================================
    Professional Print & Save as PDF Stylesheet
    ========================================================================== */
@@ -255,7 +473,8 @@ samp {
     top: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    max-height: 285mm !important; /* Strictly limit to 1-page A4 */
+    max-height: 285mm !important;
+    /* Strictly limit to 1-page A4 */
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
@@ -269,8 +488,8 @@ samp {
   }
 
   /* Clear all modal container constraints during print */
-  #printable-cv-modal-wrapper > div,
-  #printable-cv-modal-wrapper > div > div {
+  #printable-cv-modal-wrapper>div,
+  #printable-cv-modal-wrapper>div>div {
     max-height: none !important;
     height: 100% !important;
     overflow: hidden !important;

@@ -1,4 +1,4 @@
-export type UserRole = 'job_seeker' | 'employer' | 'admin'
+export type UserRole = 'job_seeker' | 'employer' | 'admin' | string
 
 export interface User {
   id: number
@@ -8,6 +8,11 @@ export interface User {
   avatar_url?: string | null
   is_active: boolean
   roles: UserRole[]
+  role?: UserRole
+  permissions?: string[]
+  has_custom_permissions?: boolean
+  custom_role?: string | null
+  company_member_role?: string | null
   seeker_profile?: {
     id: number
     headline?: string | null
@@ -104,6 +109,8 @@ export interface Company {
   province?: string | null
   city?: string | null
   address?: string | null
+  national_id_card?: string | null
+  business_license_no?: string | null
   verification_status: 'pending' | 'verified' | 'rejected'
   verified_at?: string | null
   created_at: string

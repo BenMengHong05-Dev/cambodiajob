@@ -12,14 +12,18 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 
-from common.permissions import IsAdmin
+from common.permissions import IsAdmin, HasCustomPermission
 from common.database import fetch_one, fetch_all, fetch_scalar, execute_sql, execute_insert
 
 
 class AdminDashboardView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("admin:access")]
 
     def get(self, request):
+        total_apps = fetch_scalar("SELECT COUNT(*) FROM applications") or 0
+        completed_apps = fetch_scalar("SELECT COUNT(*) FROM applications WHERE status IN ('offered', 'hired', 'accepted')") or 0
+        placement_rate = round((completed_apps / total_apps * 100), 1) if total_apps > 0 else 0.0
+
         stats = {
             "total_users": fetch_scalar("SELECT COUNT(*) FROM users") or 0,
             "active_users": fetch_scalar("SELECT COUNT(*) FROM users WHERE is_active = TRUE") or 0,
@@ -31,7 +35,12 @@ class AdminDashboardView(APIView):
             "total_jobs": fetch_scalar("SELECT COUNT(*) FROM jobs") or 0,
             "published_jobs": fetch_scalar("SELECT COUNT(*) FROM jobs WHERE status = 'published' AND moderation_status = 'approved'") or 0,
             "pending_moderation_jobs": fetch_scalar("SELECT COUNT(*) FROM jobs WHERE moderation_status = 'pending'") or 0,
-            "total_applications": fetch_scalar("SELECT COUNT(*) FROM applications") or 0,
+            "total_applications": total_apps,
+            "completed_applications": completed_apps,
+            "placement_rate": placement_rate,
+            "total_interviews": fetch_scalar("SELECT COUNT(*) FROM interviews") or 0,
+            "total_resumes": fetch_scalar("SELECT COUNT(*) FROM resumes") or 0,
+            "active_recruiters": fetch_scalar("SELECT COUNT(DISTINCT user_id) FROM employer_members") or 0,
             "total_categories": fetch_scalar("SELECT COUNT(*) FROM job_categories") or 0,
         }
 
@@ -80,11 +89,26 @@ class AdminDashboardView(APIView):
 
         recent_audit_logs = fetch_all(
             """
-            SELECT al.id, al.action, al.entity_type, al.entity_id, al.created_at, u.full_name as user_name, u.email as user_email
+            SELECT 
+                al.id, al.action, al.entity_type, al.entity_id, al.details, al.created_at,
+                u.full_name as user_name, u.email as user_email,
+                COALESCE(
+                    comp.name,
+                    jb.title,
+                    tu.full_name,
+                    ro.name,
+                    jc.name_en,
+                    CASE WHEN al.entity_type = 'settings' THEN 'General Site Settings' ELSE NULL END
+                ) as target_name
             FROM audit_logs al
             LEFT JOIN users u ON u.id = al.user_id
+            LEFT JOIN companies comp ON (al.entity_type = 'company' AND comp.id = al.entity_id)
+            LEFT JOIN jobs jb ON (al.entity_type = 'job' AND jb.id = al.entity_id)
+            LEFT JOIN users tu ON (al.entity_type = 'user' AND tu.id = al.entity_id)
+            LEFT JOIN roles ro ON (al.entity_type = 'role' AND ro.id = al.entity_id)
+            LEFT JOIN job_categories jc ON (al.entity_type = 'category' AND jc.id = al.entity_id)
             ORDER BY al.created_at DESC
-            LIMIT 5
+            LIMIT 6
             """
         )
 
@@ -197,27 +221,53 @@ class AdminDashboardView(APIView):
 
 
 class AdminUsersView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
 
     def get(self, request):
         sql = """
             SELECT 
                 u.id, u.email, u.full_name, u.phone_number, u.is_active, u.created_at,
                 COALESCE(sp.avatar_url, c.logo_url) as avatar_url,
-                GROUP_CONCAT(r.name) as role_names
+                GROUP_CONCAT(DISTINCT r.name) as role_names,
+                c.id as company_id,
+                c.name as company_name,
+                em.role as company_member_role
             FROM users u
             LEFT JOIN user_roles ur ON ur.user_id = u.id
             LEFT JOIN roles r ON r.id = ur.role_id
             LEFT JOIN seeker_profiles sp ON sp.user_id = u.id
-            LEFT JOIN companies c ON c.user_id = u.id
-            GROUP BY u.id
+            LEFT JOIN employer_members em ON em.user_id = u.id
+            LEFT JOIN companies c ON c.id = em.company_id
+            GROUP BY u.id, c.id, c.name, em.role
             ORDER BY u.created_at DESC
         """
         users = fetch_all(sql)
+        user_ids = [u["id"] for u in users]
+        custom_perm_map = {}
+        if user_ids:
+            format_strings = ','.join(['%s'] * len(user_ids))
+            up_rows = fetch_all(f"SELECT user_id, permission FROM user_permissions WHERE user_id IN ({format_strings})", user_ids)
+            for r in up_rows:
+                custom_perm_map.setdefault(r["user_id"], []).append(r["permission"])
+
+        rp_rows = fetch_all("SELECT r.name as role_name, rp.permission FROM role_permissions rp INNER JOIN roles r ON r.id = rp.role_id")
+        role_perm_map = {}
+        for r in rp_rows:
+            role_perm_map.setdefault(r["role_name"], []).append(r["permission"])
+
         for u in users:
             roles_list = [r.strip() for r in (u["role_names"] or "").split(",") if r.strip()]
             u["roles"] = roles_list
             u["role"] = roles_list[0] if len(roles_list) > 0 else "job_seeker"
+            if u["id"] in custom_perm_map:
+                u["permissions"] = [p for p in custom_perm_map[u["id"]] if p != "__none__"]
+                u["has_custom_permissions"] = True
+            else:
+                default_perms = set()
+                for r in roles_list:
+                    default_perms.update(role_perm_map.get(r, []))
+                u["permissions"] = sorted(list(default_perms))
+                u["has_custom_permissions"] = False
         return Response({"success": True, "data": users})
 
     def post(self, request):
@@ -251,11 +301,28 @@ class AdminUsersView(APIView):
         if r_row:
             execute_insert("INSERT INTO user_roles (user_id, role_id) VALUES (%s, %s)", [user_id, r_row["id"]])
 
+        if role == "job_seeker":
+            execute_insert("INSERT INTO seeker_profiles (user_id, salary_currency) VALUES (%s, 'USD')", [user_id])
+
+        if "permissions" in data and isinstance(data["permissions"], list) and len(data["permissions"]) > 0:
+            for p in set(data["permissions"]):
+                if p and isinstance(p, str):
+                    execute_insert("INSERT INTO user_permissions (user_id, permission) VALUES (%s, %s)", [user_id, p.strip()])
+
+        # If company assigned to this employee/sub-user
+        company_id = data.get("company_id")
+        company_member_role = data.get("company_member_role") or "recruiter"
+        if company_id:
+            execute_insert(
+                "INSERT INTO employer_members (company_id, user_id, role) VALUES (%s, %s, %s)",
+                [company_id, user_id, company_member_role],
+            )
+
         return Response({"success": True, "user_id": user_id, "message": "User created successfully."}, status=status.HTTP_201_CREATED)
 
 
 class AdminUserDetailView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
 
     def get(self, request, pk):
         user = fetch_one(
@@ -275,6 +342,19 @@ class AdminUserDetailView(APIView):
         roles_list = [r.strip() for r in (user["role_names"] or "").split(",") if r.strip()]
         user["roles"] = roles_list
         user["role"] = roles_list[0] if len(roles_list) > 0 else "job_seeker"
+
+        # Attach permissions
+        u_perms = fetch_all("SELECT permission FROM user_permissions WHERE user_id = %s", [pk])
+        if u_perms:
+            user["permissions"] = [p["permission"] for p in u_perms if p["permission"] != "__none__"]
+            user["has_custom_permissions"] = True
+        else:
+            default_perms = fetch_all(
+                "SELECT DISTINCT rp.permission FROM role_permissions rp INNER JOIN user_roles ur ON ur.role_id = rp.role_id WHERE ur.user_id = %s",
+                [pk]
+            )
+            user["permissions"] = [p["permission"] for p in default_perms]
+            user["has_custom_permissions"] = False
 
         # If Job Seeker, attach complete candidate profile, education, work experience, skills, and resumes
         seeker = fetch_one(
@@ -381,6 +461,29 @@ class AdminUserDetailView(APIView):
             if r_row:
                 execute_insert("INSERT INTO user_roles (user_id, role_id) VALUES (%s, %s)", [pk, r_row["id"]])
 
+        if "permissions" in data or "has_custom_permissions" in data:
+            has_custom = data.get("has_custom_permissions")
+            perms_input = data.get("permissions")
+            execute_sql("DELETE FROM user_permissions WHERE user_id = %s", [pk])
+            if has_custom is True or (has_custom is None and isinstance(perms_input, list) and len(perms_input) > 0):
+                clean_perms = [p.strip() for p in (perms_input or []) if p and isinstance(p, str) and p.strip() != "__none__"]
+                if clean_perms:
+                    for p in set(clean_perms):
+                        execute_insert("INSERT INTO user_permissions (user_id, permission) VALUES (%s, %s)", [pk, p])
+                else:
+                    # Sentinel marks an intentional custom override with 0 permissions
+                    execute_insert("INSERT INTO user_permissions (user_id, permission) VALUES (%s, '__none__')", [pk])
+
+        if "company_id" in data:
+            new_cid = data.get("company_id")
+            new_crole = data.get("company_member_role") or "recruiter"
+            execute_sql("DELETE FROM employer_members WHERE user_id = %s", [pk])
+            if new_cid:
+                execute_insert(
+                    "INSERT INTO employer_members (company_id, user_id, role) VALUES (%s, %s, %s)",
+                    [new_cid, pk, new_crole],
+                )
+
         execute_insert(
             "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, %s, 'user', %s, %s)",
             [request.user.id, "update_user", pk, json.dumps({"email": email, "full_name": full_name, "is_active": is_active})],
@@ -414,7 +517,7 @@ class AdminUserDetailView(APIView):
 
 
 class AdminUserBulkDeleteView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
 
     def post(self, request):
         user_ids = request.data.get("user_ids", [])
@@ -440,7 +543,7 @@ class AdminUserBulkDeleteView(APIView):
 
 
 class AdminUserStatusView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
 
     def patch(self, request, pk):
         user = fetch_one("SELECT id, is_active FROM users WHERE id = %s", [pk])
@@ -460,13 +563,15 @@ class AdminUserStatusView(APIView):
 
 
 class AdminCompaniesView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("companies:verify")]
 
     def get(self, request):
         sql = """
             SELECT 
                 c.id, c.name, c.slug, c.logo_url, c.banner_url, c.description, c.website,
-                c.industry, c.company_size, c.province, c.city, c.address, c.verification_status,
+                c.industry, c.company_size, c.province, c.city, c.address,
+                c.national_id_card, c.business_license_no,
+                c.verification_status,
                 c.verified_at, c.created_at, u.full_name as owner_name, u.email as owner_email,
                 (SELECT COUNT(*) FROM jobs j WHERE j.company_id = c.id) as jobs_count
             FROM companies c
@@ -478,14 +583,16 @@ class AdminCompaniesView(APIView):
 
 
 class AdminCompanyDetailView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("companies:verify")]
 
     def get(self, request, pk):
         company = fetch_one(
             """
             SELECT 
                 c.id, c.name, c.slug, c.logo_url, c.banner_url, c.description, c.website,
-                c.industry, c.company_size, c.province, c.city, c.address, c.verification_status,
+                c.industry, c.company_size, c.province, c.city, c.address,
+                c.national_id_card, c.business_license_no,
+                c.verification_status,
                 c.verified_at, c.created_at, u.full_name as owner_name, u.email as owner_email,
                 (SELECT COUNT(*) FROM jobs j WHERE j.company_id = c.id) as jobs_count
             FROM companies c
@@ -595,7 +702,7 @@ class AdminCompanyDetailView(APIView):
 
 
 class AdminCompanyVerificationView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("companies:verify")]
 
     def patch(self, request, pk):
         company = fetch_one("SELECT id, name FROM companies WHERE id = %s", [pk])
@@ -621,16 +728,169 @@ class AdminCompanyVerificationView(APIView):
         return Response({"success": True, "message": f"Company verification updated to '{verification_status}'."})
 
 
+class AdminCompanyMembersView(APIView):
+    """
+    Sub-user Employee Management for Companies (Admin Console):
+    List, create, or remove sub-user employees / recruiters for any company.
+    """
+    permission_classes = [HasCustomPermission.with_perm("companies:verify")]
+
+    def get(self, request, pk):
+        company = fetch_one("SELECT id, name FROM companies WHERE id = %s", [pk])
+        if not company:
+            raise NotFound("Company not found.")
+
+        members = fetch_all(
+            """
+            SELECT 
+                em.id AS member_id,
+                em.role AS member_role,
+                em.created_at,
+                u.id AS user_id,
+                u.full_name,
+                u.email,
+                u.phone_number,
+                u.is_active
+            FROM employer_members em
+            INNER JOIN users u ON u.id = em.user_id
+            WHERE em.company_id = %s
+            ORDER BY (em.role = 'owner') DESC, em.created_at ASC
+            """,
+            [pk],
+        )
+        return Response({"success": True, "data": members, "company": company})
+
+    def post(self, request, pk):
+        company = fetch_one("SELECT id, name FROM companies WHERE id = %s", [pk])
+        if not company:
+            raise NotFound("Company not found.")
+
+        data = request.data
+        email = (data.get("email") or "").strip().lower()
+        full_name = (data.get("full_name") or "").strip()
+        phone_number = (data.get("phone_number") or "").strip() or None
+        member_role = (data.get("role") or "recruiter").strip()
+        password = data.get("password")
+
+        if not email:
+            raise ValidationError({"email": "Email address is required."})
+
+        existing_user = fetch_one("SELECT id, full_name FROM users WHERE email = %s", [email])
+        if existing_user:
+            user_id = existing_user["id"]
+            membership = fetch_one(
+                "SELECT id FROM employer_members WHERE company_id = %s AND user_id = %s",
+                [pk, user_id],
+            )
+            if membership:
+                raise ValidationError({"email": "User is already an employee/member of this company."})
+
+            emp_role = fetch_one("SELECT id FROM roles WHERE name = 'employer'")
+            if emp_role:
+                has_role = fetch_scalar(
+                    "SELECT COUNT(*) FROM user_roles WHERE user_id = %s AND role_id = %s",
+                    [user_id, emp_role["id"]],
+                )
+                if not has_role:
+                    execute_insert(
+                        "INSERT INTO user_roles (user_id, role_id) VALUES (%s, %s)",
+                        [user_id, emp_role["id"]],
+                    )
+
+            execute_insert(
+                "INSERT INTO employer_members (company_id, user_id, role) VALUES (%s, %s, %s)",
+                [pk, user_id, member_role],
+            )
+            return Response(
+                {
+                    "success": True,
+                    "message": f"User {existing_user['full_name']} linked to company {company['name']}.",
+                    "user_id": user_id,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        if not full_name:
+            raise ValidationError({"full_name": "Full name is required for new employees."})
+        if not password or len(password) < 6:
+            raise ValidationError({"password": "Password must be at least 6 characters."})
+
+        hashed_pwd = make_password(password)
+        user_id = execute_insert(
+            "INSERT INTO users (full_name, email, password_hash, phone_number, is_active) VALUES (%s, %s, %s, %s, TRUE)",
+            [full_name, email, hashed_pwd, phone_number],
+        )
+        emp_role = fetch_one("SELECT id FROM roles WHERE name = 'employer'")
+        if emp_role:
+            execute_insert(
+                "INSERT INTO user_roles (user_id, role_id) VALUES (%s, %s)",
+                [user_id, emp_role["id"]],
+            )
+        execute_insert(
+            "INSERT INTO employer_members (company_id, user_id, role) VALUES (%s, %s, %s)",
+            [pk, user_id, member_role],
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": f"Sub-user employee {full_name} created for {company['name']}.",
+                "user_id": user_id,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def delete(self, request, pk, user_id):
+        mem = fetch_one(
+            "SELECT id FROM employer_members WHERE company_id = %s AND user_id = %s",
+            [pk, user_id],
+        )
+        if not mem:
+            raise NotFound("Employee member not found in this company.")
+
+        execute_sql(
+            "DELETE FROM employer_members WHERE company_id = %s AND user_id = %s",
+            [pk, user_id],
+        )
+        return Response({"success": True, "message": "Employee removed from company successfully."})
+
+    def patch(self, request, pk, user_id=None):
+        target_user_id = user_id or request.data.get("user_id")
+        if not target_user_id:
+            raise ValidationError({"detail": "User ID is required."})
+
+        new_role = (request.data.get("role") or "").strip().lower()
+        valid_roles = ["owner", "recruiter", "hiring_manager", "interviewer", "member"]
+        if not new_role or new_role not in valid_roles:
+            raise ValidationError({"role": f"Invalid role. Choose from: {', '.join(valid_roles)}"})
+
+        mem = fetch_one(
+            "SELECT id FROM employer_members WHERE company_id = %s AND user_id = %s",
+            [pk, target_user_id],
+        )
+        if not mem:
+            raise NotFound("Employee member not found in this company.")
+
+        execute_sql(
+            "UPDATE employer_members SET role = %s WHERE company_id = %s AND user_id = %s",
+            [new_role, pk, target_user_id],
+        )
+        return Response({"success": True, "message": f"Team member role updated to '{new_role}' successfully."})
+
+
 class AdminJobsModerationView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("jobs:moderate")]
 
     def get(self, request):
         sql = """
             SELECT 
-                j.id, j.title, j.title_km, j.slug, j.province, j.city, j.salary_min, j.salary_max,
-                j.salary_currency, j.is_salary_negotiable, j.employment_type, j.workplace_type,
-                j.status, j.moderation_status, j.created_at,
+                j.id, j.company_id, j.category_id, j.title, j.title_km, j.slug, j.province, j.city, j.address,
+                j.salary_min, j.salary_max, j.salary_currency, j.is_salary_negotiable,
+                j.employment_type, j.workplace_type, j.experience_level, j.education_level,
+                j.vacancies_count, j.description, j.description_km, j.requirements,
+                j.status, j.moderation_status, j.created_at, j.expires_at,
                 c.name as company_name, c.slug as company_slug, c.logo_url as company_logo,
+                c.verification_status as company_verification_status,
                 (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) as applications_count
             FROM jobs j
             INNER JOIN companies c ON c.id = j.company_id
@@ -678,18 +938,193 @@ class AdminJobsModerationView(APIView):
         return Response({"success": True, "message": f"Job '{title}' deleted successfully."})
 
 
+class AdminJobDetailView(APIView):
+    permission_classes = [HasCustomPermission.with_perm("jobs:moderate")]
+
+    def get(self, request, pk):
+        job = fetch_one(
+            """
+            SELECT 
+                j.id, j.company_id, j.category_id, j.title, j.title_km, j.slug,
+                j.description, j.description_km, j.requirements,
+                j.employment_type, j.workplace_type, j.experience_level, j.education_level,
+                j.province, j.city, j.address,
+                j.salary_min, j.salary_max, j.salary_currency, j.is_salary_negotiable,
+                j.vacancies_count, j.status, j.moderation_status,
+                j.published_at, j.expires_at, j.created_at, j.updated_at,
+                c.name as company_name, c.logo_url as company_logo
+            FROM jobs j
+            INNER JOIN companies c ON c.id = j.company_id
+            WHERE j.id = %s
+            """,
+            [pk],
+        )
+        if not job:
+            raise NotFound("Job vacancy not found.")
+        return Response({"success": True, "data": job})
+
+    def patch(self, request, pk):
+        job = fetch_one("SELECT id, title, company_id FROM jobs WHERE id = %s", [pk])
+        if not job:
+            raise NotFound("Job vacancy not found.")
+
+        data = request.data
+        updates = []
+        params = []
+
+        if "title" in data:
+            val = (data.get("title") or "").strip()
+            if not val:
+                raise ValidationError({"title": "Job title cannot be empty."})
+            updates.append("title = %s")
+            params.append(val)
+
+        if "title_km" in data:
+            val = (data.get("title_km") or "").strip() or None
+            updates.append("title_km = %s")
+            params.append(val)
+
+        if "category_id" in data:
+            cat_id = data.get("category_id")
+            updates.append("category_id = %s")
+            params.append(cat_id if cat_id else None)
+
+        if "employment_type" in data:
+            updates.append("employment_type = %s")
+            params.append(data.get("employment_type") or "full_time")
+
+        if "workplace_type" in data:
+            updates.append("workplace_type = %s")
+            params.append(data.get("workplace_type") or "on_site")
+
+        if "experience_level" in data:
+            updates.append("experience_level = %s")
+            params.append(data.get("experience_level") or "entry")
+
+        if "education_level" in data:
+            val = (data.get("education_level") or "").strip() or None
+            updates.append("education_level = %s")
+            params.append(val)
+
+        if "province" in data:
+            updates.append("province = %s")
+            params.append((data.get("province") or "Phnom Penh").strip())
+
+        if "city" in data:
+            updates.append("city = %s")
+            params.append((data.get("city") or "").strip() or None)
+
+        if "address" in data:
+            updates.append("address = %s")
+            params.append((data.get("address") or "").strip() or None)
+
+        if "salary_min" in data:
+            s_min = data.get("salary_min")
+            updates.append("salary_min = %s")
+            params.append(s_min if s_min is not None and str(s_min).strip() != "" else None)
+
+        if "salary_max" in data:
+            s_max = data.get("salary_max")
+            updates.append("salary_max = %s")
+            params.append(s_max if s_max is not None and str(s_max).strip() != "" else None)
+
+        if "salary_currency" in data:
+            updates.append("salary_currency = %s")
+            params.append(data.get("salary_currency") or "USD")
+
+        if "is_salary_negotiable" in data:
+            updates.append("is_salary_negotiable = %s")
+            params.append(bool(data.get("is_salary_negotiable")))
+
+        if "vacancies_count" in data:
+            try:
+                vc = max(1, int(data.get("vacancies_count", 1)))
+            except (ValueError, TypeError):
+                vc = 1
+            updates.append("vacancies_count = %s")
+            params.append(vc)
+
+        if "status" in data:
+            st = data.get("status")
+            if st in ["published", "draft", "closed"]:
+                updates.append("status = %s")
+                params.append(st)
+
+        if "moderation_status" in data:
+            mod_st = data.get("moderation_status")
+            if mod_st in ["approved", "rejected", "pending"]:
+                updates.append("moderation_status = %s")
+                params.append(mod_st)
+
+        if "description" in data:
+            updates.append("description = %s")
+            params.append(data.get("description") or "")
+
+        if "description_km" in data:
+            updates.append("description_km = %s")
+            params.append(data.get("description_km") or None)
+
+        if "requirements" in data:
+            updates.append("requirements = %s")
+            params.append(data.get("requirements") or None)
+
+        if updates:
+            updates.append("updated_at = NOW()")
+            params.append(pk)
+            sql = f"UPDATE jobs SET {', '.join(updates)} WHERE id = %s"
+            execute_sql(sql, params)
+
+            # Audit log
+            execute_insert(
+                "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, 'update_job', 'job', %s, %s)",
+                [request.user.id, pk, json.dumps({"updated_fields": list(data.keys()), "job_title": job["title"]})],
+            )
+
+        updated_job = fetch_one("SELECT * FROM jobs WHERE id = %s", [pk])
+        return Response({"success": True, "message": "Job vacancy updated successfully.", "data": updated_job})
+
+    def delete(self, request, pk):
+        job = fetch_one("SELECT id, title FROM jobs WHERE id = %s", [pk])
+        if not job:
+            raise NotFound("Job vacancy not found.")
+
+        title = job["title"]
+        execute_sql("DELETE FROM jobs WHERE id = %s", [pk])
+
+        # Audit log
+        execute_insert(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, 'delete_job', 'job', %s, %s)",
+            [request.user.id, pk, json.dumps({"deleted_job_title": title})],
+        )
+
+        return Response({"success": True, "message": f"Job '{title}' deleted successfully."})
+
+
 class AdminAuditLogsView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("audit:view")]
 
     def get(self, request):
         sql = """
             SELECT 
-                al.id, al.action, al.entity_type, al.entity_id, al.details, al.created_at,
-                u.full_name as user_name, u.email as user_email
+                al.id, al.action, al.entity_type, al.entity_id, al.details, al.ip_address, al.created_at,
+                u.full_name as user_name, u.email as user_email,
+                COALESCE(
+                    comp.name,
+                    jb.title,
+                    tu.full_name,
+                    ro.name,
+                    jc.name_en,
+                    CASE WHEN al.entity_type = 'settings' THEN 'General Site Settings' ELSE NULL END
+                ) as target_name
             FROM audit_logs al
             LEFT JOIN users u ON u.id = al.user_id
+            LEFT JOIN companies comp ON (al.entity_type = 'company' AND comp.id = al.entity_id)
+            LEFT JOIN jobs jb ON (al.entity_type = 'job' AND jb.id = al.entity_id)
+            LEFT JOIN users tu ON (al.entity_type = 'user' AND tu.id = al.entity_id)
+            LEFT JOIN roles ro ON (al.entity_type = 'role' AND ro.id = al.entity_id)
+            LEFT JOIN job_categories jc ON (al.entity_type = 'category' AND jc.id = al.entity_id)
             ORDER BY al.created_at DESC
-            LIMIT 100
+            LIMIT 300
         """
         logs = fetch_all(sql)
         return Response({"success": True, "data": logs})
@@ -747,7 +1182,7 @@ class PublicSiteSettingsView(APIView):
 
 class AdminSiteSettingsView(APIView):
     """Admin endpoint to retrieve and update website branding, hero content, and metadata."""
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("settings:manage")]
 
     def get(self, request):
         data = get_site_settings_dict()
@@ -806,7 +1241,7 @@ class AdminSiteSettingsView(APIView):
 
 class AdminSiteSettingsUploadLogoView(APIView):
     """Admin endpoint to upload website logo or favicon."""
-    permission_classes = [IsAdmin]
+    permission_classes = [HasCustomPermission.with_perm("settings:manage")]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
@@ -863,5 +1298,159 @@ class AdminSiteSettingsUploadLogoView(APIView):
             "filename": saved_filename,
             "message": f"Website {upload_type} uploaded and updated successfully."
         })
+
+
+SYSTEM_PERMISSIONS_CATALOG = [
+    {
+        "category": "Administration & Security",
+        "categoryKm": "ការគ្រប់គ្រងប្រព័ន្ធ & សុវត្ថិភាព",
+        "permissions": [
+            {"key": "admin:access", "name": "Admin Console Access", "nameKm": "ចូលប្រើផ្ទាំង Admin", "description": "Access admin console overview and core tools", "descriptionKm": "ចូលប្រើផ្ទាំងគ្រប់គ្រង Admin និងស្ថិតិរួម"},
+            {"key": "users:manage", "name": "Manage Users & Accounts", "nameKm": "គ្រប់គ្រងអ្នកប្រើប្រាស់ & គណនី", "description": "Create, edit, suspend, and assign roles to users", "descriptionKm": "បង្កើត កែប្រែ ផ្អាក និងកំណត់តួនាទី/សិទ្ធិអ្នកប្រើប្រាស់"},
+            {"key": "categories:manage", "name": "Manage Job Categories", "nameKm": "គ្រប់គ្រងផ្នែកការងារ", "description": "Create, edit, and organize job industries and categories", "descriptionKm": "បង្កើត កែប្រែ និងរៀបចំប្រភេទផ្នែកការងារ"},
+            {"key": "companies:verify", "name": "Verify Companies", "nameKm": "ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន", "description": "Review and approve/reject business profiles", "descriptionKm": "ត្រួតពិនិត្យ និងអនុម័ត ឬបដិសេធក្រុមហ៊ុន"},
+            {"key": "jobs:moderate", "name": "Moderate Vacancies", "nameKm": "ត្រួតពិនិត្យការងារ", "description": "Approve, feature, pause, or remove job listings", "descriptionKm": "ត្រួតពិនិត្យ កែប្រែ និងអនុម័តការផ្សាយការងារ"},
+            {"key": "audit:view", "name": "View Audit Logs", "nameKm": "មើលកំណត់ត្រាប្រព័ន្ធ", "description": "Inspect administrative actions and system security logs", "descriptionKm": "មើលកំណត់ហេតុសកម្មភាព និងសុវត្ថិភាពប្រព័ន្ធ"},
+            {"key": "settings:manage", "name": "Platform Settings", "nameKm": "ការកំណត់ប្រព័ន្ធ", "description": "Manage branding, SEO, contact info, and website settings", "descriptionKm": "គ្រប់គ្រងម៉ាកយីហោ SEO ព័ត៌មានទំនាក់ទំនង និងការកំណត់គេហទំព័រ"},
+        ]
+    },
+    {
+        "category": "Employer & Vacancy Management",
+        "categoryKm": "និយោជក & ការគ្រប់គ្រងការងារ",
+        "permissions": [
+            {"key": "employer:access", "name": "Employer Workspace Access", "nameKm": "ចូលប្រើផ្ទាំងនិយោជក", "description": "Access employer recruitment workspace", "descriptionKm": "ចូលប្រើផ្ទាំងការងារជ្រើសរើសបុគ្គលិករបស់ក្រុមហ៊ុន"},
+            {"key": "jobs:create", "name": "Post Vacancies", "nameKm": "ចុះផ្សាយការងារថ្មី", "description": "Create new job postings on the portal", "descriptionKm": "បង្កើត និងចុះផ្សាយឱកាសការងារថ្មី (រួមទាំង AI)"},
+            {"key": "jobs:edit", "name": "Edit Vacancies", "nameKm": "កែសម្រួលការងារ", "description": "Modify details and requirements of job postings", "descriptionKm": "កែសម្រួលព័ត៌មាន និងប្តូរស្ថានភាពការងារ"},
+            {"key": "jobs:delete", "name": "Delete/Close Vacancies", "nameKm": "លុប/បិទការងារ", "description": "Delete or permanently close vacancies", "descriptionKm": "លុប ឬបិទការងារដែលបានផ្សាយចោលជាអចិន្ត្រៃយ៍"},
+            {"key": "applications:view", "name": "View Applications", "nameKm": "មើលបេក្ខជនដាក់ពាក្យ", "description": "View incoming candidate resumes and submissions", "descriptionKm": "មើលបញ្ជីបេក្ខជន CV និងព័ត៌មានដាក់ពាក្យ"},
+            {"key": "applications:review", "name": "Review & Process Candidates", "nameKm": "វាយតម្លៃ & ដំណើរការបេក្ខជន", "description": "Shortlist, reject, hire, and schedule interviews", "descriptionKm": "ប្តូរស្ថានភាពបេក្ខជន សម្រាំង ណាត់សម្ភាសន៍ និងផ្តល់ការងារ"},
+            {"key": "company:manage", "name": "Manage Company Profile", "nameKm": "គ្រប់គ្រងព័ត៌មានក្រុមហ៊ុន", "description": "Edit organization profile, branding, and details", "descriptionKm": "កែប្រែព័ត៌មានក្រុមហ៊ុន និងគ្រប់គ្រងសមាជិកក្រុមការងារ"},
+        ]
+    },
+    {
+        "category": "Candidate & Seeker Services",
+        "categoryKm": "សេវាបេក្ខជន & អ្នកស្វែងរកការងារ",
+        "permissions": [
+            {"key": "seeker:access", "name": "Seeker Workspace Access", "nameKm": "ចូលប្រើផ្ទាំងបេក្ខជន", "description": "Access candidate portal and dashboard", "descriptionKm": "ចូលប្រើផ្ទាំងគ្រប់គ្រងសម្រាប់អ្នកស្វែងរកការងារ"},
+            {"key": "profile:manage", "name": "Manage Candidate Profile", "nameKm": "គ្រប់គ្រងប្រវត្តិរូបផ្ទាល់ខ្លួន", "description": "Update work experience, education, and skills", "descriptionKm": "ធ្វើបច្ចុប្បន្នភាពបទពិសោធន៍ ការសិក្សា និងជំនាញ"},
+            {"key": "resumes:manage", "name": "Manage Resumes & CVs", "nameKm": "គ្រប់គ្រង CV & ឯកសារ", "description": "Upload, create, print, and download CVs", "descriptionKm": "ផ្ទុកឡើង បង្កើត បោះពុម្ព និងទាញយកប្រវត្តិរូប CV"},
+            {"key": "jobs:apply", "name": "Apply for Vacancies", "nameKm": "ដាក់ពាក្យសុំការងារ", "description": "Submit applications and cover letters to employers", "descriptionKm": "ដាក់ពាក្យ និងលិខិតអមទៅកាន់ក្រុមហ៊ុន"},
+            {"key": "jobs:save", "name": "Bookmark Vacancies", "nameKm": "រក្សាទុកការងារ", "description": "Save favorite job postings to wishlist", "descriptionKm": "កត់ចំណាំរក្សាទុកការងារដែលចាប់អារម្មណ៍"},
+        ]
+    },
+    {
+        "category": "System & Notifications",
+        "categoryKm": "ប្រព័ន្ធ & ការជូនដំណឹង",
+        "permissions": [
+            {"key": "notifications:view", "name": "Receive Notifications", "nameKm": "ទទួលការជូនដំណឹង", "description": "View system notifications and real-time updates", "descriptionKm": "ទទួល និងមើលការជូនដំណឹងភ្លាមៗក្នុងប្រព័ន្ធ"},
+        ]
+    }
+]
+
+
+class AdminRolesPermissionsView(APIView):
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
+
+    def get(self, request):
+        roles = fetch_all("SELECT id, name, description FROM roles ORDER BY id ASC")
+        for r in roles:
+            r["user_count"] = fetch_scalar(
+                "SELECT COUNT(DISTINCT user_id) FROM user_roles WHERE role_id = %s",
+                [r["id"]]
+            ) or 0
+            perms = fetch_all(
+                "SELECT permission FROM role_permissions WHERE role_id = %s ORDER BY permission ASC",
+                [r["id"]]
+            )
+            r["permissions"] = [p["permission"] for p in perms]
+
+        return Response({
+            "success": True,
+            "data": {
+                "roles": roles,
+                "catalog": SYSTEM_PERMISSIONS_CATALOG,
+            }
+        })
+
+    def post(self, request):
+        raw_name = (request.data.get("name") or "").strip().lower()
+        name = re.sub(r"[^a-z0-9_]+", "_", raw_name).strip("_")
+        description = (request.data.get("description") or "").strip()
+        permissions = request.data.get("permissions", [])
+
+        if not name:
+            raise ValidationError({"name": "Role name is required (letters, numbers, underscores)."})
+
+        exists = fetch_scalar("SELECT COUNT(*) FROM roles WHERE name = %s", [name])
+        if exists:
+            raise ValidationError({"name": "A role with this name already exists."})
+
+        role_id = execute_insert(
+            "INSERT INTO roles (name, description) VALUES (%s, %s)",
+            [name, description]
+        )
+
+        if isinstance(permissions, list):
+            for p in set(permissions):
+                if p and isinstance(p, str):
+                    execute_insert("INSERT INTO role_permissions (role_id, permission) VALUES (%s, %s)", [role_id, p.strip()])
+
+        execute_insert(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, %s, 'role', %s, %s)",
+            [request.user.id, "create_role", role_id, json.dumps({"name": name, "permissions": permissions})],
+        )
+
+        return Response({"success": True, "message": "Role created successfully.", "role_id": role_id}, status=status.HTTP_201_CREATED)
+
+
+class AdminRolesPermissionsDetailView(APIView):
+    permission_classes = [HasCustomPermission.with_perm("users:manage")]
+
+    def put(self, request, pk):
+        role = fetch_one("SELECT id, name, description FROM roles WHERE id = %s", [pk])
+        if not role:
+            raise NotFound("Role not found.")
+
+        data = request.data
+        description = data.get("description", role["description"])
+        execute_sql("UPDATE roles SET description = %s WHERE id = %s", [description, pk])
+
+        if "permissions" in data:
+            permissions = data.get("permissions")
+            if isinstance(permissions, list):
+                execute_sql("DELETE FROM role_permissions WHERE role_id = %s", [pk])
+                for p in set(permissions):
+                    if p and isinstance(p, str):
+                        execute_insert("INSERT INTO role_permissions (role_id, permission) VALUES (%s, %s)", [pk, p.strip()])
+
+        execute_insert(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, %s, 'role', %s, %s)",
+            [request.user.id, "update_role_permissions", pk, json.dumps({"role": role["name"], "permissions": data.get("permissions")})],
+        )
+
+        return Response({"success": True, "message": "Role permissions updated successfully."})
+
+    def delete(self, request, pk):
+        role = fetch_one("SELECT id, name FROM roles WHERE id = %s", [pk])
+        if not role:
+            raise NotFound("Role not found.")
+
+        if role["id"] in (1, 2, 3) or role["name"] in ("admin", "employer", "job_seeker", "super_admin"):
+            raise ValidationError({"detail": "Core platform roles cannot be deleted."})
+
+        assigned_count = fetch_scalar("SELECT COUNT(*) FROM user_roles WHERE role_id = %s", [pk]) or 0
+        if assigned_count > 0:
+            raise ValidationError({"detail": f"Cannot delete role '{role['name']}' while {assigned_count} user(s) are assigned to it. Reassign those users first."})
+
+        execute_sql("DELETE FROM role_permissions WHERE role_id = %s", [pk])
+        execute_sql("DELETE FROM roles WHERE id = %s", [pk])
+
+        execute_insert(
+            "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, %s, 'role', %s, %s)",
+            [request.user.id, "delete_role", pk, json.dumps({"role": role["name"]})],
+        )
+
+        return Response({"success": True, "message": f"Role '{role['name']}' deleted successfully."})
+
 
 

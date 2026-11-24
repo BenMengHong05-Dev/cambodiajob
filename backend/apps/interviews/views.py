@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 
-from common.permissions import IsAuthenticatedCustom, IsEmployer
+from common.permissions import IsAuthenticatedCustom, IsEmployer, HasCustomPermission
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql, atomic_transaction
 from apps.notifications.email_service import (
     send_interview_invitation_email,
@@ -15,7 +15,10 @@ from apps.notifications.email_service import (
 
 
 class ScheduleInterviewView(APIView):
-    permission_classes = [IsEmployer]
+    def get_permissions(self):
+        if self.request.method in ["POST", "DELETE", "PATCH", "PUT"]:
+            return [IsEmployer(), HasCustomPermission.with_perm("applications:review")()]
+        return [IsEmployer(), HasCustomPermission.with_perm("applications:view")()]
 
     def get(self, request, pk):
         """

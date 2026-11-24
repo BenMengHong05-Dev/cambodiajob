@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth, useToast, useSiteSettings } from '../../app/providers'
 import { Button } from '../ui/Button'
 import { LanguageDropdown } from './LanguageDropdown'
+import { ThemeToggle } from './ThemeToggle'
 import { getAssetUrl } from '../../utils/assets'
 import {
   Briefcase,
@@ -77,12 +78,12 @@ export const Navbar: React.FC = () => {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${isActive
-      ? 'text-blue-600 bg-blue-50/80 font-extrabold'
-      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+      ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-500/15 font-extrabold'
+      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/70'
     }`
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 font-sans shadow-xs">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 font-sans shadow-xs">
       {/* Top Announcement Bar if enabled */}
       {settings?.announcement_enabled && (
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-xs py-2 px-4 shadow-xs">
@@ -122,7 +123,7 @@ export const Navbar: React.FC = () => {
               </div>
             )}
             <div className="flex items-center">
-              <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900 truncate max-w-[200px] sm:max-w-none">
+              <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white truncate max-w-[200px] sm:max-w-none">
                 {siteName}
               </span>
             </div>
@@ -143,6 +144,7 @@ export const Navbar: React.FC = () => {
 
           {/* Right Header Controls */}
           <div className="hidden lg:flex items-center space-x-3">
+            <ThemeToggle />
             <LanguageDropdown variant="light" />
 
             {/* Logged-in Profile Avatar vs Guest Buttons */}
@@ -345,8 +347,9 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Right Controls: Language Dropdown + Menu Toggle */}
+          {/* Mobile Right Controls: Theme Toggle + Language Dropdown + Menu Toggle */}
           <div className="flex lg:hidden items-center space-x-2">
+            <ThemeToggle />
             <LanguageDropdown variant="light" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

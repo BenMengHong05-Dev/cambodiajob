@@ -5,6 +5,7 @@ import urllib.parse
 import urllib.request
 from django.conf import settings
 from django.http import HttpResponseRedirect
+from django.contrib.auth.hashers import make_password, check_password
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -13,7 +14,8 @@ from rest_framework.views import APIView
 logger = logging.getLogger(__name__)
 
 from common.permissions import IsAuthenticatedCustom
-from common.database import fetch_one
+from common.database import fetch_one, execute_sql, execute_insert
+from common.authentication import get_user_by_id
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -219,6 +221,83 @@ class MeView(APIView):
                 "success": True,
                 "data": data,
             },
+            status=status.HTTP_200_OK,
+        )
+
+    def patch(self, request):
+        """Allow the authenticated user to update their own name and phone number."""
+        user = request.user
+        full_name = (request.data.get("full_name") or "").strip()
+        phone_number = request.data.get("phone_number")
+
+        updates = []
+        params = []
+        if full_name:
+            updates.append("full_name = %s")
+            params.append(full_name)
+        if phone_number is not None:
+            updates.append("phone_number = %s")
+            params.append(str(phone_number).strip() or None)
+
+        if updates:
+            updates.append("updated_at = NOW()")
+            params.append(user.id)
+            execute_sql(f"UPDATE users SET {', '.join(updates)} WHERE id = %s", params)
+
+        updated_user = get_user_by_id(user.id)
+        data = updated_user.to_dict() if updated_user else user.to_dict()
+        return Response(
+            {
+                "success": True,
+                "message": "Profile updated successfully.",
+                "data": data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ChangePasswordView(APIView):
+    """Allow an authenticated user to change their own password after verifying current password."""
+    permission_classes = [IsAuthenticatedCustom]
+
+    def post(self, request):
+        current_password = request.data.get("current_password") or ""
+        new_password = (request.data.get("new_password") or "").strip()
+
+        if not current_password or not new_password:
+            return Response(
+                {"success": False, "error": "Current password and new password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 6:
+            return Response(
+                {"success": False, "error": "New password must be at least 6 characters long."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        row = fetch_one("SELECT id, password_hash FROM users WHERE id = %s", [request.user.id])
+        if not row:
+            return Response({"success": False, "error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not check_password(current_password, row["password_hash"]):
+            return Response(
+                {"success": False, "error": "Current password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        hashed = make_password(new_password)
+        execute_sql("UPDATE users SET password_hash = %s, updated_at = NOW() WHERE id = %s", [hashed, request.user.id])
+        try:
+            execute_insert(
+                "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (%s, 'change_password', 'user', %s, %s)",
+                [request.user.id, request.user.id, json.dumps({"self_service": True})],
+            )
+        except Exception:
+            pass
+
+        return Response(
+            {"success": True, "message": "Password changed successfully."},
             status=status.HTTP_200_OK,
         )
 

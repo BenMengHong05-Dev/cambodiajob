@@ -7,7 +7,7 @@ import { jobsService } from '../../services/jobs.service'
 import { Application, Job, SeekerProfile } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { StatCard } from '../../components/dashboard/StatCard'
-import { QuickActions } from '../../components/dashboard/QuickActions'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import { getAssetUrl } from '../../utils/assets'
 import {
   Briefcase,
@@ -26,6 +26,8 @@ import {
   ExternalLink,
   MapPin,
   Sparkles,
+  RefreshCw,
+  Bell,
 } from 'lucide-react'
 
 export const SeekerDashboardPage: React.FC = () => {
@@ -244,6 +246,15 @@ export const SeekerDashboardPage: React.FC = () => {
             <Search className="w-3.5 h-3.5" />
             <span>{isKhmer ? 'រកការងារថ្មី' : 'Find Jobs'}</span>
           </Link>
+          <button
+            type="button"
+            onClick={() => loadDashboardData(true)}
+            disabled={isRefreshing}
+            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh dashboard'}
+            className="p-2 rounded-xl bg-white/80 hover:bg-white text-slate-600 hover:text-blue-600 border border-white/80 shadow-2xs transition cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
         </div>
       </div>
 
@@ -291,22 +302,6 @@ export const SeekerDashboardPage: React.FC = () => {
           badge={isKhmer ? 'កត់ចំណាំ' : 'Bookmarked'}
         />
       </div>
-
-      {/* Quick action rail */}
-      <QuickActions
-        hint={isKhmer ? `ប្រវត្តិរូបបំពេញ ${profileScore}%` : `Profile ${profileScore}% complete`}
-        actions={[
-          { to: '/jobs', label: isKhmer ? 'ស្វែងរកការងារ' : 'Browse Jobs', icon: Search },
-          {
-            to: '/seeker/applications',
-            label: isKhmer ? 'ពាក្យសុំរបស់ខ្ញុំ' : 'My Applications',
-            icon: FileText,
-            badge: applications.length,
-          },
-          { to: '/seeker/saved', label: isKhmer ? 'ការងាររក្សាទុក' : 'Saved Jobs', icon: Bookmark, badge: savedCount },
-          { to: '/seeker/profile', label: isKhmer ? 'ប្រវត្តិរូបរបស់ខ្ញុំ' : 'Update Profile', icon: User },
-        ]}
-      />
 
       {/* 4. Upcoming Interview Banner (if any) */}
       {upcomingInterviews.length > 0 && (
@@ -587,9 +582,17 @@ export const SeekerDashboardPage: React.FC = () => {
                           <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mt-1">
                             {isKhmer && job.title_km ? job.title_km : job.title}
                           </h4>
-                          <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                            {job.company_name}
-                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                            <p className="text-xs text-slate-500 font-medium truncate">
+                              {job.company_name}
+                            </p>
+                            {(job as any).company_verification === 'verified' && (
+                              <FacebookVerifiedBadge
+                                className="w-3.5 h-3.5"
+                                title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Organization'}
+                              />
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -674,12 +677,13 @@ export const SeekerDashboardPage: React.FC = () => {
                   label: isKhmer ? 'ជំនាញឯកទេស' : 'Key skills listed',
                 },
               ].map((item, idx) => (
-                <div
+                <Link
                   key={idx}
+                  to="/seeker/profile"
                   className={`flex items-center justify-between p-2 rounded-xl border transition-colors ${
                     item.done
-                      ? 'bg-emerald-50/40 border-emerald-200/50 text-slate-800'
-                      : 'bg-slate-50/60 border-slate-200/60 text-slate-500 hover:bg-slate-50'
+                      ? 'bg-emerald-50/40 border-emerald-200/50 text-slate-800 hover:bg-emerald-50/70'
+                      : 'bg-slate-50/60 border-slate-200/60 text-slate-500 hover:bg-blue-50/40 hover:border-blue-200/60'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -700,12 +704,12 @@ export const SeekerDashboardPage: React.FC = () => {
                     className={`text-[10px] font-semibold shrink-0 px-1.5 py-0.5 rounded ${
                       item.done
                         ? 'text-emerald-700 bg-emerald-100/70'
-                        : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                        : 'text-blue-600 bg-blue-50'
                     }`}
                   >
                     {item.done ? (isKhmer ? 'រួចរាល់' : 'Done') : (isKhmer ? '+ បន្ថែម' : '+ Add')}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
 
@@ -715,6 +719,57 @@ export const SeekerDashboardPage: React.FC = () => {
             >
               <span>{isKhmer ? 'កែលម្អប្រវត្តិរូប' : 'Update Profile'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Career Workspace Shortcuts */}
+          <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-1">
+            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              {isKhmer ? 'ផ្លូវកាត់ការងាររហ័ស' : 'Quick Career Shortcuts'}
+            </span>
+            <Link
+              to="/jobs"
+              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Search className="w-4 h-4 text-blue-600" />
+                <span>{isKhmer ? 'ស្វែងរកការងារថ្មី' : 'Browse Open Positions'}</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+            </Link>
+            <Link
+              to="/seeker/applications"
+              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+            >
+              <div className="flex items-center space-x-2.5">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>{isKhmer ? 'តាមដានពាក្យសុំការងារ' : 'My Applications'}</span>
+              </div>
+              <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                {submittedCount}
+              </span>
+            </Link>
+            <Link
+              to="/seeker/saved"
+              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Bookmark className="w-4 h-4 text-sky-600" />
+                <span>{isKhmer ? 'ការងារដែលបានរក្សាទុក' : 'Saved Jobs'}</span>
+              </div>
+              <span className="text-[10px] font-semibold text-sky-600 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
+                {savedCount}
+              </span>
+            </Link>
+            <Link
+              to="/seeker/notifications"
+              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Bell className="w-4 h-4 text-purple-600" />
+                <span>{isKhmer ? 'ការជូនដំណឹងទាំងអស់' : 'Notifications'}</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
             </Link>
           </div>
         </div>

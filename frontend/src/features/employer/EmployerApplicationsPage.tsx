@@ -7,6 +7,8 @@ import { Select } from '../../components/ui/Select'
 import { useToast } from '../../app/providers'
 import { exportApplicantsToExcel } from '../../utils/excelExport'
 import { getAssetUrl } from '../../utils/assets'
+import { PermissionGuard } from '../../components/auth/PermissionGuard'
+import { PERMISSIONS } from '../../utils/permissions'
 import {
   Users,
   FileText,
@@ -18,6 +20,9 @@ import {
   X,
   ExternalLink,
   Video,
+  Sparkles,
+  Clipboard,
+  Info,
   Trash2,
   DollarSign,
   ChevronDown,
@@ -27,6 +32,7 @@ import {
   Search,
   Filter,
   FileSpreadsheet,
+  Briefcase,
 } from 'lucide-react'
 import { TablePagination } from '../../components/common/TablePagination'
 
@@ -41,6 +47,7 @@ export const EmployerApplicationsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [jobFilter, setJobFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
 
@@ -62,12 +69,17 @@ export const EmployerApplicationsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const fetchApplicants = async () => {
-    if (!id) return
     setIsLoading(true)
     try {
-      const data = await employerService.getJobApplicants(Number(id))
-      setJob(data.job)
-      setApplications(data.applications || [])
+      if (id) {
+        const data = await employerService.getJobApplicants(Number(id))
+        setJob(data.job)
+        setApplications(data.applications || [])
+      } else {
+        const apps = await employerService.getAllApplicants()
+        setJob(null)
+        setApplications(apps || [])
+      }
     } catch (err) {
       console.error('Failed to load applications:', err)
       toast.error(
@@ -153,6 +165,33 @@ export const EmployerApplicationsPage: React.FC = () => {
     }
   }
 
+  const handleOpenGoogleMeetNew = () => {
+    window.open('https://meet.google.com/new', '_blank', 'noopener,noreferrer')
+  }
+
+  const handlePasteClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text && text.trim().startsWith('http')) {
+        setLocationOrLink(text.trim())
+        toast.success(
+          isKhmer ? 'បានបិទភ្ជាប់តំណភ្ជាប់' : 'Link Pasted',
+          isKhmer ? 'តំណភ្ជាប់ Meet ត្រូវបានបញ្ចូលដោយជោគជ័យ' : 'Meet link pasted successfully.'
+        )
+      } else {
+        toast.info(
+          isKhmer ? 'មិនមានតំណភ្ជាប់' : 'No Link Found',
+          isKhmer ? 'សូមចម្លងតំណភ្ជាប់ពី Google Meet ជាមុនសិន' : 'Please copy the Meet link from Google first.'
+        )
+      }
+    } catch {
+      toast.info(
+        isKhmer ? 'សូមចុច Ctrl+V' : 'Use Ctrl+V',
+        isKhmer ? 'សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់តំណភ្ជាប់ក្នុងប្រអប់' : 'Press Ctrl+V to paste into the field.'
+      )
+    }
+  }
+
   const openInterviewModal = (appId: number) => {
     setSelectedAppId(appId)
     const app = applications.find((a) => a.id === appId)
@@ -173,7 +212,7 @@ export const EmployerApplicationsPage: React.FC = () => {
       tomorrow.setHours(10, 0, 0, 0)
       const localIso = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
       setScheduledAt(localIso)
-      setLocationOrLink('https://meet.google.com/new')
+      setLocationOrLink('')
       setInterviewType('online')
       setInterviewNotes('')
     }
@@ -278,28 +317,32 @@ export const EmployerApplicationsPage: React.FC = () => {
   }
 
   const candidateStatusOptions = [
-    { value: 'submitted', label: isKhmer ? 'បានដាក់ពាក្យ (Submitted)' : 'Submitted' },
-    { value: 'reviewing', label: isKhmer ? 'កំពុងត្រួតពិនិត្យ (Reviewing)' : 'In Review' },
-    { value: 'shortlisted', label: isKhmer ? 'ជាប់បញ្ជីសម្រាំង (Shortlisted)' : 'Shortlisted' },
-    { value: 'interview', label: isKhmer ? 'ណាត់សម្ភាសន៍ (Interview)' : 'Interview Scheduled' },
-    { value: 'offered', label: isKhmer ? 'ផ្តល់ការងារ (Offered)' : 'Offered' },
-    { value: 'rejected', label: isKhmer ? 'បដិសេធ (Rejected)' : 'Rejected' },
+    { value: 'submitted', label: isKhmer ? 'បានដាក់ពាក្យ' : 'Submitted' },
+    { value: 'reviewing', label: isKhmer ? 'កំពុងត្រួតពិនិត្យ' : 'In Review' },
+    { value: 'shortlisted', label: isKhmer ? 'ជាប់បញ្ជីសម្រាំង' : 'Shortlisted' },
+    { value: 'interview', label: isKhmer ? 'ណាត់សម្ភាសន៍' : 'Interview Scheduled' },
+    { value: 'offered', label: isKhmer ? 'ផ្តល់ការងារ' : 'Offered' },
+    { value: 'rejected', label: isKhmer ? 'បដិសេធ' : 'Rejected' },
   ]
 
   const interviewTypeOptions = [
     {
       value: 'online',
-      label: isKhmer ? 'សម្ភាសន៍តាមវីដេអូ Online (Google Meet / Zoom)' : 'Online Video (Google Meet / Zoom)',
+      label: isKhmer ? 'សម្ភាសន៍តាមវីដេអូ Google Meet' : 'Online Video (Google Meet)',
     },
     {
       value: 'in_person',
-      label: isKhmer ? 'ជួបផ្ទាល់នៅការិយាល័យ (In-Person Office Headquarters)' : 'In-Person (Office Headquarters)',
-    },
-    {
-      value: 'phone',
-      label: isKhmer ? 'សម្ភាសន៍តាមទូរស័ព្ទ (Phone Screening)' : 'Phone Screening',
+      label: isKhmer ? 'ជួបផ្ទាល់នៅការិយាល័យ' : 'In-Person (Office Headquarters)',
     },
   ]
+
+  const distinctJobs = Array.from(
+    new Map(
+      applications
+        .filter((a) => a.job_id && a.job_title)
+        .map((a) => [String(a.job_id), { id: String(a.job_id), title: String(a.job_title) }])
+    ).values()
+  )
 
   // Filter candidates
   const filteredApplicants = applications.filter((app) => {
@@ -307,12 +350,14 @@ export const EmployerApplicationsPage: React.FC = () => {
       !searchQuery.trim() ||
       app.applicant_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.applicant_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.applicant_headline?.toLowerCase().includes(searchQuery.toLowerCase())
+      app.applicant_headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.job_title?.toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesStatus =
       statusFilter === 'all' ||
       normalizeAppStatus(app.status) === normalizeAppStatus(statusFilter)
-    return matchesQuery && matchesStatus
+    const matchesJob = id || jobFilter === 'all' || String(app.job_id) === jobFilter
+    return matchesQuery && matchesStatus && matchesJob
   })
 
   if (isLoading) {
@@ -332,15 +377,30 @@ export const EmployerApplicationsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs">
         <div className="space-y-1">
           <Link
-            to="/employer/jobs"
+            to={id ? '/employer/jobs' : '/employer/dashboard'}
             className="inline-flex items-center text-xs font-medium text-slate-500 hover:text-blue-600 transition mb-0.5"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            <span>{isKhmer ? 'ត្រឡប់ទៅការងារទាំងអស់' : 'Back to Vacancies'}</span>
+            <span>
+              {id
+                ? isKhmer
+                  ? 'ត្រឡប់ទៅការងារទាំងអស់'
+                  : 'Back to Vacancies'
+                : isKhmer
+                ? 'ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង'
+                : 'Back to Dashboard'}
+            </span>
           </Link>
           <div className="flex items-center space-x-2">
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-              {job?.title || (isKhmer ? 'គ្រប់គ្រងបេក្ខជន' : 'Applicant Pipeline')}
+              {job?.title ||
+                (id
+                  ? isKhmer
+                    ? 'គ្រប់គ្រងបេក្ខជន'
+                    : 'Applicant Pipeline'
+                  : isKhmer
+                  ? 'បេក្ខជនទាំងអស់ទូទាំងក្រុមហ៊ុន'
+                  : 'All Company Applicants')}
             </h1>
             {job?.slug && (
               <Link
@@ -380,16 +440,38 @@ export const EmployerApplicationsPage: React.FC = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isKhmer ? 'ស្វែងរកតាមឈ្មោះ អ៊ីមែល ឬជំនាញ...' : 'Search by name, email, or headline...'}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition"
-          />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setCurrentPage(1)
+              }}
+              placeholder={isKhmer ? 'ស្វែងរកតាមឈ្មោះ អ៊ីមែល ឬមុខតំណែង...' : 'Search by name, email, or vacancy...'}
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-800 placeholder-slate-400 font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-100 transition"
+            />
+          </div>
+          {!id && distinctJobs.length > 0 && (
+            <select
+              value={jobFilter}
+              onChange={(e) => {
+                setJobFilter(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="px-3 py-1.5 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-700 font-semibold outline-none focus:bg-white focus:border-blue-500 max-w-xs cursor-pointer"
+            >
+              <option value="all">{isKhmer ? 'ការងារទាំងអស់' : 'All Vacancies'}</option>
+              {distinctJobs.map((j) => (
+                <option key={j.id} value={j.id}>
+                  {j.title}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
@@ -464,9 +546,18 @@ export const EmployerApplicationsPage: React.FC = () => {
 
                       {/* Details */}
                       <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-xs sm:text-sm font-bold text-slate-900">{app.applicant_name}</h3>
                           {getDynamicStatusBadge(app.status)}
+                          {!id && app.job_title && (
+                            <Link
+                              to={`/employer/jobs/${app.job_id}/applications`}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/80 transition"
+                            >
+                              <Briefcase className="w-3 h-3 text-slate-400" />
+                              <span className="truncate max-w-[180px]">{app.job_title}</span>
+                            </Link>
+                          )}
                         </div>
 
                         <p className="text-xs text-slate-500">
@@ -504,24 +595,26 @@ export const EmployerApplicationsPage: React.FC = () => {
 
                     {/* Top Action Controls: Status Switcher, Interview, Delete */}
                     <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                      {/* Status Dropdown */}
-                      <div className="w-36">
-                        <Select
-                          value={normalizeAppStatus(app.status)}
-                          onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                          options={candidateStatusOptions}
-                        />
-                      </div>
+                      <PermissionGuard permission={PERMISSIONS.REVIEW_APPLICATIONS}>
+                        {/* Status Dropdown */}
+                        <div className="w-36">
+                          <Select
+                            value={normalizeAppStatus(app.status)}
+                            onChange={(e) => handleStatusChange(app.id, e.target.value)}
+                            options={candidateStatusOptions}
+                          />
+                        </div>
 
-                      {/* Schedule Interview Button (Blue) */}
-                      <button
-                        type="button"
-                        onClick={() => openInterviewModal(app.id)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-gray-200 text-blue-700 text-xs font-semibold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
-                      >
-                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                        <span>{isKhmer ? 'សម្ភាសន៍' : 'Interview'}</span>
-                      </button>
+                        {/* Schedule Interview Button (Blue) */}
+                        <button
+                          type="button"
+                          onClick={() => openInterviewModal(app.id)}
+                          className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-gray-200 text-blue-700 text-xs font-semibold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                          <span>{isKhmer ? 'សម្ភាសន៍' : 'Interview'}</span>
+                        </button>
+                      </PermissionGuard>
 
                       {/* View Details Toggle Button */}
                       <button
@@ -535,14 +628,16 @@ export const EmployerApplicationsPage: React.FC = () => {
                       </button>
 
                       {/* Delete Applicant Button (Red) */}
-                      <button
-                        type="button"
-                        onClick={() => setDeleteCandidateId(app.id)}
-                        className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
-                        title={isKhmer ? 'លុបបេក្ខជន' : 'Remove candidate'}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <PermissionGuard permission={PERMISSIONS.REVIEW_APPLICATIONS}>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteCandidateId(app.id)}
+                          className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
+                          title={isKhmer ? 'លុបបេក្ខជន' : 'Remove candidate'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </PermissionGuard>
                     </div>
                   </div>
 
@@ -603,13 +698,15 @@ export const EmployerApplicationsPage: React.FC = () => {
                               <span>📅 Google Cal</span>
                             </a>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => openInterviewModal(app.id)}
-                            className="px-2.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition shadow-2xs cursor-pointer"
-                          >
-                            {isKhmer ? 'កែប្រែកាលបរិច្ឆេទ' : 'Reschedule'}
-                          </button>
+                          <PermissionGuard permission={PERMISSIONS.REVIEW_APPLICATIONS}>
+                            <button
+                              type="button"
+                              onClick={() => openInterviewModal(app.id)}
+                              className="px-2.5 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition shadow-2xs cursor-pointer"
+                            >
+                              {isKhmer ? 'កែប្រែកាលបរិច្ឆេទ' : 'Reschedule'}
+                            </button>
+                          </PermissionGuard>
                         </div>
                       </div>
 
@@ -618,7 +715,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                         <div className="pt-2 border-t border-blue-100 flex flex-wrap items-center gap-2 text-xs">
                           <span className="font-semibold text-slate-600">
                             {app.interview.location_or_link.startsWith('http')
-                              ? (isKhmer ? 'តំណភ្ជាប់ប្រជុំ (Meeting Link):' : 'Meeting Link:')
+                              ? (isKhmer ? 'តំណភ្ជាប់ប្រជុំ:' : 'Meeting Link:')
                               : (isKhmer ? 'ទីតាំងជួបផ្ទាល់:' : 'Office Location:')}
                           </span>
                           {app.interview.location_or_link.startsWith('http') ? (
@@ -697,7 +794,12 @@ export const EmployerApplicationsPage: React.FC = () => {
                                 <p className="font-semibold text-slate-800">{exp.job_title}</p>
                                 <p className="text-[11px] text-slate-500">{exp.company_name}</p>
                                 <p className="text-[10px] text-slate-400">
-                                  {exp.start_date} – {exp.is_current ? 'Present' : exp.end_date || 'Past'}
+                                  {exp.start_date} –{' '}
+                                  {exp.is_current
+                                    ? isKhmer
+                                      ? 'បច្ចុប្បន្ន'
+                                      : 'Present'
+                                    : exp.end_date || (isKhmer ? 'កន្លងមក' : 'Past')}
                                 </p>
                               </div>
                             ))}
@@ -728,7 +830,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 text-xs">
                     <span className="text-slate-400">
                       {isKhmer ? 'បានដាក់ពាក្យនៅ ' : 'Applied on '}{' '}
-                      {new Date(app.created_at).toLocaleDateString('en-US', {
+                      {new Date(app.created_at).toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -773,10 +875,10 @@ export const EmployerApplicationsPage: React.FC = () => {
 
       {/* Schedule Interview Modal */}
       {isInterviewModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scale-in font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl max-w-lg w-full overflow-hidden animate-scale-in font-sans">
             {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-5 bg-white border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                   <Calendar className="w-4 h-4" />
@@ -847,33 +949,98 @@ export const EmployerApplicationsPage: React.FC = () => {
                   </label>
                   <Select
                     value={interviewType}
-                    onChange={(e) => setInterviewType(e.target.value)}
+                    onChange={(e) => {
+                      const nextType = e.target.value
+                      setInterviewType(nextType)
+                      if (nextType === 'in_person' && locationOrLink.startsWith('http')) {
+                        setLocationOrLink('')
+                      }
+                    }}
                     options={interviewTypeOptions}
                   />
                 </div>
 
                 {/* 3. Meeting Link or Location */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-semibold text-slate-700">
-                      {isKhmer ? 'តំណភ្ជាប់ប្រជុំ (Link) ឬទីតាំង' : 'Meeting Link or Location'}
+                      {interviewType === 'online'
+                        ? isKhmer
+                          ? 'តំណភ្ជាប់បន្ទប់ Google Meet'
+                          : 'Google Meet Room Link'
+                        : isKhmer
+                        ? 'ទីតាំងការិយាល័យសម្ភាសន៍'
+                        : 'Office Interview Location'}
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setLocationOrLink('https://meet.google.com/new')}
-                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 cursor-pointer hover:underline"
-                    >
-                      <Video className="w-3.5 h-3.5" />
-                      <span>+ Google Meet</span>
-                    </button>
+                    {interviewType === 'online' && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleOpenGoogleMeetNew}
+                          className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer shadow-2xs"
+                          title={isKhmer ? 'បើក Google Meet ដើម្បីបង្កើតបន្ទប់ពិតប្រាកដ' : 'Open Google Meet to create real room'}
+                        >
+                          <Video className="w-3.5 h-3.5 text-blue-600" />
+                          <span>{isKhmer ? 'បង្កើតបន្ទប់លើ Meet' : 'Create Room on Meet'}</span>
+                          <ExternalLink className="w-3 h-3 text-blue-400" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePasteClipboard}
+                          className="text-[11px] font-semibold text-slate-600 hover:text-slate-800 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer shadow-2xs"
+                          title={isKhmer ? 'បិទភ្ជាប់តំណភ្ជាប់ដែលបានចម្លង' : 'Paste copied link'}
+                        >
+                          <Clipboard className="w-3 h-3 text-slate-500" />
+                          <span>{isKhmer ? 'បិទភ្ជាប់' : 'Paste'}</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    value={locationOrLink}
-                    onChange={(e) => setLocationOrLink(e.target.value)}
-                    placeholder={isKhmer ? 'ឧ. https://meet.google.com/abc-xyz ឬ ទីតាំងការិយាល័យ...' : 'e.g. https://meet.google.com/abc-xyz or Office Address'}
-                    className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={locationOrLink}
+                      onChange={(e) => setLocationOrLink(e.target.value)}
+                      placeholder={
+                        interviewType === 'online'
+                          ? 'https://meet.google.com/xxx-yyyy-zzz'
+                          : isKhmer
+                          ? 'ឧ. អគារការិយាល័យកណ្តាល ជាន់ទី ៣...'
+                          : 'e.g. Head Office, 3rd Floor...'
+                      }
+                      className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
+                    />
+                  </div>
+                  {interviewType === 'online' && (
+                    <div className="mt-1.5 space-y-1">
+                      {locationOrLink && locationOrLink.startsWith('http') ? (
+                        <div className="flex items-center justify-between text-[11px] text-emerald-600 font-medium bg-emerald-50/70 border border-emerald-100 px-2.5 py-1 rounded-lg">
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            {isKhmer ? 'តំណភ្ជាប់បន្ទប់ត្រៀមរួចជាស្រេច' : 'Meeting link verified'}
+                          </span>
+                          <a
+                            href={locationOrLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline inline-flex items-center gap-1 font-bold"
+                          >
+                            <span>{isKhmer ? 'សាកល្បងបើកតំណភ្ជាប់' : 'Test Link'}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                          <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                          <span>
+                            {isKhmer
+                              ? 'Google Meet តម្រូវឱ្យបង្កើតបន្ទប់លើ Google ជាមុន (ចុច "បង្កើតបន្ទប់លើ Meet" រួច Copy តំណភ្ជាប់មកបិទភ្ជាប់ទីនេះ)'
+                              : 'Google Meet requires creating the room on Google first (click "Create Room on Meet" then copy and paste the link here)'}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 4. Notes for Candidate */}
@@ -928,8 +1095,8 @@ export const EmployerApplicationsPage: React.FC = () => {
 
       {/* Delete Candidate Confirmation Modal */}
       {deleteCandidateId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
             <div className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 border border-gray-200 flex items-center justify-center mx-auto shadow-2xs">
               <AlertTriangle className="w-5 h-5" />
             </div>

@@ -5,6 +5,8 @@ import { PublicLayout } from '../layouts/PublicLayout'
 import { SeekerLayout } from '../layouts/SeekerLayout'
 import { EmployerLayout } from '../layouts/EmployerLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
+import { RoutePermissionGuard } from '../components/auth/PermissionGuard'
+import { PERMISSIONS, hasPermission } from '../utils/permissions'
 
 // Public Pages
 import { HomePage } from '../features/home/HomePage'
@@ -21,7 +23,7 @@ import { SeekerDashboardPage } from '../features/seeker/SeekerDashboardPage'
 import { SeekerProfilePage } from '../features/seeker/SeekerProfilePage'
 import { SeekerApplicationsPage } from '../features/seeker/SeekerApplicationsPage'
 import { SeekerSavedJobsPage } from '../features/seeker/SeekerSavedJobsPage'
-import { SeekerNotificationsPage } from '../features/seeker/SeekerNotificationsPage'
+import { NotificationsPage, SeekerNotificationsPage } from '../features/seeker/SeekerNotificationsPage'
 
 // Employer Pages
 import { EmployerDashboardPage } from '../features/employer/EmployerDashboardPage'
@@ -50,10 +52,22 @@ const RoleDashboardRedirect: React.FC = () => {
     )
   }
   if (!user) return <Navigate to="/login" replace />
-  // Case 3: Admin / Super Admin (Role 3)
-  if (user.roles?.includes('admin')) return <Navigate to="/admin/dashboard" replace />
-  // Case 2: Employer (Role 2)
-  if (user.roles?.includes('employer')) return <Navigate to="/employer/dashboard" replace />
+  // Case 3: Admin / Super Admin or Custom Admin Role
+  if (
+    user.id === 1 ||
+    user.roles?.includes('super_admin') ||
+    user.roles?.includes('admin') ||
+    hasPermission(user, PERMISSIONS.ADMIN_ACCESS)
+  ) {
+    return <Navigate to="/admin/dashboard" replace />
+  }
+  // Case 2: Employer or Sub-user / Custom Employer Role
+  if (
+    user.roles?.includes('employer') ||
+    hasPermission(user, PERMISSIONS.EMPLOYER_ACCESS)
+  ) {
+    return <Navigate to="/employer/dashboard" replace />
+  }
   // Case 1: Job Seeker (Role 1)
   return <Navigate to="/seeker/dashboard" replace />
 }
@@ -84,10 +98,38 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/seeker/dashboard" replace /> },
       { path: 'dashboard', element: <SeekerDashboardPage /> },
-      { path: 'profile', element: <SeekerProfilePage /> },
-      { path: 'applications', element: <SeekerApplicationsPage /> },
-      { path: 'saved', element: <SeekerSavedJobsPage /> },
-      { path: 'notifications', element: <SeekerNotificationsPage /> },
+      {
+        path: 'profile',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MANAGE_PROFILE}>
+            <SeekerProfilePage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'applications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.APPLY_JOBS}>
+            <SeekerApplicationsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'saved',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.SAVE_JOBS}>
+            <SeekerSavedJobsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_NOTIFICATIONS}>
+            <SeekerNotificationsPage role="job_seeker" />
+          </RoutePermissionGuard>
+        ),
+      },
     ],
   },
 
@@ -98,11 +140,62 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/employer/dashboard" replace /> },
       { path: 'dashboard', element: <EmployerDashboardPage /> },
-      { path: 'jobs', element: <EmployerJobsPage /> },
-      { path: 'jobs/new', element: <EmployerJobCreatePage /> },
-      { path: 'jobs/:id/edit', element: <EmployerJobCreatePage /> },
-      { path: 'jobs/:id/applications', element: <EmployerApplicationsPage /> },
-      { path: 'company', element: <EmployerCompanyProfilePage /> },
+      {
+        path: 'jobs',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.EMPLOYER_ACCESS}>
+            <EmployerJobsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'jobs/new',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.POST_JOBS}>
+            <EmployerJobCreatePage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'jobs/:id/edit',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.EDIT_JOBS}>
+            <EmployerJobCreatePage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'applications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+            <EmployerApplicationsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'jobs/:id/applications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+            <EmployerApplicationsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'company',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MANAGE_COMPANY}>
+            <EmployerCompanyProfilePage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_NOTIFICATIONS}>
+            <NotificationsPage role="employer" />
+          </RoutePermissionGuard>
+        ),
+      },
     ],
   },
 
@@ -113,12 +206,62 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
       { path: 'dashboard', element: <AdminDashboardPage /> },
-      { path: 'categories', element: <AdminCategoriesPage /> },
-      { path: 'companies', element: <AdminCompaniesPage /> },
-      { path: 'jobs', element: <AdminJobsPage /> },
-      { path: 'users', element: <AdminUsersPage /> },
-      { path: 'audit', element: <AdminAuditPage /> },
-      { path: 'settings', element: <AdminSettingsPage /> },
+      {
+        path: 'categories',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MANAGE_CATEGORIES}>
+            <AdminCategoriesPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'companies',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VERIFY_COMPANIES}>
+            <AdminCompaniesPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'jobs',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MODERATE_JOBS}>
+            <AdminJobsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MANAGE_USERS}>
+            <AdminUsersPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'audit',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_AUDIT}>
+            <AdminAuditPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'settings',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.MANAGE_SETTINGS}>
+            <AdminSettingsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.VIEW_NOTIFICATIONS}>
+            <NotificationsPage role="admin" />
+          </RoutePermissionGuard>
+        ),
+      },
     ],
   },
 

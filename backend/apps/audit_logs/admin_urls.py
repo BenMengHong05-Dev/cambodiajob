@@ -8,10 +8,14 @@ from .views import (
     AdminCompaniesView,
     AdminCompanyDetailView,
     AdminCompanyVerificationView,
+    AdminCompanyMembersView,
     AdminJobsModerationView,
+    AdminJobDetailView,
     AdminAuditLogsView,
     AdminSiteSettingsView,
     AdminSiteSettingsUploadLogoView,
+    AdminRolesPermissionsView,
+    AdminRolesPermissionsDetailView,
 )
 from apps.job_categories.views import CategoryListView, CategoryDetailView
 
@@ -25,10 +29,15 @@ urlpatterns = [
     path("users/<int:pk>/", AdminUserDetailView.as_view(), name="admin-user-detail"),
     path("users/bulk-delete/", AdminUserBulkDeleteView.as_view(), name="admin-user-bulk-delete"),
     path("users/<int:pk>/status/", AdminUserStatusView.as_view(), name="admin-user-status"),
+    path("roles/", AdminRolesPermissionsView.as_view(), name="admin-roles"),
+    path("roles/<int:pk>/", AdminRolesPermissionsDetailView.as_view(), name="admin-role-detail"),
     path("companies/", AdminCompaniesView.as_view(), name="admin-companies"),
     path("companies/<int:pk>/", AdminCompanyDetailView.as_view(), name="admin-company-detail"),
     path("companies/<int:pk>/verification/", AdminCompanyVerificationView.as_view(), name="admin-company-verification"),
+    path("companies/<int:pk>/members/", AdminCompanyMembersView.as_view(), name="admin-company-members"),
+    path("companies/<int:pk>/members/<int:user_id>/", AdminCompanyMembersView.as_view(), name="admin-company-member-delete"),
     path("jobs/", AdminJobsModerationView.as_view(), name="admin-jobs"),
+    path("jobs/<int:pk>/", AdminJobDetailView.as_view(), name="admin-job-detail"),
     path("jobs/<int:pk>/moderation/", AdminJobsModerationView.as_view(), name="admin-job-moderation"),
     path("audit/", AdminAuditLogsView.as_view(), name="admin-audit-logs"),
 ]

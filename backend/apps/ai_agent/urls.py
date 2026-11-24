@@ -5,6 +5,7 @@ from .views import (
     AIMarketChartView,
     AIStatusView,
     AICoverLetterView,
+    AIJobGenerateView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path("profile-match/", AIProfileMatchView.as_view(), name="ai-profile-match"),
     path("market-chart/", AIMarketChartView.as_view(), name="ai-market-chart"),
     path("generate-cover-letter/", AICoverLetterView.as_view(), name="ai-generate-cover-letter"),
+    path("generate-job/", AIJobGenerateView.as_view(), name="ai-generate-job"),
 ]

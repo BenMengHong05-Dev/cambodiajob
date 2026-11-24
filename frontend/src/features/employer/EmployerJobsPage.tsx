@@ -7,7 +7,8 @@ import { formatSalaryRange } from '../../utils/currency'
 import { TablePagination } from '../../components/common/TablePagination'
 import { Input, Select } from '../../components/ui'
 import { useToast } from '../../app/providers'
-import { exportJobsToExcel } from '../../utils/excelExport'
+import { PermissionGuard } from '../../components/auth/PermissionGuard'
+import { PERMISSIONS } from '../../utils/permissions'
 import {
   Briefcase,
   PlusCircle,
@@ -16,7 +17,6 @@ import {
   Trash2,
   Search,
   AlertTriangle,
-  FileSpreadsheet,
   Pencil,
   Sparkles,
   ChevronDown,
@@ -103,24 +103,6 @@ export const EmployerJobsPage: React.FC = () => {
       toast.error(
         isKhmer ? 'បរាជ័យ' : 'Error',
         isKhmer ? 'មិនអាចផ្លាស់ប្តូរស្ថានភាពការងារបានទេ' : 'Failed to change vacancy status.'
-      )
-    }
-  }
-
-  const handleExportExcel = () => {
-    if (!jobs || jobs.length === 0) return
-    try {
-      exportJobsToExcel(jobs, isKhmer)
-      toast.success(
-        isKhmer ? 'បានទាញយកទិន្នន័យជោគជ័យ' : 'Excel Exported',
-        isKhmer
-          ? 'ឯកសារ Microsoft Excel (.xlsx) ត្រូវបានទាញយកទៅកាន់ឧបករណ៍របស់អ្នក'
-          : 'Vacancies list exported to Microsoft Excel (.xlsx).'
-      )
-    } catch (err) {
-      toast.error(
-        isKhmer ? 'បរាជ័យ' : 'Error',
-        isKhmer ? 'មិនអាចនាំចេញឯកសារ Excel បានទេ' : 'Failed to export vacancies.'
       )
     }
   }
@@ -243,9 +225,9 @@ export const EmployerJobsPage: React.FC = () => {
   }
 
   const statusOptions = [
-    { value: 'published', label: isKhmer ? 'ផ្សាយផ្ទាល់ (Published)' : 'Published', color: 'emerald' },
-    { value: 'draft', label: isKhmer ? 'សេចក្តីព្រាង (Draft)' : 'Draft', color: 'amber' },
-    { value: 'closed', label: isKhmer ? 'បិទការជ្រើសរើស (Closed)' : 'Closed', color: 'rose' },
+    { value: 'published', label: isKhmer ? 'ផ្សាយផ្ទាល់' : 'Published', color: 'emerald' },
+    { value: 'draft', label: isKhmer ? 'សេចក្តីព្រាង' : 'Draft', color: 'amber' },
+    { value: 'closed', label: isKhmer ? 'បិទការជ្រើសរើស' : 'Closed', color: 'rose' },
   ]
 
   // KPI calculations
@@ -296,26 +278,25 @@ export const EmployerJobsPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap sm:flex-nowrap">
-            <button
-              type="button"
-              onClick={handleExportExcel}
-              disabled={jobs.length === 0}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-semibold text-xs transition shadow-2xs cursor-pointer disabled:opacity-50"
-              title={isKhmer ? 'ទាញយកបញ្ជីការងារជា Excel (.xlsx)' : 'Export vacancies to Microsoft Excel (.xlsx)'}
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{isKhmer ? 'នាំចេញជា Excel' : 'Export Excel'}</span>
-            </button>
+          <PermissionGuard permission={PERMISSIONS.POST_JOBS}>
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap sm:flex-nowrap">
+              <Link
+                to="/employer/jobs/new?ai=true"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold text-xs transition shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>{isKhmer ? 'បង្កើតការងារដោយ AI' : 'Create with AI'}</span>
+              </Link>
 
-            <Link
-              to="/employer/jobs/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs transition shadow-2xs cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post New Vacancy'}</span>
-            </Link>
-          </div>
+              <Link
+                to="/employer/jobs/new"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs transition shadow-2xs cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post New Vacancy'}</span>
+              </Link>
+            </div>
+          </PermissionGuard>
         </div>
       </div>
 
@@ -386,13 +367,15 @@ export const EmployerJobsPage: React.FC = () => {
                 : 'Try clearing your search query or selecting a different status filter.'}
           </p>
           {jobs.length === 0 && (
-            <Link
-              to="/employer/jobs/new"
-              className="inline-flex items-center gap-1.5 mt-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition shadow-2xs"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Create Job Vacancy'}</span>
-            </Link>
+            <PermissionGuard permission={PERMISSIONS.POST_JOBS}>
+              <Link
+                to="/employer/jobs/new"
+                className="inline-flex items-center gap-1.5 mt-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition shadow-2xs"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Create Job Vacancy'}</span>
+              </Link>
+            </PermissionGuard>
           )}
         </div>
       ) : (
@@ -441,7 +424,7 @@ export const EmployerJobsPage: React.FC = () => {
                       <span>•</span>
                       <span className="text-slate-400 flex items-center gap-1">
                         <Clock className="w-3 h-3 text-slate-400" />
-                        {new Date(job.created_at).toLocaleDateString('en-US', {
+                        {new Date(job.created_at).toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -460,107 +443,118 @@ export const EmployerJobsPage: React.FC = () => {
 
                   {/* Actions Row - Easy Management & Modify Controls */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-                    {/* 1. Status Dropdown Pill (No Text Truncation!) */}
-                    <div className={`relative ${isOpenStatus ? 'z-40' : ''}`} ref={isOpenStatus ? statusDropdownRef : undefined}>
-                      <button
-                        type="button"
-                        onClick={() => setOpenStatusDropdownId(isOpenStatus ? null : job.id)}
-                        className={`inline-flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition shadow-2xs cursor-pointer ${job.status === 'published'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                          : job.status === 'closed'
-                            ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
-                            : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                          }`}
-                        title={isKhmer ? 'ចុចដើម្បីប្តូរស្ថានភាព' : 'Click to change vacancy status'}
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${job.status === 'published'
-                            ? 'bg-emerald-500'
+                    {/* 1. Status Dropdown Pill (Read-only fallback when user lacks jobs:edit) */}
+                    <PermissionGuard
+                      permission={PERMISSIONS.EDIT_JOBS}
+                      fallback={getDynamicStatusBadge(job.status)}
+                    >
+                      <div className={`relative ${isOpenStatus ? 'z-40' : ''}`} ref={isOpenStatus ? statusDropdownRef : undefined}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenStatusDropdownId(isOpenStatus ? null : job.id)}
+                          className={`inline-flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition shadow-2xs cursor-pointer ${job.status === 'published'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                             : job.status === 'closed'
-                              ? 'bg-rose-500'
-                              : 'bg-amber-500'
+                              ? 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                              : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
                             }`}
-                        />
-                        <span className="truncate max-w-[110px]">
-                          {job.status === 'published'
-                            ? isKhmer
-                              ? 'ផ្សាយផ្ទាល់'
-                              : 'Published'
-                            : job.status === 'closed'
+                          title={isKhmer ? 'ចុចដើម្បីប្តូរស្ថានភាព' : 'Click to change vacancy status'}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${job.status === 'published'
+                              ? 'bg-emerald-500'
+                              : job.status === 'closed'
+                                ? 'bg-rose-500'
+                                : 'bg-amber-500'
+                              }`}
+                          />
+                          <span className="truncate max-w-[110px]">
+                            {job.status === 'published'
                               ? isKhmer
-                                ? 'បិទការជ្រើសរើស'
-                                : 'Closed'
-                              : isKhmer
-                                ? 'សេចក្តីព្រាង'
-                                : 'Draft'}
-                        </span>
-                        <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-                      </button>
+                                ? 'ផ្សាយផ្ទាល់'
+                                : 'Published'
+                              : job.status === 'closed'
+                                ? isKhmer
+                                  ? 'បិទការជ្រើសរើស'
+                                  : 'Closed'
+                                : isKhmer
+                                  ? 'សេចក្តីព្រាង'
+                                  : 'Draft'}
+                          </span>
+                          <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                        </button>
 
-                      {isOpenStatus && (
-                        <div className="absolute left-0 lg:right-0 lg:left-auto mt-1.5 w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                          <div className="px-2.5 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-100 mb-1">
-                            {isKhmer ? 'ជ្រើសរើសស្ថានភាពការងារ' : 'Select Vacancy Status'}
+                        {isOpenStatus && (
+                          <div className="absolute left-0 lg:right-0 lg:left-auto mt-1.5 w-52 bg-white rounded-2xl shadow-2xl border border-slate-200 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                            <div className="px-2.5 py-1.5 text-[11px] font-bold text-slate-400 border-b border-slate-100 mb-1">
+                              {isKhmer ? 'ជ្រើសរើសស្ថានភាពការងារ' : 'Select Vacancy Status'}
+                            </div>
+                            {statusOptions.map((opt) => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => handleStatusChange(job.id, opt.value)}
+                                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${job.status === opt.value
+                                  ? 'bg-blue-50 text-blue-700'
+                                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                                  }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${opt.value === 'published'
+                                      ? 'bg-emerald-500'
+                                      : opt.value === 'closed'
+                                        ? 'bg-rose-500'
+                                        : 'bg-amber-500'
+                                      }`}
+                                  />
+                                  <span>{opt.label}</span>
+                                </div>
+                                {job.status === opt.value && <Check className="w-3.5 h-3.5 text-blue-600" />}
+                              </button>
+                            ))}
                           </div>
-                          {statusOptions.map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => handleStatusChange(job.id, opt.value)}
-                              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${job.status === opt.value
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                                }`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`w-2 h-2 rounded-full ${opt.value === 'published'
-                                    ? 'bg-emerald-500'
-                                    : opt.value === 'closed'
-                                      ? 'bg-rose-500'
-                                      : 'bg-amber-500'
-                                    }`}
-                                />
-                                <span>{opt.label}</span>
-                              </div>
-                              {job.status === opt.value && <Check className="w-3.5 h-3.5 text-blue-600" />}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    </PermissionGuard>
 
                     {/* 2. Edit Job Button */}
-                    <Link
-                      to={`/employer/jobs/${job.id}/edit`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
-                      title={isKhmer ? 'កែសម្រួលព័ត៌មានការងារនេះ' : 'Edit job'}
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-blue-600" />
-                      <span>{isKhmer ? 'កែសម្រួល' : 'Edit'}</span>
-                    </Link>
+                    <PermissionGuard permission={PERMISSIONS.EDIT_JOBS}>
+                      <Link
+                        to={`/employer/jobs/${job.id}/edit`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
+                        title={isKhmer ? 'កែសម្រួលព័ត៌មានការងារនេះ' : 'Edit job'}
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-blue-600" />
+                        <span>{isKhmer ? 'កែសម្រួល' : 'Edit'}</span>
+                      </Link>
+                    </PermissionGuard>
 
                     {/* 3. Review Applicants Button */}
-                    <Link
-                      to={`/employer/jobs/${job.id}/applications`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
-                      title={isKhmer ? 'មើលបេក្ខជនទាំងអស់ដែលបានដាក់ពាក្យ' : 'Review candidates'}
-                    >
-                      <Users className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>
-                        {job.applications_count || 0} {isKhmer ? 'បេក្ខជន' : 'Candidates'}
-                      </span>
-                    </Link>
+                    <PermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+                      <Link
+                        to={`/employer/jobs/${job.id}/applications`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition active:scale-95 cursor-pointer"
+                        title={isKhmer ? 'មើលបេក្ខជនទាំងអស់ដែលបានដាក់ពាក្យ' : 'Review candidates'}
+                      >
+                        <Users className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>
+                          {job.applications_count || 0} {isKhmer ? 'បេក្ខជន' : 'Candidates'}
+                        </span>
+                      </Link>
+                    </PermissionGuard>
 
                     {/* 4. Delete Job Button */}
-                    <button
-                      type="button"
-                      onClick={() => setDeleteJobId(job.id)}
-                      className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl transition cursor-pointer"
-                      title={isKhmer ? 'លុបការងារនេះ' : 'Delete vacancy'}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <PermissionGuard permission={PERMISSIONS.DELETE_JOBS}>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteJobId(job.id)}
+                        className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 hover:border-rose-200 rounded-xl transition cursor-pointer"
+                        title={isKhmer ? 'លុបការងារនេះ' : 'Delete vacancy'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </PermissionGuard>
                   </div>
                 </div>
               )
@@ -584,16 +578,16 @@ export const EmployerJobsPage: React.FC = () => {
 
       {/* QUICK IN-PLACE EDIT MODAL */}
       {quickEditJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 max-w-lg w-full shadow-2xl space-y-4 font-sans">
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100 bg-white">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
                   <Pencil className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    {isKhmer ? 'កែសម្រួលការងាររហ័ស (Quick Modify)' : 'Quick Edit Vacancy'}
+                    {isKhmer ? 'កែសម្រួលការងាររហ័ស' : 'Quick Edit Vacancy'}
                   </h3>
                   <p className="text-[11px] text-slate-500">
                     {isKhmer ? 'កែប្រែចំណងជើង ប្រាក់បៀវត្ស និងចំនួនជ្រើសរើស' : 'Update title, salary, openings and status'}
@@ -611,7 +605,7 @@ export const EmployerJobsPage: React.FC = () => {
 
             <form onSubmit={handleSaveQuickEdit} className="space-y-3.5">
               <Input
-                label={isKhmer ? 'ចំណងជើងការងារ (Job Title)' : 'Job Title'}
+                label={isKhmer ? 'ចំណងជើងការងារ' : 'Job Title'}
                 required
                 value={quickTitle}
                 onChange={(e) => setQuickTitle(e.target.value)}
@@ -636,20 +630,20 @@ export const EmployerJobsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label={isKhmer ? 'ចំនួនជ្រើសរើស (Openings)' : 'Vacancies Count'}
+                  label={isKhmer ? 'ចំនួនជ្រើសរើស' : 'Vacancies Count'}
                   type="number"
                   min={1}
                   value={quickVacancies}
                   onChange={(e) => setQuickVacancies(Number(e.target.value) || 1)}
                 />
                 <Select
-                  label={isKhmer ? 'ស្ថានភាព (Status)' : 'Status'}
+                  label={isKhmer ? 'ស្ថានភាព' : 'Status'}
                   value={quickStatus}
                   onChange={(e) => setQuickStatus(e.target.value as any)}
                   options={[
-                    { value: 'published', label: isKhmer ? 'ផ្សាយផ្ទាល់ (Published)' : 'Published' },
-                    { value: 'draft', label: isKhmer ? 'សេចក្តីព្រាង (Draft)' : 'Draft' },
-                    { value: 'closed', label: isKhmer ? 'បិទការជ្រើសរើស (Closed)' : 'Closed' },
+                    { value: 'published', label: isKhmer ? 'ផ្សាយផ្ទាល់' : 'Published' },
+                    { value: 'draft', label: isKhmer ? 'សេចក្តីព្រាង' : 'Draft' },
+                    { value: 'closed', label: isKhmer ? 'បិទការជ្រើសរើស' : 'Closed' },
                   ]}
                 />
               </div>
@@ -696,8 +690,8 @@ export const EmployerJobsPage: React.FC = () => {
 
       {/* Delete Job Confirmation Modal */}
       {deleteJobId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 max-w-sm w-full shadow-2xl space-y-4 font-sans text-center">
             <div className="w-11 h-11 rounded-full bg-rose-50 text-rose-600 border border-gray-200 flex items-center justify-center mx-auto shadow-2xs">
               <AlertTriangle className="w-5 h-5" />
             </div>

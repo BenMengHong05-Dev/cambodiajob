@@ -47,13 +47,52 @@ export const adminService = {
     return res.data.data
   },
 
-  async createUser(data: { full_name: string; email: string; password: string; phone_number?: string; roles?: string[] }): Promise<any> {
+  async createUser(data: { full_name: string; email: string; password: string; phone_number?: string; role?: string; roles?: string[]; permissions?: string[] }): Promise<any> {
     const res = await api.post<ApiResponse<any>>('/admin/users/', data)
     return res.data
   },
 
-  async updateUser(userId: number, data: { full_name?: string; email?: string; phone_number?: string; is_active?: boolean; password?: string; roles?: string[] }): Promise<any> {
+  async updateUser(userId: number, data: { full_name?: string; email?: string; phone_number?: string; is_active?: boolean; password?: string; role?: string; roles?: string[]; permissions?: string[] | null; has_custom_permissions?: boolean }): Promise<any> {
     const res = await api.patch<ApiResponse<any>>(`/admin/users/${userId}/`, data)
+    return res.data
+  },
+
+  async getRolesAndPermissions(): Promise<{
+    roles: Array<{
+      id: number
+      name: string
+      description: string
+      user_count: number
+      permissions: string[]
+    }>
+    catalog: Array<{
+      category: string
+      categoryKm: string
+      permissions: Array<{
+        key: string
+        name: string
+        nameKm: string
+        description: string
+        descriptionKm?: string
+      }>
+    }>
+  }> {
+    const res = await api.get<ApiResponse<any>>('/admin/roles/')
+    return res.data.data
+  },
+
+  async updateRolePermissions(roleId: number, data: { description?: string; permissions: string[] }): Promise<any> {
+    const res = await api.put<ApiResponse<any>>(`/admin/roles/${roleId}/`, data)
+    return res.data
+  },
+
+  async createRole(data: { name: string; description?: string; permissions?: string[] }): Promise<any> {
+    const res = await api.post<ApiResponse<any>>('/admin/roles/', data)
+    return res.data
+  },
+
+  async deleteRole(roleId: number): Promise<any> {
+    const res = await api.delete<ApiResponse<any>>(`/admin/roles/${roleId}/`)
     return res.data
   },
 
@@ -95,6 +134,26 @@ export const adminService = {
     await api.patch(`/admin/companies/${companyId}/verification/`, { verification_status: status })
   },
 
+  async getCompanyMembers(companyId: number): Promise<{ success: boolean; data: any[]; company: any }> {
+    const res = await api.get<ApiResponse<any>>(`/admin/companies/${companyId}/members/`)
+    return res.data as any
+  },
+
+  async addCompanyMember(companyId: number, data: { full_name?: string; email: string; password?: string; phone_number?: string; role?: string }): Promise<any> {
+    const res = await api.post<ApiResponse<any>>(`/admin/companies/${companyId}/members/`, data)
+    return res.data
+  },
+
+  async removeCompanyMember(companyId: number, userId: number): Promise<any> {
+    const res = await api.delete<ApiResponse<any>>(`/admin/companies/${companyId}/members/${userId}/`)
+    return res.data
+  },
+
+  async updateCompanyMemberRole(companyId: number, userId: number, role: string): Promise<any> {
+    const res = await api.patch<ApiResponse<any>>(`/admin/companies/${companyId}/members/${userId}/`, { role })
+    return res.data
+  },
+
   async getJobs(): Promise<any[]> {
     const res = await api.get<ApiResponse<any[]>>('/admin/jobs/')
     return res.data.data
@@ -102,6 +161,11 @@ export const adminService = {
 
   async moderateJob(jobId: number, status: 'approved' | 'rejected' | 'pending'): Promise<void> {
     await api.patch(`/admin/jobs/${jobId}/moderation/`, { moderation_status: status })
+  },
+
+  async updateJob(jobId: number, data: any): Promise<any> {
+    const res = await api.patch<ApiResponse<any>>(`/admin/jobs/${jobId}/`, data)
+    return res.data
   },
 
   async deleteJob(jobId: number): Promise<any> {

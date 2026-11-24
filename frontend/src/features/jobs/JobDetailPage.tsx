@@ -8,6 +8,7 @@ import { Job, Resume, SeekerProfile } from '../../types'
 import { useAuth, usePreferences, useToast } from '../../app/providers'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import {
   MapPin,
   Briefcase,
@@ -435,9 +436,7 @@ export const JobDetailPage: React.FC = () => {
                       <Building2 className="w-3.5 h-3.5 text-slate-400" />
                       <span>{job.company_name}</span>
                       {job.company_verification === 'verified' && (
-                        <span title="Verified Employer">
-                          <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        </span>
+                        <FacebookVerifiedBadge className="w-3.5 h-3.5 shrink-0" title={isKhmer ? 'ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ផ្លូវការ' : 'Verified Employer'} />
                       )}
                     </Link>
                   </div>
@@ -508,7 +507,7 @@ export const JobDetailPage: React.FC = () => {
                     className="px-3.5 py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition flex items-center gap-1.5"
                   >
                     <ShieldCheck className="w-4 h-4 text-blue-600" />
-                    <span>{isKhmer ? 'ត្រួតពិនិត្យ (Admin)' : 'Moderate'}</span>
+                    <span>{isKhmer ? 'ត្រួតពិនិត្យ' : 'Moderate'}</span>
                   </Link>
                 )}
 
@@ -626,9 +625,22 @@ export const JobDetailPage: React.FC = () => {
                   </div>
                   <h2 className="text-base font-bold text-slate-900">{t('jobs.description')}</h2>
                 </div>
-                <div className="text-sm sm:text-[15px] text-slate-600 leading-7 whitespace-pre-line font-normal">
-                  {isKhmer && job.description_km ? job.description_km : job.description}
-                </div>
+                {(() => {
+                  const desc = isKhmer && job.description_km ? job.description_km : job.description
+                  if (desc && /<[a-z][\s\S]*>/i.test(desc)) {
+                    return (
+                      <div
+                        className="text-sm sm:text-[15px] text-slate-600 leading-7 font-normal space-y-2 [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5"
+                        dangerouslySetInnerHTML={{ __html: desc }}
+                      />
+                    )
+                  }
+                  return (
+                    <div className="text-sm sm:text-[15px] text-slate-600 leading-7 whitespace-pre-line font-normal">
+                      {desc}
+                    </div>
+                  )
+                })()}
               </section>
 
               {/* Requirements */}
@@ -640,9 +652,16 @@ export const JobDetailPage: React.FC = () => {
                     </div>
                     <h2 className="text-base font-bold text-slate-900">{t('jobs.requirements')}</h2>
                   </div>
-                  <div className="text-sm sm:text-[15px] text-slate-600 leading-7 whitespace-pre-line font-normal">
-                    {job.requirements}
-                  </div>
+                  {/<[a-z][\s\S]*>/i.test(job.requirements) ? (
+                    <div
+                      className="text-sm sm:text-[15px] text-slate-600 leading-7 font-normal space-y-2 [&>p]:mb-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5"
+                      dangerouslySetInnerHTML={{ __html: job.requirements }}
+                    />
+                  ) : (
+                    <div className="text-sm sm:text-[15px] text-slate-600 leading-7 whitespace-pre-line font-normal">
+                      {job.requirements}
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -736,9 +755,7 @@ export const JobDetailPage: React.FC = () => {
                   <h4 className="text-sm font-bold text-slate-900 truncate flex items-center gap-1.5">
                     <span className="truncate">{job.company_name}</span>
                     {job.company_verification === 'verified' && (
-                      <span title="Verified Employer">
-                        <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                      </span>
+                      <FacebookVerifiedBadge className="w-4 h-4 shrink-0" title={isKhmer ? 'ក្រុមហ៊ុនផ្ទៀងផ្ទាត់ផ្លូវការ' : 'Verified Employer'} />
                     )}
                   </h4>
                   <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 truncate">
@@ -850,8 +867,8 @@ export const JobDetailPage: React.FC = () => {
 
       {/* ================= APPLY MODAL DIALOG ================= */}
       {isApplyModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl relative border border-slate-200 animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl relative border border-gray-100 animate-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
             
             {/* Top Gradient Accent Bar */}
             <div className="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 shrink-0" />
@@ -1064,7 +1081,7 @@ export const JobDetailPage: React.FC = () => {
                             className="font-bold text-xs text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>{isKhmer ? 'ជ្រើសរើស CV ផ្សេង (Upload Other)' : 'Upload Other CV'}</span>
+                            <span>{isKhmer ? 'ជ្រើសរើស CV ផ្សេង' : 'Upload Other CV'}</span>
                           </button>
                         </div>
                       </div>

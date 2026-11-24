@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { adminService } from '../../services/admin.service'
 import { useToast } from '../../app/providers'
 import { TablePagination } from '../../components/common/TablePagination'
+import { AdminPageHeader } from '../../components/layout/dashboard'
+import { Dialog } from '../../components/ui'
 import {
   Layers,
   Plus,
@@ -352,56 +354,32 @@ export const AdminCategoriesPage: React.FC = () => {
 
   return (
     <div className="w-full space-y-3.5 font-sans pb-12">
-      {/* 1. Header Bar: Title on left, Search on right, Create Button (Following Job Moderation UI) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-2xs">
-        <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-              {isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories & Sectors'}
-            </h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-gray-200">
-              <Layers className="w-3 h-3 text-blue-600" />
-              <span>{categories.length} {isKhmer ? 'ផ្នែកសរុប' : 'Total'}</span>
-            </span>
-            {categoriesWithJobsCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                {categoriesWithJobsCount} {isKhmer ? 'មានការងារ' : 'With Jobs'}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {isKhmer
-              ? 'បង្កើត កែសម្រួល និងគ្រប់គ្រងប្រភេទការងារដែលបង្ហាញនៅលើទំព័រដើម និងទំព័រស្វែងរក'
-              : 'Review and manage career categories and sectors before they appear live on the directory'}
-          </p>
-        </div>
-
-        {/* Search Input on Top / Header & Button Create Category */}
-        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto w-full sm:w-auto">
-          <div className="relative w-full sm:w-64 md:w-72">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                isKhmer
-                  ? 'ស្វែងរកផ្នែកការងារ...'
-                  : 'Search categories by name or slug...'
+      {/* 1. Header Bar: Using AdminPageHeader */}
+      <AdminPageHeader
+        title={isKhmer ? 'គ្រប់គ្រងផ្នែកការងារ' : 'Job Categories & Sectors'}
+        subtitle={
+          isKhmer
+            ? 'បង្កើត កែសម្រួល និងគ្រប់គ្រងប្រភេទការងារដែលបង្ហាញនៅលើទំព័រដើម និងទំព័រស្វែងរក'
+            : 'Review and manage career categories and sectors before they appear live on the directory'
+        }
+        badge={{
+          icon: Layers,
+          text: `${categories.length} ${isKhmer ? 'ផ្នែកសរុប' : 'Total'}`,
+        }}
+        secondaryBadge={
+          categoriesWithJobsCount > 0
+            ? {
+                text: `${categoriesWithJobsCount} ${isKhmer ? 'មានការងារ' : 'With Jobs'}`,
+                variant: 'emerald',
               }
-              className="w-full pl-8 pr-8 py-1.5 text-xs bg-slate-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 font-medium transition text-slate-800 shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
+            : undefined
+        }
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder={
+          isKhmer ? 'ស្វែងរកផ្នែកការងារ...' : 'Search categories by name or slug...'
+        }
+        actions={
           <button
             type="button"
             onClick={handleOpenCreateModal}
@@ -410,8 +388,8 @@ export const AdminCategoriesPage: React.FC = () => {
             <Plus className="w-3.5 h-3.5 text-white" />
             <span>{isKhmer ? 'បង្កើតផ្នែកការងារ' : 'Create Category'}</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* 2. Filter Toolbar (Clean pills on right) */}
       <div className="flex items-center justify-between gap-2 bg-white px-4 py-2.5 rounded-2xl border border-gray-200 shadow-2xs overflow-x-auto">
@@ -639,162 +617,141 @@ export const AdminCategoriesPage: React.FC = () => {
         />
       </div>
 
-      {/* 5. Create / Edit Category Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-lg w-full overflow-hidden animate-scale-in">
-            {/* Modal Header */}
-            <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm sm:text-base text-slate-900">
-                    {editingCategory
-                      ? isKhmer
-                        ? 'កែសម្រួលផ្នែកការងារ'
-                        : 'Edit Job Category'
-                      : isKhmer
-                      ? 'បង្កើតផ្នែកការងារថ្មី'
-                      : 'Create New Job Category'}
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    {editingCategory
-                      ? isKhmer
-                        ? `កែប្រែទិន្នន័យសម្រាប់ #${editingCategory.id}`
-                        : `Updating category #${editingCategory.id}`
-                      : isKhmer
-                      ? 'បញ្ចូលព័ត៌មានផ្នែកការងារថ្មី'
-                      : 'Enter details for the new job vacancy category'}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* 5. Create / Edit Category Dialog */}
+      <Dialog
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        size="md"
+        icon={<Layers className="w-5 h-5 text-blue-600" />}
+        title={
+          editingCategory
+            ? isKhmer
+              ? 'កែសម្រួលផ្នែកការងារ'
+              : 'Edit Job Category'
+            : isKhmer
+            ? 'បង្កើតផ្នែកការងារថ្មី'
+            : 'Create New Job Category'
+        }
+        description={
+          editingCategory
+            ? isKhmer
+              ? `កែប្រែទិន្នន័យសម្រាប់ #${editingCategory.id}`
+              : `Updating category #${editingCategory.id}`
+            : isKhmer
+            ? 'បញ្ចូលព័ត៌មានផ្នែកការងារថ្មី'
+            : 'Enter details for the new job vacancy category'
+        }
+      >
+        <form onSubmit={handleSaveCategory} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{formError}</span>
             </div>
+          )}
 
-            {/* Modal Form */}
-            <form onSubmit={handleSaveCategory} className="p-6 space-y-4">
-              {formError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{formError}</span>
-                </div>
+          {/* Name English */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              {isKhmer ? 'ឈ្មោះផ្នែកការងារ (អង់គ្លេស)' : 'Category Name (English)'}{' '}
+              <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formNameEn}
+              onChange={(e) => setFormNameEn(e.target.value)}
+              placeholder="e.g. Information Technology & Software"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
+            />
+          </div>
+
+          {/* Name Khmer */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              {isKhmer ? 'ឈ្មោះផ្នែកការងារ (ខ្មែរ)' : 'Category Name (Khmer)'}{' '}
+              <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formNameKm}
+              onChange={(e) => setFormNameKm(e.target.value)}
+              placeholder="ឧ. បច្ចេកវិទ្យាព័ត៌មាន & កម្មវិធី"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition cursor-pointer"
+            >
+              {isKhmer ? 'បោះបង់' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 active:scale-98 transition flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+            >
+              {isSubmitting ? (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5 text-white" />
               )}
-
-              {/* Name English */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  {isKhmer ? 'ឈ្មោះផ្នែកការងារ (អង់គ្លេស)' : 'Category Name (English)'}{' '}
-                  <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formNameEn}
-                  onChange={(e) => setFormNameEn(e.target.value)}
-                  placeholder="e.g. Information Technology & Software"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
-                />
-              </div>
-
-              {/* Name Khmer */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  {isKhmer ? 'ឈ្មោះផ្នែកការងារ (ខ្មែរ)' : 'Category Name (Khmer)'}{' '}
-                  <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formNameKm}
-                  onChange={(e) => setFormNameKm(e.target.value)}
-                  placeholder="ឧ. បច្ចេកវិទ្យាព័ត៌មាន & កម្មវិធី"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 shadow-2xs"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition cursor-pointer"
-                >
-                  {isKhmer ? 'បោះបង់' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 active:scale-98 transition flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Check className="w-3.5 h-3.5 text-white" />
-                  )}
-                  <span>
-                    {editingCategory
-                      ? isKhmer
-                        ? 'រក្សាទុកការកែប្រែ'
-                        : 'Update Category'
-                      : isKhmer
-                      ? 'បង្កើតផ្នែកការងារ'
-                      : 'Create Category'}
-                  </span>
-                </button>
-              </div>
-            </form>
+              <span>
+                {editingCategory
+                  ? isKhmer
+                    ? 'រក្សាទុកការកែប្រែ'
+                    : 'Update Category'
+                  : isKhmer
+                  ? 'បង្កើតផ្នែកការងារ'
+                  : 'Create Category'}
+              </span>
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Dialog>
 
-      {/* 6. Delete Confirmation Modal */}
-      {deleteModalOpen && categoryToDelete && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-sm w-full p-6 text-center animate-scale-in">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3 shadow-inner">
-              <Trash2 className="w-6 h-6 text-rose-600" />
-            </div>
-
-            <h3 className="font-bold text-base text-slate-900">
-              {isKhmer ? 'បញ្ជាក់ការលុបផ្នែកការងារ?' : 'Delete Job Category?'}
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-              {isKhmer
-                ? `តើអ្នកប្រាកដជាចង់លុបផ្នែក "${categoryToDelete.name_en}" នេះមែនទេ? ប្រសិនបើមានការងារសកម្មភ្ជាប់ជាមួយ ការងារទាំងនោះនឹងមិនត្រូវបានលុបទេ គ្រាន់តែមិនមានផ្នែកកំណត់ប៉ុណ្ណោះ។`
-                : `Are you sure you want to delete "${categoryToDelete.name_en}"? Jobs assigned to this category will not be deleted, but will become unassigned.`}
-            </p>
-
-            <div className="mt-5 flex items-center justify-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition cursor-pointer"
-              >
-                {isKhmer ? 'ទេ, បោះបង់' : 'Cancel'}
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteCategory}
-                disabled={isDeleting}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-md shadow-rose-500/25 active:scale-98 transition flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
-              >
-                {isDeleting && (
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                )}
-                <span>{isKhmer ? 'យល់ព្រមលុប' : 'Yes, Delete'}</span>
-              </button>
-            </div>
+      {/* 6. Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={deleteModalOpen && Boolean(categoryToDelete)}
+        onClose={() => setDeleteModalOpen(false)}
+        size="xs"
+        icon={<Trash2 className="w-5 h-5 text-rose-600" />}
+        iconClassName="bg-rose-50 border-rose-100"
+        title={isKhmer ? 'បញ្ជាក់ការលុបផ្នែកការងារ?' : 'Delete Job Category?'}
+        footer={
+          <div className="flex items-center justify-end gap-2.5 w-full">
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(false)}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition cursor-pointer"
+            >
+              {isKhmer ? 'ទេ, បោះបង់' : 'Cancel'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteCategory}
+              disabled={isDeleting}
+              className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-md shadow-rose-500/25 active:scale-98 transition flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+            >
+              {isDeleting && (
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              <span>{isKhmer ? 'យល់ព្រមលុប' : 'Yes, Delete'}</span>
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <p className="text-xs text-slate-500 leading-relaxed">
+          {isKhmer
+            ? `តើអ្នកប្រាកដជាចង់លុបផ្នែក "${categoryToDelete?.name_en}" នេះមែនទេ? ប្រសិនបើមានការងារសកម្មភ្ជាប់ជាមួយ ការងារទាំងនោះនឹងមិនត្រូវបានលុបទេ គ្រាន់តែមិនមានផ្នែកកំណត់ប៉ុណ្ណោះ។`
+            : `Are you sure you want to delete "${categoryToDelete?.name_en}"? Jobs assigned to this category will not be deleted, but will become unassigned.`}
+        </p>
+      </Dialog>
     </div>
   )
 }

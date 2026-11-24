@@ -92,4 +92,37 @@ export const aiService = {
     )
     return res.data.data.cover_letter
   },
+
+  /**
+   * AI-powered Job Creation: generates complete job specifications automatically
+   * from prompt/title including bilingual English & Khmer titles, descriptions,
+   * requirements, salary estimates, category, and matched skills.
+   */
+  async generateJob(payload: {
+    prompt: string
+    industry?: string
+    experience_level?: string
+    workplace_type?: string
+  }): Promise<{
+    title: string
+    title_km?: string
+    category_id?: number
+    employment_type?: string
+    workplace_type?: string
+    experience_level?: string
+    education_level?: string
+    province?: string
+    salary_min?: number
+    salary_max?: number
+    salary_currency?: 'USD' | 'KHR'
+    vacancies_count?: number
+    description: string
+    description_km?: string
+    requirements: string
+    recommended_skills?: string[]
+    skill_ids?: number[]
+  }> {
+    const res = await api.post<ApiResponse<any>>('/ai/generate-job/', payload)
+    return res.data.data
+  },
 }

@@ -5,6 +5,12 @@ import { adminService } from '../services/admin.service'
 import { useTranslation } from 'react-i18next'
 import { ToastProvider, useToast } from '../components/ui/Toast'
 import { getAssetUrl } from '../utils/assets'
+import {
+  hasPermission as utilHasPermission,
+  hasRole as utilHasRole,
+  canAccess as utilCanAccess,
+  getEffectivePermissions,
+} from '../utils/permissions'
 
 interface AuthContextType {
   user: User | null
@@ -15,6 +21,10 @@ interface AuthContextType {
   isAdmin: boolean
   isSuperAdmin: boolean
   dashboardPath: string
+  permissions: string[]
+  hasPermission: (permission: string | string[]) => boolean
+  hasRole: (role: string | string[]) => boolean
+  canAccess: (criteria: { requiredRoles?: string[] | string; requiredPermission?: string | string[] }) => boolean
   login: (email: string, pass: string, remember?: boolean) => Promise<User>
   register: (payload: any, remember?: boolean) => Promise<User>
   oauthLogin: (payload: {
@@ -33,6 +43,9 @@ interface PreferencesContextType {
   setCurrency: (c: Currency) => void
   language: string
   setLanguage: (lang: string) => void
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
+  toggleTheme: () => void
 }
 
 export interface SiteSettingsContextType {
@@ -96,10 +109,28 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     return localStorage.getItem('app_language') || 'en'
   })
 
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
+    return localStorage.getItem('app_theme') === 'dark' ? 'dark' : 'light'
+  })
+
   const setCurrency = (c: Currency) => {
     setCurrencyState(c)
     localStorage.setItem('app_currency', c)
   }
+
+  const setTheme = (nextTheme: 'light' | 'dark') => {
+    setThemeState(nextTheme)
+    localStorage.setItem('app_theme', nextTheme)
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+  }
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang)
@@ -197,11 +228,17 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     setUser(null)
   }
 
-  // Unified Single-Role Evaluation
+  // Unified Single-Role Evaluation (supports custom DB roles carrying portal access permissions)
   const role: 'job_seeker' | 'employer' | 'admin' | null = user
-    ? user.id === 1 || user.roles?.includes('admin') || (user as any).role === 'admin'
+    ? user.id === 1 ||
+      user.roles?.includes('super_admin') ||
+      user.roles?.includes('admin') ||
+      (user as any).role === 'admin' ||
+      user.permissions?.includes('admin:access')
       ? 'admin'
-      : user.roles?.includes('employer') || (user as any).role === 'employer'
+      : user.roles?.includes('employer') ||
+        (user as any).role === 'employer' ||
+        user.permissions?.includes('employer:access')
       ? 'employer'
       : 'job_seeker'
     : null
@@ -252,7 +289,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
   }, [siteName, siteTitle, faviconUrl])
 
   return (
-    <PreferencesContext.Provider value={{ currency, setCurrency, language, setLanguage }}>
+    <PreferencesContext.Provider value={{ currency, setCurrency, language, setLanguage, theme, setTheme, toggleTheme }}>
       <SiteSettingsContext.Provider
         value={{
           settings: siteSettings,
@@ -284,6 +321,11 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
             isAdmin,
             isSuperAdmin,
             dashboardPath,
+            permissions: getEffectivePermissions(user),
+            hasPermission: (perm: string | string[]) => utilHasPermission(user, perm),
+            hasRole: (r: string | string[]) => utilHasRole(user, r),
+            canAccess: (criteria: { requiredRoles?: string[] | string; requiredPermission?: string | string[] }) =>
+              utilCanAccess(user, criteria),
             login,
             register,
             oauthLogin,

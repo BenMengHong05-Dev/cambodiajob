@@ -55,10 +55,10 @@ export const GoogleOAuthModal: React.FC<GoogleOAuthModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3.5 bg-white">
           <div className="flex items-center space-x-2.5">
             <div className="p-1.5 bg-slate-100 rounded-xl">
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">

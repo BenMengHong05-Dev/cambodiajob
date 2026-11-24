@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 
-from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, IsEmployerOrAdmin
+from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, IsEmployerOrAdmin, HasCustomPermission
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql, atomic_transaction
 from .serializers import ApplyJobSerializer, UpdateApplicationStatusSerializer
 from apps.notifications.email_service import (
@@ -212,7 +212,7 @@ class EmployerJobApplicationsView(APIView):
     """
     List all applicants for a specific vacancy managed by this employer.
     """
-    permission_classes = [IsEmployer]
+    permission_classes = [IsEmployer, HasCustomPermission.with_perm("applications:view")]
 
     def get(self, request, pk):
         # Validate employer owns this job
@@ -295,8 +295,9 @@ class EmployerJobApplicationsView(APIView):
 class EmployerRecentApplicationsView(APIView):
     """
     List recent applicants across all vacancies belonging to current employer's company.
+    Supports optional query param `?limit=all` or numeric limit (default 10).
     """
-    permission_classes = [IsEmployer]
+    permission_classes = [IsEmployer, HasCustomPermission.with_perm("applications:view")]
 
     def get(self, request):
         em = fetch_one("SELECT company_id FROM employer_members WHERE user_id = %s", [request.user.id])
@@ -307,7 +308,16 @@ class EmployerRecentApplicationsView(APIView):
         company = fetch_one("SELECT name FROM companies WHERE id = %s", [company_id])
         company_name = company["name"] if company else "Company"
 
-        sql = """
+        limit_param = (request.query_params.get("limit") or "10").strip().lower()
+        limit_clause = ""
+        if limit_param != "all":
+            try:
+                limit_num = max(1, min(200, int(limit_param)))
+            except (ValueError, TypeError):
+                limit_num = 10
+            limit_clause = f"LIMIT {limit_num}"
+
+        sql = f"""
             SELECT 
                 a.id, a.job_id, a.seeker_id, a.resume_id, a.cover_letter, a.status, a.created_at,
                 j.title AS job_title, j.slug AS job_slug,
@@ -322,7 +332,7 @@ class EmployerRecentApplicationsView(APIView):
             LEFT JOIN resumes r ON r.id = a.resume_id
             WHERE j.company_id = %s
             ORDER BY a.created_at DESC
-            LIMIT 10
+            {limit_clause}
         """
         applicants = fetch_all(sql, [company_id])
         for applicant in applicants:
@@ -333,6 +343,30 @@ class EmployerRecentApplicationsView(APIView):
             if interview:
                 attach_calendar_urls(interview, applicant.get("job_title", "Job"), company_name)
             applicant["interview"] = interview
+            if limit_param == "all":
+                applicant["skills"] = fetch_all(
+                    """
+                    SELECT s.name AS skill_name, s.name, ss.proficiency_level 
+                    FROM seeker_skills ss
+                    INNER JOIN skills s ON s.id = ss.skill_id
+                    WHERE ss.seeker_id = %s
+                    ORDER BY s.name ASC
+                    """,
+                    [applicant["seeker_id"]],
+                )
+                applicant["educations"] = fetch_all(
+                    """
+                    SELECT institution AS school, institution, degree, field_of_study, start_date, end_date 
+                    FROM educations 
+                    WHERE seeker_id = %s 
+                    ORDER BY start_date DESC LIMIT 3
+                    """,
+                    [applicant["seeker_id"]],
+                )
+                applicant["experiences"] = fetch_all(
+                    "SELECT company_name, job_title, start_date, end_date, is_current FROM work_experiences WHERE seeker_id = %s ORDER BY start_date DESC LIMIT 3",
+                    [applicant["seeker_id"]],
+                )
 
         return Response({"success": True, "data": applicants})
 
@@ -341,7 +375,7 @@ class EmployerApplicationStatusUpdateView(APIView):
     """
     Update candidate application status and notify applicant.
     """
-    permission_classes = [IsEmployerOrAdmin]
+    permission_classes = [IsEmployerOrAdmin, HasCustomPermission.with_perm("applications:review")]
 
     def patch(self, request, pk):
         # Verify employer manages this application's company (or user is system admin)

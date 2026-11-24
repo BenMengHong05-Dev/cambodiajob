@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../services/api'
 import {
+  NotificationDetailDialog,
+  NotificationItem,
+} from './NotificationDetailDialog'
+import {
   Bell,
   CheckCheck,
   Calendar,
@@ -11,20 +15,8 @@ import {
   AlertCircle,
   ExternalLink,
   Sparkles,
+  Eye,
 } from 'lucide-react'
-
-interface NotificationItem {
-  id: number
-  user_id: number
-  title: string
-  title_km?: string
-  message: string
-  message_km?: string
-  notification_type: string
-  data?: any
-  is_read: boolean | number
-  created_at: string
-}
 
 interface NotificationDropdownProps {
   role?: 'job_seeker' | 'employer' | 'admin'
@@ -39,6 +31,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState<boolean>(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const fetchNotifications = async () => {
@@ -72,8 +66,10 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isOpen])
 
-  const handleMarkAsRead = async (item: NotificationItem, e?: React.MouseEvent) => {
+  const handleOpenDetail = async (item: NotificationItem, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
+
+    // Mark as read immediately in state & on server if unread
     if (!item.is_read) {
       try {
         await api.patch(`/notifications/${item.id}/read/`)
@@ -86,17 +82,9 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
       }
     }
 
-    // Determine target redirection
+    setSelectedNotification({ ...item, is_read: true })
+    setIsDetailDialogOpen(true)
     setIsOpen(false)
-    if (role === 'employer') {
-      navigate('/employer/applications')
-    } else if (item.notification_type === 'interview_scheduled') {
-      navigate('/seeker/applications')
-    } else if (item.notification_type === 'application_status') {
-      navigate('/seeker/applications')
-    } else {
-      navigate('/seeker/notifications')
-    }
   }
 
   const handleMarkAllRead = async () => {
@@ -228,8 +216,8 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
                 return (
                   <div
                     key={item.id}
-                    onClick={(e) => handleMarkAsRead(item, e)}
-                    className={`p-3.5 flex items-start space-x-3 transition cursor-pointer hover:bg-blue-50/50 ${
+                    onClick={(e) => handleOpenDetail(item, e)}
+                    className={`p-3.5 flex items-start space-x-3 transition cursor-pointer hover:bg-blue-50/50 group ${
                       isUnread ? 'bg-blue-50/30' : 'bg-transparent'
                     }`}
                   >
@@ -239,7 +227,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <h4 className="text-xs font-bold text-slate-900 truncate">
+                        <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition truncate">
                           {isKhmer && item.title_km ? item.title_km : item.title}
                         </h4>
                         <span className="text-[10px] text-slate-400 shrink-0 font-medium">
@@ -264,7 +252,13 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
           {/* Footer View All */}
           <div className="p-2.5 bg-white/60 backdrop-blur-md border-t border-white/80 text-center">
             <Link
-              to={role === 'employer' ? '/employer/applications' : '/seeker/notifications'}
+              to={
+                role === 'admin'
+                  ? '/admin/notifications'
+                  : role === 'employer'
+                  ? '/employer/notifications'
+                  : '/seeker/notifications'
+              }
               onClick={() => setIsOpen(false)}
               className="inline-flex items-center justify-center space-x-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 transition py-1"
             >
@@ -274,6 +268,17 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
           </div>
         </div>
       )}
+
+      {/* Notification Detail Dialog Modal */}
+      <NotificationDetailDialog
+        notification={selectedNotification}
+        isOpen={isDetailDialogOpen}
+        onClose={() => {
+          setIsDetailDialogOpen(false)
+          setSelectedNotification(null)
+        }}
+        role={role}
+      />
     </div>
   )
 }

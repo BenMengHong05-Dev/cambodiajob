@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { seekerService } from '../../services/seeker.service'
 import { jobsService } from '../../services/jobs.service'
 import { SeekerProfile, Education, Resume, Skill } from '../../types'
-import { Select, Input, Textarea } from '../../components/ui'
+import { Select, Input, Textarea, Dialog } from '../../components/ui'
 import { useToast, useAuth } from '../../app/providers'
 import {
   User,
@@ -526,7 +526,7 @@ export const SeekerProfilePage: React.FC = () => {
 
           <div className="flex-1 w-full space-y-1.5 font-sans">
             <label className="block text-xs font-semibold text-slate-700">
-              {isKhmer ? 'ជ្រើសរើសឯកសារ (PDF / DOCX)' : 'Upload File (PDF / DOCX)'}
+              {isKhmer ? 'ជ្រើសរើសឯកសារ' : 'Upload File (PDF / DOCX)'}
             </label>
             <input
               type="file"
@@ -714,12 +714,12 @@ export const SeekerProfilePage: React.FC = () => {
               value={skillProficiency}
               onChange={(e) => setSkillProficiency(e.target.value)}
               options={[
-                { value: 'beginner', label: isKhmer ? 'កម្រិតដំបូង (Beginner)' : 'Beginner' },
-                { value: 'intermediate', label: isKhmer ? 'កម្រិតមធ្យម (Intermediate)' : 'Intermediate' },
-                { value: 'advanced', label: isKhmer ? 'កម្រិតខ្ពស់ (Advanced)' : 'Advanced' },
-                { value: 'expert', label: isKhmer ? 'កម្រិតជំនាញច្បាស់ (Expert)' : 'Expert' },
-                { value: 'fluent', label: isKhmer ? 'ស្ទាត់ជំនាញ (Fluent)' : 'Fluent (Language)' },
-                { value: 'native', label: isKhmer ? 'ភាសាកំណើត (Native)' : 'Native (Language)' },
+                { value: 'beginner', label: isKhmer ? 'កម្រិតដំបូង' : 'Beginner' },
+                { value: 'intermediate', label: isKhmer ? 'កម្រិតមធ្យម' : 'Intermediate' },
+                { value: 'advanced', label: isKhmer ? 'កម្រិតខ្ពស់' : 'Advanced' },
+                { value: 'expert', label: isKhmer ? 'កម្រិតជំនាញច្បាស់' : 'Expert' },
+                { value: 'fluent', label: isKhmer ? 'ស្ទាត់ជំនាញ' : 'Fluent' },
+                { value: 'native', label: isKhmer ? 'ភាសាកំណើត' : 'Native' },
               ]}
             />
           </div>
@@ -734,220 +734,199 @@ export const SeekerProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
-      {isEduModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-slate-900 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                {isKhmer ? 'បន្ថែមព័ត៌មានអប់រំ' : 'Add Education'}
-              </h3>
-              <button onClick={() => setIsEduModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Standard White Modals */}
+      {/* Add Education Dialog */}
+      <Dialog
+        isOpen={isEduModalOpen}
+        onClose={() => setIsEduModalOpen(false)}
+        size="sm"
+        title={isKhmer ? 'បន្ថែមព័ត៌មានអប់រំ' : 'Add Education'}
+        icon={<GraduationCap className="w-5 h-5 text-blue-600" />}
+      >
+        <form onSubmit={handleAddEducation} className="space-y-3.5">
+          <Input
+            label={isKhmer ? 'គ្រឹះស្ថានសិក្សា / សាកលវិទ្យាល័យ' : 'Institution'}
+            required
+            value={newInstitution}
+            onChange={(e) => setNewInstitution(e.target.value)}
+            placeholder="e.g. Royal University of Phnom Penh (RUPP)"
+            leftIcon={<GraduationCap className="w-4 h-4" />}
+          />
 
-            <form onSubmit={handleAddEducation} className="space-y-3.5">
-              <Input
-                label={isKhmer ? 'គ្រឹះស្ថានសិក្សា / សាកលវិទ្យាល័យ' : 'Institution'}
-                required
-                value={newInstitution}
-                onChange={(e) => setNewInstitution(e.target.value)}
-                placeholder="e.g. Royal University of Phnom Penh (RUPP)"
-                leftIcon={<GraduationCap className="w-4 h-4" />}
-              />
+          <Input
+            label={isKhmer ? 'កម្រិតសញ្ញាបត្រ' : 'Degree'}
+            required
+            value={newDegree}
+            onChange={(e) => setNewDegree(e.target.value)}
+            placeholder="e.g. Bachelor of Computer Science"
+          />
 
-              <Input
-                label={isKhmer ? 'កម្រិតសញ្ញាបត្រ' : 'Degree'}
-                required
-                value={newDegree}
-                onChange={(e) => setNewDegree(e.target.value)}
-                placeholder="e.g. Bachelor of Computer Science"
-              />
+          <Input
+            label={isKhmer ? 'ជំនាញឯកទេស' : 'Field of Study'}
+            value={newField}
+            onChange={(e) => setNewField(e.target.value)}
+            placeholder="e.g. Software Engineering"
+          />
 
-              <Input
-                label={isKhmer ? 'ជំនាញឯកទេស' : 'Field of Study'}
-                value={newField}
-                onChange={(e) => setNewField(e.target.value)}
-                placeholder="e.g. Software Engineering"
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
-                  type="date"
-                  value={newEduStart}
-                  onChange={(e) => setNewEduStart(e.target.value)}
-                />
-                <Input
-                  label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
-                  type="date"
-                  value={newEduEnd}
-                  onChange={(e) => setNewEduEnd(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsEduModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition shadow-2xs cursor-pointer"
-                >
-                  {isKhmer ? 'បោះបង់' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer"
-                >
-                  {isKhmer ? 'រក្សាទុក' : 'Save Education'}
-                </button>
-              </div>
-            </form>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
+              type="date"
+              value={newEduStart}
+              onChange={(e) => setNewEduStart(e.target.value)}
+            />
+            <Input
+              label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
+              type="date"
+              value={newEduEnd}
+              onChange={(e) => setNewEduEnd(e.target.value)}
+            />
           </div>
-        </div>
-      )}
 
-      {isExpModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-slate-900 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                {isKhmer ? 'បន្ថែមបទពិសោធន៍ការងារ' : 'Add Work Experience'}
-              </h3>
-              <button onClick={() => setIsExpModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddExperience} className="space-y-3.5">
-              <Input
-                label={isKhmer ? 'ឈ្មោះក្រុមហ៊ុន / ស្ថាប័ន' : 'Company Name'}
-                required
-                value={newCompany}
-                onChange={(e) => setNewCompany(e.target.value)}
-                placeholder="e.g. Smart Axiata or ABA Bank"
-                leftIcon={<Briefcase className="w-4 h-4" />}
-              />
-
-              <Input
-                label={isKhmer ? 'មុខតំណែង' : 'Job Title'}
-                required
-                value={newJobTitle}
-                onChange={(e) => setNewJobTitle(e.target.value)}
-                placeholder="e.g. Frontend Developer"
-              />
-
-              <Input
-                label={isKhmer ? 'ទីតាំង' : 'Location'}
-                value={newExpLocation}
-                onChange={(e) => setNewExpLocation(e.target.value)}
-                placeholder="e.g. Phnom Penh"
-                leftIcon={<MapPin className="w-4 h-4" />}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
-                  type="date"
-                  value={newExpStart}
-                  onChange={(e) => setNewExpStart(e.target.value)}
-                />
-                <Input
-                  label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
-                  type="date"
-                  disabled={isCurrentExp}
-                  value={newExpEnd}
-                  onChange={(e) => setNewExpEnd(e.target.value)}
-                />
-              </div>
-
-              <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer pt-1">
-                <input
-                  type="checkbox"
-                  checked={isCurrentExp}
-                  onChange={(e) => setIsCurrentExp(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <span>{isKhmer ? 'ខ្ញុំកំពុងបម្រើការងារនៅទីនេះ' : 'I currently work here'}</span>
-              </label>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsExpModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition shadow-2xs cursor-pointer"
-                >
-                  {isKhmer ? 'បោះបង់' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer"
-                >
-                  {isKhmer ? 'រក្សាទុក' : 'Save Experience'}
-                </button>
-              </div>
-            </form>
+          <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setIsEduModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition shadow-2xs cursor-pointer"
+            >
+              {isKhmer ? 'បោះបង់' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer"
+            >
+              {isKhmer ? 'រក្សាទុក' : 'Save Education'}
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Dialog>
 
-      {/* In-app Delete Item Confirmation Modal */}
-      {deletingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-gray-200 text-rose-600 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">
-                  {isKhmer ? 'បញ្ជាក់ការលុប' : 'Confirm Deletion'}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {isKhmer ? 'សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ' : 'This action cannot be undone'}
-                </p>
-              </div>
-            </div>
+      {/* Add Experience Dialog */}
+      <Dialog
+        isOpen={isExpModalOpen}
+        onClose={() => setIsExpModalOpen(false)}
+        size="sm"
+        title={isKhmer ? 'បន្ថែមបទពិសោធន៍ការងារ' : 'Add Work Experience'}
+        icon={<Briefcase className="w-5 h-5 text-blue-600" />}
+      >
+        <form onSubmit={handleAddExperience} className="space-y-3.5">
+          <Input
+            label={isKhmer ? 'ឈ្មោះក្រុមហ៊ុន / ស្ថាប័ន' : 'Company Name'}
+            required
+            value={newCompany}
+            onChange={(e) => setNewCompany(e.target.value)}
+            placeholder="e.g. Smart Axiata or ABA Bank"
+            leftIcon={<Briefcase className="w-4 h-4" />}
+          />
 
-            <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-gray-200">
-              {isKhmer
-                ? `តើអ្នកប្រាកដជាចង់លុប "${deletingItem.title}" នេះមែនទេ?`
-                : `Are you sure you want to delete "${deletingItem.title}"?`}
-            </p>
+          <Input
+            label={isKhmer ? 'មុខតំណែង' : 'Job Title'}
+            required
+            value={newJobTitle}
+            onChange={(e) => setNewJobTitle(e.target.value)}
+            placeholder="e.g. Frontend Developer"
+          />
 
-            <div className="flex items-center justify-end space-x-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setDeletingItem(null)}
-                disabled={isDeletingItem}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition cursor-pointer disabled:opacity-50"
-              >
-                {isKhmer ? 'បោះបង់' : 'Cancel'}
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={isDeletingItem}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer transition disabled:opacity-50 flex items-center space-x-1"
-              >
-                {isDeletingItem ? (
-                  <span>{isKhmer ? 'កំពុងលុប...' : 'Deleting...'}</span>
-                ) : (
-                  <span>{isKhmer ? 'យល់ព្រមលុប' : 'Delete'}</span>
-                )}
-              </button>
-            </div>
+          <Input
+            label={isKhmer ? 'ទីតាំង' : 'Location'}
+            value={newExpLocation}
+            onChange={(e) => setNewExpLocation(e.target.value)}
+            placeholder="e.g. Phnom Penh"
+            leftIcon={<MapPin className="w-4 h-4" />}
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={isKhmer ? 'កាលបរិច្ឆេទចាប់ផ្តើម' : 'Start Date'}
+              type="date"
+              value={newExpStart}
+              onChange={(e) => setNewExpStart(e.target.value)}
+            />
+            <Input
+              label={isKhmer ? 'កាលបរិច្ឆេទបញ្ចប់' : 'End Date'}
+              type="date"
+              disabled={isCurrentExp}
+              value={newExpEnd}
+              onChange={(e) => setNewExpEnd(e.target.value)}
+            />
           </div>
-        </div>
-      )}
+
+          <label className="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer pt-1">
+            <input
+              type="checkbox"
+              checked={isCurrentExp}
+              onChange={(e) => setIsCurrentExp(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            />
+            <span>{isKhmer ? 'ខ្ញុំកំពុងបម្រើការងារនៅទីនេះ' : 'I currently work here'}</span>
+          </label>
+
+          <div className="flex justify-end space-x-2 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setIsExpModalOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition shadow-2xs cursor-pointer"
+            >
+              {isKhmer ? 'បោះបង់' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer"
+            >
+              {isKhmer ? 'រក្សាទុក' : 'Save Experience'}
+            </button>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Delete Item Confirmation Dialog */}
+      <Dialog
+        isOpen={Boolean(deletingItem)}
+        onClose={() => setDeletingItem(null)}
+        size="xs"
+        title={isKhmer ? 'បញ្ជាក់ការលុប' : 'Confirm Deletion'}
+        description={isKhmer ? 'សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ' : 'This action cannot be undone'}
+        icon={<AlertTriangle className="w-5 h-5 text-rose-600" />}
+        iconClassName="bg-rose-50 border-rose-200"
+        footer={
+          <div className="flex items-center justify-end space-x-2 w-full">
+            <button
+              type="button"
+              onClick={() => setDeletingItem(null)}
+              disabled={isDeletingItem}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-gray-200 transition cursor-pointer disabled:opacity-50"
+            >
+              {isKhmer ? 'បោះបង់' : 'Cancel'}
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={isDeletingItem}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-2xs cursor-pointer transition disabled:opacity-50 flex items-center space-x-1"
+            >
+              {isDeletingItem ? (
+                <span>{isKhmer ? 'កំពុងលុប...' : 'Deleting...'}</span>
+              ) : (
+                <span>{isKhmer ? 'យល់ព្រមលុប' : 'Delete'}</span>
+              )}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-gray-200">
+          {isKhmer
+            ? `តើអ្នកប្រាកដជាចង់លុប "${deletingItem?.title}" នេះមែនទេ?`
+            : `Are you sure you want to delete "${deletingItem?.title}"?`}
+        </p>
+      </Dialog>
 
       {/* Printable / Exportable CV Modal */}
       {isPreviewCvOpen && (
         <div
 
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/40 backdrop-blur-xs animate-in fade-in overflow-y-auto"
         >
-          <div id="printable-cv-modal-wrapper" className=" bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full my-auto shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[96vh]">
+          <div id="printable-cv-modal-wrapper" className=" bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full my-auto shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[96vh]">
             {/* Modal Action Bar (Clean White, No Tabs) */}
             <div className="no-print p-3.5 sm:px-6 bg-white border-b border-slate-200/90 flex items-center justify-between gap-3 shrink-0 text-slate-900">
               <div className="flex items-center space-x-3">
@@ -1161,7 +1140,7 @@ export const SeekerProfilePage: React.FC = () => {
                       {/* Languages */}
                       <div className="pt-4 print:pt-2 border-t border-slate-200 text-[10px] print:text-[9px] space-y-1 print:space-y-0.5">
                         <span className="font-bold uppercase tracking-wider block text-slate-500">
-                          {isKhmer ? 'ភាសា (Languages)' : 'Languages'}
+                          {isKhmer ? 'ភាសា' : 'Languages'}
                         </span>
                         <div className="flex flex-wrap gap-2 print:gap-1.5 pt-1 font-medium text-slate-700">
                           <span className="flex items-center gap-1">
@@ -1196,7 +1175,7 @@ export const SeekerProfilePage: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               <div className="w-2 h-4 print:w-1.5 print:h-3 rounded-full bg-blue-600 shrink-0" />
                               <h3 className="text-xs sm:text-sm print:text-[11px] font-black uppercase tracking-wider text-slate-900">
-                                {isKhmer ? 'សេចក្តីសង្ខេបវិជ្ជាជីវៈ (Professional Summary)' : 'Professional Summary'}
+                                {isKhmer ? 'សេចក្តីសង្ខេបវិជ្ជាជីវៈ' : 'Professional Summary'}
                               </h3>
                             </div>
                             <div className="text-xs sm:text-sm print:text-[10px] text-slate-700 leading-relaxed space-y-2 print:space-y-1 border-l-2 border-blue-500/70 pl-3.5 print:pl-2.5 py-0.5 print:py-0">
@@ -1214,7 +1193,7 @@ export const SeekerProfilePage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-4 print:w-1.5 print:h-3 rounded-full bg-blue-600 shrink-0" />
                             <h3 className="text-xs sm:text-sm print:text-[11px] font-black uppercase tracking-wider text-slate-900">
-                              {isKhmer ? 'ប្រវត្តិការងារ (Work Experience)' : 'Work Experience'}
+                              {isKhmer ? 'ប្រវត្តិការងារ' : 'Work Experience'}
                             </h3>
                           </div>
 

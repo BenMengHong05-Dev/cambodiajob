@@ -8,7 +8,9 @@ import { Job, Company, Application } from '../../types'
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
 import { StatCard } from '../../components/dashboard/StatCard'
-import { QuickActions } from '../../components/dashboard/QuickActions'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
+import { PermissionGuard } from '../../components/auth/PermissionGuard'
+import { PERMISSIONS, getCompanyRoleLabel } from '../../utils/permissions'
 import {
   Briefcase,
   Users,
@@ -37,6 +39,8 @@ import {
   Sunrise,
   Eye,
   Lightbulb,
+  Sparkles,
+  TrendingUp,
 } from 'lucide-react'
 
 export const EmployerDashboardPage: React.FC = () => {
@@ -312,6 +316,93 @@ export const EmployerDashboardPage: React.FC = () => {
         <div className="absolute -bottom-20 right-10 w-[500px] h-[500px] bg-gradient-to-tl from-indigo-100/35 via-purple-100/20 to-transparent rounded-full blur-3xl" />
       </div>
 
+      {/* Executive Company Welcome & Command Header */}
+      <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-2xs p-1.5 flex items-center justify-center shrink-0 overflow-hidden">
+            {company?.logo_url ? (
+              <img
+                src={getAssetUrl(company.logo_url)}
+                alt={company.name}
+                className="w-full h-full object-contain rounded-xl"
+              />
+            ) : (
+              <Building className="w-6 h-6 text-blue-600" />
+            )}
+          </div>
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+                <GreetingIcon className={`w-3.5 h-3.5 ${greeting.color}`} />
+                <span>
+                  {greeting.text}, {user?.full_name}
+                </span>
+              </span>
+              {user?.company_member_role && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                  {getCompanyRoleLabel(user.company_member_role, isKhmer)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+                {company?.name || (isKhmer ? 'ស្វាគមន៍មកកាន់ផ្ទាំងជ្រើសរើសបុគ្គលិក' : 'Recruitment Workspace')}
+              </h1>
+              {company?.verification_status === 'verified' && (
+                <FacebookVerifiedBadge
+                  className="w-4 h-4"
+                  title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Organization'}
+                />
+              )}
+            </div>
+            <p className="text-xs text-slate-500 truncate">
+              {isKhmer
+                ? 'តាមដានដំណើរការជ្រើសរើសបុគ្គលិក បេក្ខជនដាក់ពាក្យ និងកាលវិភាគសម្ភាសន៍'
+                : 'Track active vacancies, candidate pipeline, and upcoming interview sessions'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <PermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+            <Link
+              to="/employer/applications"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 border border-slate-200 text-xs font-semibold shadow-2xs transition"
+            >
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{isKhmer ? 'បេក្ខជនទាំងអស់' : 'All Applicants'}</span>
+            </Link>
+          </PermissionGuard>
+
+          <PermissionGuard permission={PERMISSIONS.POST_JOBS}>
+            <Link
+              to="/employer/jobs/new?ai=true"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-semibold shadow-xs transition"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>{isKhmer ? 'បង្កើតដោយ AI' : 'Create with AI'}</span>
+            </Link>
+            <Link
+              to="/employer/jobs/new"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
+            </Link>
+          </PermissionGuard>
+
+          <button
+            type="button"
+            onClick={() => fetchDashboardData(true)}
+            disabled={isRefreshing}
+            title={isKhmer ? 'ផ្ទុកទិន្នន័យឡើងវិញ' : 'Refresh dashboard'}
+            className="p-2 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 border border-slate-200 shadow-2xs transition cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
+        </div>
+      </div>
+
       {/* Company Verification Guard Banner (if pending) */}
       {company && company.verification_status !== 'verified' && (
         <div className="p-4 rounded-2xl bg-amber-500/10 backdrop-blur-xl border border-amber-400/30 text-amber-950 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
@@ -354,7 +445,7 @@ export const EmployerDashboardPage: React.FC = () => {
 
         {/* Metric 2: Total Candidates */}
         <StatCard
-          to="/employer/jobs"
+          to="/employer/applications"
           label={isKhmer ? 'បេក្ខជនសរុប' : 'Total Candidates'}
           value={totalApplicationsCount}
           icon={Users}
@@ -365,6 +456,7 @@ export const EmployerDashboardPage: React.FC = () => {
 
         {/* Metric 3: Interviews Scheduled */}
         <StatCard
+          to="/employer/applications"
           label={isKhmer ? 'សម្ភាសន៍ដែលបានកំណត់' : 'Interviews'}
           value={interviewApplicantsCount}
           icon={Video}
@@ -373,32 +465,97 @@ export const EmployerDashboardPage: React.FC = () => {
           tone="info"
         />
 
-        {/* Metric 4: Hired / Offered */}
+        {/* Metric 4: Completed Applications / Hired */}
         <StatCard
-          label={isKhmer ? 'ផ្តល់ការងារជោគជ័យ' : 'Job Offers'}
+          to="/employer/applications"
+          label={isKhmer ? 'ពាក្យសុំសម្រេចជោគជ័យ' : 'Completed Applications'}
           value={hiredApplicantsCount}
           icon={UserCheck}
           accent="emerald"
-          badge={isKhmer ? 'សម្រេចចិត្ត' : 'Accepted'}
+          badge={isKhmer ? 'ផ្តល់ការងារ' : 'Hired / Offered'}
           tone="success"
         />
       </div>
 
-      {/* Quick action rail */}
-      <QuickActions
-        hint={isKhmer ? `${activeJobsCount} ការងារកំពុងផ្សាយ` : `${activeJobsCount} live vacancies`}
-        actions={[
-          { to: '/employer/jobs/new', label: isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy', icon: Plus },
-          {
-            to: '/employer/jobs',
-            label: isKhmer ? 'គ្រប់គ្រងការងារ' : 'Manage Vacancies',
-            icon: Briefcase,
-            badge: jobs.length,
-          },
-          { to: '/employer/company', label: isKhmer ? 'ព័ត៌មានក្រុមហ៊ុន' : 'Company Profile', icon: Building },
-          { to: '/jobs', label: isKhmer ? 'ស្វែងរកការងារ' : 'Explore Jobs', icon: Search },
-        ]}
-      />
+      {/* Recruitment Pipeline Funnel Summary Strip */}
+      <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                {isKhmer ? 'ដំណាក់កាលជ្រើសរើសបេក្ខជន (Recruitment Funnel)' : 'Hiring Pipeline Funnel'}
+              </h2>
+            </div>
+          </div>
+          <PermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+            <Link
+              to="/employer/applications"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition"
+            >
+              <span>{isKhmer ? 'មើលបេក្ខជនទាំងអស់' : 'Open Pipeline'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </PermissionGuard>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {[
+            {
+              label: isKhmer ? 'ពាក្យសុំថ្មី & ត្រួតពិនិត្យ' : 'New & Reviewing',
+              count: screeningApplicantsCount,
+              barClass: 'bg-blue-500',
+              pillClass: 'bg-blue-50 text-blue-700 border-blue-200/70',
+            },
+            {
+              label: isKhmer ? 'ជាប់បញ្ជីសម្រាំង' : 'Shortlisted',
+              count: recentApplicants.filter((a) => a.status === 'shortlisted').length,
+              barClass: 'bg-purple-500',
+              pillClass: 'bg-purple-50 text-purple-700 border-purple-200/70',
+            },
+            {
+              label: isKhmer ? 'ណាត់សម្ភាសន៍' : 'Interview Stage',
+              count: interviewApplicantsCount,
+              barClass: 'bg-indigo-500',
+              pillClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/70',
+            },
+            {
+              label: isKhmer ? 'ផ្តល់ការងារជោគជ័យ' : 'Offers Extended',
+              count: hiredApplicantsCount,
+              barClass: 'bg-emerald-500',
+              pillClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
+            },
+          ].map((stage, idx) => {
+            const pct =
+              recentApplicants.length > 0
+                ? Math.round((stage.count / recentApplicants.length) * 100)
+                : 0
+            return (
+              <div
+                key={idx}
+                className="p-3 rounded-xl bg-white/75 border border-slate-200/70 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-slate-600 truncate">
+                    {stage.label}
+                  </span>
+                  <span className={`px-2 py-0.2 rounded-full text-[11px] font-bold border ${stage.pillClass}`}>
+                    {stage.count}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${stage.barClass}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       {/* 3. NEW FEATURE: Upcoming Candidate Interviews Widget */}
       {upcomingInterviews.length > 0 && (
@@ -426,14 +583,29 @@ export const EmployerDashboardPage: React.FC = () => {
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900 truncate">{iv.applicant_name}</span>
-                    <span className="text-[10px] px-2 py-0.2 rounded-md bg-purple-100 text-purple-800 font-semibold uppercase">
-                      {iv.interview_type || 'Video'}
+                    <span className="text-[10px] px-2 py-0.2 rounded-md bg-purple-100 text-purple-800 font-semibold">
+                      {iv.interview_type === 'in_person'
+                        ? isKhmer
+                          ? 'ជួបផ្ទាល់'
+                          : 'In-Person'
+                        : iv.interview_type === 'phone'
+                        ? isKhmer
+                          ? 'ទូរស័ព្ទ'
+                          : 'Phone'
+                        : isKhmer
+                        ? 'វីដេអូ'
+                        : 'Video'}
                     </span>
                   </div>
                   <p className="text-[11px] text-blue-600 font-medium truncate">{iv.job_title}</p>
                   <p className="text-[11px] text-slate-500 flex items-center gap-1">
                     <Clock className="w-3 h-3 text-slate-400" />
-                    <span>{new Date(iv.scheduled_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                    <span>
+                      {new Date(iv.scheduled_at).toLocaleString(isKhmer ? 'km-KH' : 'en-US', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </span>
                   </p>
                 </div>
 
@@ -449,7 +621,9 @@ export const EmployerDashboardPage: React.FC = () => {
                       <span>{isKhmer ? 'ចូលជួប' : 'Join'}</span>
                     </a>
                   ) : (
-                    <span className="text-[10px] text-slate-400">In-person</span>
+                    <span className="text-[10px] text-slate-400">
+                      {isKhmer ? 'ជួបផ្ទាល់' : 'In-person'}
+                    </span>
                   )}
                   <Link
                     to={`/employer/jobs/${iv.job_id}/applications`}
@@ -554,7 +728,7 @@ export const EmployerDashboardPage: React.FC = () => {
                                 {app.applicant_name}
                               </span>
                               <span className="text-[10px] text-slate-400 block truncate max-w-[130px]">
-                                {app.applicant_province || 'Cambodia'}
+                                {app.applicant_province || (isKhmer ? 'កម្ពុជា' : 'Cambodia')}
                               </span>
                             </div>
                           </div>
@@ -569,8 +743,8 @@ export const EmployerDashboardPage: React.FC = () => {
                         </td>
                         <td className="py-2.5 px-4 hidden sm:table-cell text-slate-600">
                           {app.expected_salary ? (
-                            <span className="font-semibold text-emerald-700 font-mono text-[11px]">
-                              ${app.expected_salary}/mo
+                            <span className="font-semibold text-emerald-700 text-[11px]">
+                              ${app.expected_salary}/{isKhmer ? 'ខែ' : 'mo'}
                             </span>
                           ) : (
                             <span className="text-slate-400 text-[11px]">-</span>
@@ -679,13 +853,15 @@ export const EmployerDashboardPage: React.FC = () => {
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
                   {isKhmer ? 'បង្កើតការងារថ្មី ដើម្បីទាក់ទាញបេក្ខជនមានសមត្ថភាព។' : 'Post a job opening to start receiving candidate applications.'}
                 </p>
-                <Link
-                  to="/employer/jobs/new"
-                  className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold mt-1 hover:bg-blue-700 transition shadow-2xs gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
-                </Link>
+                <PermissionGuard permission={PERMISSIONS.POST_JOBS}>
+                  <Link
+                    to="/employer/jobs/new"
+                    className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold mt-1 hover:bg-blue-700 transition shadow-2xs gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isKhmer ? 'ផ្សាយការងារថ្មី' : 'Post Vacancy'}</span>
+                  </Link>
+                </PermissionGuard>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -740,19 +916,23 @@ export const EmployerDashboardPage: React.FC = () => {
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end space-x-1.5">
                             {/* Direct Modify / Edit Button */}
-                            <Link
-                              to={`/employer/jobs/${job.id}/edit`}
-                              className="p-1.5 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition shadow-2xs"
-                              title={isKhmer ? 'កែសម្រួលការងារ' : 'Edit Vacancy'}
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Link>
-                            <Link
-                              to={`/employer/jobs/${job.id}/applications`}
-                              className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-700 border border-gray-200 text-[11px] font-semibold transition shadow-2xs"
-                            >
-                              {isKhmer ? 'បេក្ខជន' : 'Candidates'}
-                            </Link>
+                            <PermissionGuard permission={PERMISSIONS.EDIT_JOBS}>
+                              <Link
+                                to={`/employer/jobs/${job.id}/edit`}
+                                className="p-1.5 text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition shadow-2xs"
+                                title={isKhmer ? 'កែសម្រួលការងារ' : 'Edit Vacancy'}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Link>
+                            </PermissionGuard>
+                            <PermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+                              <Link
+                                to={`/employer/jobs/${job.id}/applications`}
+                                className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-700 border border-gray-200 text-[11px] font-semibold transition shadow-2xs"
+                              >
+                                {isKhmer ? 'បេក្ខជន' : 'Candidates'}
+                              </Link>
+                            </PermissionGuard>
                             <Link
                               to={`/jobs/${job.slug}`}
                               target="_blank"
@@ -867,16 +1047,18 @@ export const EmployerDashboardPage: React.FC = () => {
             <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
               {isKhmer ? 'ផ្លូវកាត់គ្រប់គ្រង' : 'Management Shortcuts'}
             </span>
-            <Link
-              to="/employer/jobs/new"
-              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
-            >
-              <div className="flex items-center space-x-2.5">
-                <PlusCircle className="w-4 h-4 text-blue-600" />
-                <span>{isKhmer ? 'ចុះផ្សាយការងារថ្មី' : 'Post New Vacancy'}</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            </Link>
+            <PermissionGuard permission={PERMISSIONS.POST_JOBS}>
+              <Link
+                to="/employer/jobs/new"
+                className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <PlusCircle className="w-4 h-4 text-blue-600" />
+                  <span>{isKhmer ? 'ចុះផ្សាយការងារថ្មី' : 'Post New Vacancy'}</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              </Link>
+            </PermissionGuard>
             <Link
               to="/employer/jobs"
               className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
@@ -889,16 +1071,32 @@ export const EmployerDashboardPage: React.FC = () => {
                 {jobs.length}
               </span>
             </Link>
-            <Link
-              to="/employer/company"
-              className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Building className="w-4 h-4 text-blue-600" />
-                <span>{isKhmer ? 'ព័ត៌មានស្ថាប័ន' : 'Company Settings'}</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            </Link>
+            <PermissionGuard permission={PERMISSIONS.VIEW_APPLICATIONS}>
+              <Link
+                to="/employer/applications"
+                className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Users className="w-4 h-4 text-indigo-600" />
+                  <span>{isKhmer ? 'បេក្ខជនទាំងអស់' : 'All Applicants'}</span>
+                </div>
+                <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                  {totalApplicationsCount}
+                </span>
+              </Link>
+            </PermissionGuard>
+            <PermissionGuard permission={PERMISSIONS.MANAGE_COMPANY}>
+              <Link
+                to="/employer/company"
+                className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Building className="w-4 h-4 text-blue-600" />
+                  <span>{isKhmer ? 'ព័ត៌មានស្ថាប័ន' : 'Company Settings'}</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              </Link>
+            </PermissionGuard>
             <Link
               to="/jobs"
               className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-50 text-xs font-medium text-slate-700 hover:text-blue-600 transition"
@@ -951,19 +1149,29 @@ export const EmployerDashboardPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50/80 border border-white/90">
                 <div className="flex items-center space-x-1.5 text-slate-600">
                   <Mail className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="truncate">{selectedApplicant.applicant_email || 'No email'}</span>
+                  <span className="truncate">
+                    {selectedApplicant.applicant_email || (isKhmer ? 'គ្មានអ៊ីមែល' : 'No email')}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1.5 text-slate-600">
                   <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="truncate">{selectedApplicant.applicant_phone || 'No phone'}</span>
+                  <span className="truncate">
+                    {selectedApplicant.applicant_phone || (isKhmer ? 'គ្មានលេខទូរស័ព្ទ' : 'No phone')}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1.5 text-slate-600">
                   <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{selectedApplicant.applicant_province || 'Cambodia'}</span>
+                  <span>
+                    {selectedApplicant.applicant_province || (isKhmer ? 'កម្ពុជា' : 'Cambodia')}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1.5 text-slate-600">
                   <span className="font-semibold text-emerald-700">
-                    {selectedApplicant.expected_salary ? `$${selectedApplicant.expected_salary}/mo` : 'Negotiable'}
+                    {selectedApplicant.expected_salary
+                      ? `$${selectedApplicant.expected_salary}/${isKhmer ? 'ខែ' : 'mo'}`
+                      : isKhmer
+                      ? 'ចរចា'
+                      : 'Negotiable'}
                   </span>
                 </div>
               </div>
@@ -991,34 +1199,36 @@ export const EmployerDashboardPage: React.FC = () => {
               )}
 
               {/* Status Selector */}
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">
-                  {isKhmer ? 'ប្តូរស្ថានភាពបេក្ខជន' : 'Update Candidate Stage'}:
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { id: 'reviewing', label: isKhmer ? 'កំពុងពិនិត្យ' : 'Reviewing', color: 'amber' },
-                    { id: 'shortlisted', label: isKhmer ? 'សម្រាំង' : 'Shortlisted', color: 'teal' },
-                    { id: 'interview', label: isKhmer ? 'សម្ភាសន៍' : 'Interview', color: 'indigo' },
-                    { id: 'offered', label: isKhmer ? 'ផ្តល់ការងារ' : 'Offer Job', color: 'emerald' },
-                    { id: 'rejected', label: isKhmer ? 'បដិសេធ' : 'Reject', color: 'rose' },
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      disabled={isUpdatingApplicant}
-                      onClick={() => handleUpdateStatus(selectedApplicant.id, s.id)}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold transition border cursor-pointer ${
-                        selectedApplicant.status === s.id
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-700 border-gray-200'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
+              <PermissionGuard permission={PERMISSIONS.REVIEW_APPLICATIONS}>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">
+                    {isKhmer ? 'ប្តូរស្ថានភាពបេក្ខជន' : 'Update Candidate Stage'}:
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: 'reviewing', label: isKhmer ? 'កំពុងពិនិត្យ' : 'Reviewing', color: 'amber' },
+                      { id: 'shortlisted', label: isKhmer ? 'សម្រាំង' : 'Shortlisted', color: 'teal' },
+                      { id: 'interview', label: isKhmer ? 'សម្ភាសន៍' : 'Interview', color: 'indigo' },
+                      { id: 'offered', label: isKhmer ? 'ផ្តល់ការងារ' : 'Offer Job', color: 'emerald' },
+                      { id: 'rejected', label: isKhmer ? 'បដិសេធ' : 'Reject', color: 'rose' },
+                    ].map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        disabled={isUpdatingApplicant}
+                        onClick={() => handleUpdateStatus(selectedApplicant.id, s.id)}
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold transition border cursor-pointer ${
+                          selectedApplicant.status === s.id
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                            : 'bg-white hover:bg-slate-50 text-slate-700 border-gray-200'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </PermissionGuard>
             </div>
 
             <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
