@@ -8,6 +8,7 @@ from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, H
 from common.database import fetch_one, fetch_all, fetch_scalar, execute_insert, execute_sql, atomic_transaction
 from common.pagination import paginate_raw_query
 from common.validators import slugify_string
+from apps.notifications.services import create_notification, notify_admins
 from .serializers import JobSerializer, JobStatusUpdateSerializer
 
 
@@ -273,7 +274,7 @@ class JobSaveToggleView(APIView):
             )
             seeker = {"id": seeker_id}
 
-        job = fetch_one("SELECT id FROM jobs WHERE id = %s", [pk])
+        job = fetch_one("SELECT id, title FROM jobs WHERE id = %s", [pk])
         if not job:
             raise NotFound("Job vacancy not found.")
 
@@ -286,6 +287,15 @@ class JobSaveToggleView(APIView):
             execute_insert(
                 "INSERT INTO saved_jobs (seeker_id, job_id) VALUES (%s, %s)",
                 [seeker["id"], pk],
+            )
+            create_notification(
+                user_id=request.user.id,
+                title="Job Saved",
+                title_km="បានរក្សាទុកការងារ",
+                message=f"You saved '{job['title']}' to your bookmarks.",
+                message_km=f"អ្នកបានរក្សាទុកការងារ '{job['title']}' ក្នុងបញ្ជីរក្សាទុក។",
+                notification_type="job_saved",
+                data={"action": "save_job", "job_id": pk},
             )
         return Response({"success": True, "message": "Job saved successfully.", "is_saved": True})
 
@@ -326,7 +336,7 @@ class EmployerJobManagementView(APIView):
             FROM jobs j
             LEFT JOIN job_categories cat ON cat.id = j.category_id
             WHERE j.company_id = %s
-            ORDER BY j.created_at DESC
+            ORDER BY j.created_at DESC, j.id DESC
         """
         jobs = fetch_all(sql, [company_id])
         return Response({"success": True, "data": jobs})
@@ -401,6 +411,25 @@ class EmployerJobManagementView(APIView):
                 )
 
         new_job = fetch_one("SELECT * FROM jobs WHERE id = %s", [job_id])
+        job_status = data.get("status", "published")
+        create_notification(
+            user_id=request.user.id,
+            title="Job Vacancy Published" if job_status == "published" else "Job Vacancy Created",
+            title_km="ការងារត្រូវបានផ្សព្វផ្សាយ" if job_status == "published" else "ការងារត្រូវបានបង្កើត",
+            message=f"Your job vacancy '{title}' ({job_status}) is now live for {em['company_name']}.",
+            message_km=f"មុខតំណែង '{title}' របស់ក្រុមហ៊ុន {em['company_name']} ត្រូវបានបង្កើតដោយជោគជ័យ។",
+            notification_type="job_published",
+            data={"action": "create_job", "job_id": job_id, "status": job_status},
+        )
+        notify_admins(
+            title="New Job Vacancy Posted",
+            title_km="មានការងារថ្មីត្រូវបានប្រកាស",
+            message=f"{em['company_name']} posted a new job: '{title}'.",
+            message_km=f"ក្រុមហ៊ុន {em['company_name']} បានប្រកាសការងារថ្មី៖ '{title}'។",
+            notification_type="job_published",
+            data={"action": "create_job", "job_id": job_id, "company_id": company_id},
+            exclude_user_id=request.user.id,
+        )
         return Response({"success": True, "data": new_job}, status=status.HTTP_201_CREATED)
 
 
@@ -487,7 +516,7 @@ class EmployerJobStatusView(APIView):
 
     def patch(self, request, pk):
         sql = """
-            SELECT j.id FROM jobs j
+            SELECT j.id, j.title FROM jobs j
             INNER JOIN employer_members em ON em.company_id = j.company_id
             WHERE j.id = %s AND em.user_id = %s
         """
@@ -508,5 +537,23 @@ class EmployerJobStatusView(APIView):
             WHERE id = %s
             """,
             [new_status, new_status, new_status, pk],
+        )
+        create_notification(
+            user_id=request.user.id,
+            title="Job Status Updated",
+            title_km="ស្ថានភាពការងារត្រូវបានផ្លាស់ប្តូរ",
+            message=f"'{job['title']}' status changed to {new_status}.",
+            message_km=f"ស្ថានភាពការងារ '{job['title']}' ត្រូវបានប្តូរទៅ {new_status}។",
+            notification_type="job_updated",
+            data={"action": "update_job_status", "job_id": pk, "status": new_status},
+        )
+        notify_admins(
+            title="Job Status Changed",
+            title_km="ស្ថានភាពការងារត្រូវបានផ្លាស់ប្តូរ",
+            message=f"Job '{job['title']}' status changed to {new_status}.",
+            message_km=f"ស្ថានភាពការងារ '{job['title']}' ត្រូវបានប្តូរទៅ {new_status}។",
+            notification_type="job_updated",
+            data={"action": "update_job_status", "job_id": pk, "status": new_status},
+            exclude_user_id=request.user.id,
         )
         return Response({"success": True, "message": f"Job status updated to {new_status}."})

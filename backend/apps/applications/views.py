@@ -7,6 +7,7 @@ from rest_framework.exceptions import NotFound, ValidationError, PermissionDenie
 from common.permissions import IsAuthenticatedCustom, IsEmployer, IsJobSeeker, IsEmployerOrAdmin, HasCustomPermission
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql, atomic_transaction
 from .serializers import ApplyJobSerializer, UpdateApplicationStatusSerializer
+from apps.notifications.services import notify_admins
 from apps.notifications.email_service import (
     send_application_received_email,
     send_application_rejected_email,
@@ -103,6 +104,15 @@ class JobApplyView(APIView):
             try:
                 company = fetch_one("SELECT name FROM companies WHERE id = %s", [job["company_id"]])
                 company_name = company["name"] if company else "Employer"
+                notify_admins(
+                    title="Job Seeker Applied for Job",
+                    title_km="មានបេក្ខជនដាក់ពាក្យការងារថ្មី",
+                    message=f"{request.user.full_name} applied for '{job['title']}' at {company_name}.",
+                    message_km=f"{request.user.full_name} បានដាក់ពាក្យការងារ '{job['title']}' នៅក្រុមហ៊ុន {company_name}។",
+                    notification_type="application",
+                    data={"job_id": pk, "application_id": app_id, "company_id": job["company_id"]},
+                    exclude_user_id=request.user.id,
+                )
                 send_application_received_email(
                     candidate_email=request.user.email,
                     candidate_name=request.user.full_name or "Candidate",
@@ -175,7 +185,7 @@ class SeekerApplicationListView(APIView):
             INNER JOIN companies c ON c.id = j.company_id
             LEFT JOIN resumes r ON r.id = a.resume_id
             WHERE a.seeker_id = %s
-            ORDER BY a.created_at DESC
+            ORDER BY a.created_at DESC, a.id DESC
         """
         applications = fetch_all(sql, [seeker_id])
 
@@ -246,7 +256,7 @@ class EmployerJobApplicationsView(APIView):
             INNER JOIN users u ON u.id = sp.user_id
             LEFT JOIN resumes r ON r.id = a.resume_id
             WHERE a.job_id = %s
-            ORDER BY a.created_at DESC
+            ORDER BY a.created_at DESC, a.id DESC
         """
         applicants = fetch_all(sql, [pk])
 
@@ -331,7 +341,7 @@ class EmployerRecentApplicationsView(APIView):
             INNER JOIN users u ON u.id = sp.user_id
             LEFT JOIN resumes r ON r.id = a.resume_id
             WHERE j.company_id = %s
-            ORDER BY a.created_at DESC
+            ORDER BY a.created_at DESC, a.id DESC
             {limit_clause}
         """
         applicants = fetch_all(sql, [company_id])
@@ -448,6 +458,16 @@ class EmployerApplicationStatusUpdateView(APIView):
                     json.dumps({"application_id": pk, "job_id": app["job_id"], "status": new_status}),
                 ],
             )
+
+        notify_admins(
+            title="Application Status Changed",
+            title_km="ក្រុមហ៊ុនបានផ្លាស់ប្តូរស្ថានភាពបេក្ខជន",
+            message=f"{app.get('company_name') or 'Employer'} updated {app.get('seeker_name') or 'candidate'}'s status for '{app['job_title']}' to '{new_status}'.",
+            message_km=f"ក្រុមហ៊ុន {app.get('company_name') or ''} បានប្តូរស្ថានភាពរបស់ {app.get('seeker_name') or 'បេក្ខជន'} ({app['job_title']}) ទៅ '{new_status}'។",
+            notification_type="application_status",
+            data={"application_id": pk, "job_id": app["job_id"], "status": new_status},
+            exclude_user_id=request.user.id,
+        )
 
         # Trigger automated email notifications based on status
         if app.get("seeker_email"):

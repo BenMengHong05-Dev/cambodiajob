@@ -1,87 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Noto+Sans+Khmer:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =========================================================================
-   1. Official Google Sans & Noto Sans Khmer Direct Font-Face
-   ========================================================================= */
-
-/* Google Sans (Official Google Sans-serif Typeface) */
-@font-face {
-  font-family: 'Google Sans';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrwEIKli.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Google Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrw2IKli.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Google Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/googlesans/v71/4Ua_rENHsxJlGDuGo1OIlJfC6l_24rlCK1Yo_Iqcsih3SAyH6cAwhX9RFD48TE63OOYKtrzjJ6li.ttf') format('truetype');
-}
-
-/* Noto Sans Khmer (Official Google Khmer Companion for Google Sans) */
-@font-face {
-  font-family: 'Noto Sans Khmer';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYuNAJz4.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Noto Sans Khmer';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYu_AJz4.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Noto Sans Khmer';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/notosanskhmer/v29/ijw3s5roRME5LLRxjsRb-gssOenAyendxrgV2c-Zw-9vbVUti_Z_dWgtWYtqB5z4.ttf') format('truetype');
-}
-
-/* =========================================================================
-   2. Tailwind CSS Theme Setup - Google Sans & Noto Sans Khmer
+   Tailwind CSS Theme Setup - Inter & Kantumruy Pro (AI / Modern SaaS)
    ========================================================================= */
 @theme {
-  --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-khmer: 'Noto Sans Khmer', 'Kantumruy Pro', 'Google Sans', sans-serif;
-  --font-serif: 'Google Sans', 'Noto Sans Khmer', sans-serif;
+  --font-sans: 'Inter', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-khmer: 'Kantumruy Pro', 'Inter', sans-serif;
+  --font-serif: 'Inter', 'Kantumruy Pro', sans-serif;
 }
 
 @layer base {
   :root {
-    --font-sans: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-khmer: 'Noto Sans Khmer', 'Kantumruy Pro', 'Google Sans', sans-serif;
-    --font-serif: 'Google Sans', 'Noto Sans Khmer', sans-serif;
+    --font-sans: 'Inter', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-khmer: 'Kantumruy Pro', 'Inter', sans-serif;
+    --font-serif: 'Inter', 'Kantumruy Pro', sans-serif;
   }
 
   html,
   body {
-    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: 'Inter', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     @apply bg-slate-50/70 text-slate-900 antialiased min-h-screen;
   }
 
-  /* Universal Google Sans typography */
+  html[lang="en"] body {
+    letter-spacing: -0.01em;
+  }
+
+  /* Universal Inter + Kantumruy Pro typography */
   * {
-    font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Khmer', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', 'Kantumruy Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   /* Custom scrollbar */
@@ -377,8 +326,11 @@ html.dark :where(.hover\:bg-rose-50, .hover\:bg-red-50):hover {
 }
 
 /* Soft Tinted Badges & Alerts in Dark Mode */
-html.dark :where(.bg-blue-50, .bg-blue-50\/80, .bg-blue-50\/70, .bg-blue-50\/40) {
+html.dark :where(.bg-blue-50, .bg-blue-50\/80, .bg-blue-50\/70, .bg-blue-50\/40, .bg-blue-50\/25, .bg-blue-50\/45) {
   background-color: rgba(37, 99, 235, 0.16) !important;
+}
+html.dark :where([class*="from-blue-50"], [class*="from-indigo-50"], [class*="from-purple-50"], [class*="from-slate-50"]):not(.printable-cv-sheet) {
+  background-image: linear-gradient(135deg, rgba(30, 58, 138, 0.24), rgba(15, 23, 42, 0.92)) !important;
 }
 html.dark :where(.bg-indigo-50, .bg-indigo-50\/80, .bg-indigo-50\/70, .bg-indigo-50\/50) {
   background-color: rgba(79, 70, 229, 0.18) !important;

@@ -52,7 +52,7 @@ class AdminDashboardView(APIView):
             INNER JOIN companies c ON c.id = j.company_id
             INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
             INNER JOIN users u ON u.id = sp.user_id
-            ORDER BY a.created_at DESC
+            ORDER BY a.created_at DESC, a.id DESC
             LIMIT 5
             """
         )
@@ -72,7 +72,7 @@ class AdminDashboardView(APIView):
             FROM jobs j
             INNER JOIN companies c ON c.id = j.company_id
             WHERE j.moderation_status = 'pending'
-            ORDER BY j.created_at DESC
+            ORDER BY j.created_at DESC, j.id DESC
             LIMIT 5
             """
         )
@@ -107,7 +107,7 @@ class AdminDashboardView(APIView):
             LEFT JOIN users tu ON (al.entity_type = 'user' AND tu.id = al.entity_id)
             LEFT JOIN roles ro ON (al.entity_type = 'role' AND ro.id = al.entity_id)
             LEFT JOIN job_categories jc ON (al.entity_type = 'category' AND jc.id = al.entity_id)
-            ORDER BY al.created_at DESC
+            ORDER BY al.created_at DESC, al.id DESC
             LIMIT 6
             """
         )
@@ -239,7 +239,7 @@ class AdminUsersView(APIView):
             LEFT JOIN employer_members em ON em.user_id = u.id
             LEFT JOIN companies c ON c.id = em.company_id
             GROUP BY u.id, c.id, c.name, em.role
-            ORDER BY u.created_at DESC
+            ORDER BY u.created_at DESC, u.id DESC
         """
         users = fetch_all(sql)
         user_ids = [u["id"] for u in users]
@@ -576,7 +576,7 @@ class AdminCompaniesView(APIView):
                 (SELECT COUNT(*) FROM jobs j WHERE j.company_id = c.id) as jobs_count
             FROM companies c
             LEFT JOIN users u ON u.id = c.created_by
-            ORDER BY c.created_at DESC
+            ORDER BY c.created_at DESC, c.id DESC
         """
         companies = fetch_all(sql)
         return Response({"success": True, "data": companies})
@@ -754,7 +754,7 @@ class AdminCompanyMembersView(APIView):
             FROM employer_members em
             INNER JOIN users u ON u.id = em.user_id
             WHERE em.company_id = %s
-            ORDER BY (em.role = 'owner') DESC, em.created_at ASC
+            ORDER BY (em.role = 'owner') DESC, em.created_at DESC, em.id DESC
             """,
             [pk],
         )
@@ -894,7 +894,7 @@ class AdminJobsModerationView(APIView):
                 (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) as applications_count
             FROM jobs j
             INNER JOIN companies c ON c.id = j.company_id
-            ORDER BY j.created_at DESC
+            ORDER BY j.created_at DESC, j.id DESC
         """
         jobs = fetch_all(sql)
         return Response({"success": True, "data": jobs})
@@ -1123,7 +1123,7 @@ class AdminAuditLogsView(APIView):
             LEFT JOIN users tu ON (al.entity_type = 'user' AND tu.id = al.entity_id)
             LEFT JOIN roles ro ON (al.entity_type = 'role' AND ro.id = al.entity_id)
             LEFT JOIN job_categories jc ON (al.entity_type = 'category' AND jc.id = al.entity_id)
-            ORDER BY al.created_at DESC
+            ORDER BY al.created_at DESC, al.id DESC
             LIMIT 300
         """
         logs = fetch_all(sql)
@@ -1451,6 +1451,111 @@ class AdminRolesPermissionsDetailView(APIView):
         )
 
         return Response({"success": True, "message": f"Role '{role['name']}' deleted successfully."})
+
+
+class AdminApplicationsView(APIView):
+    """
+    Allows Platform Admins to view all job seeker applications across any company and job vacancy.
+    Supports optional filters: ?company_id=, ?job_id=, ?status=, ?q=
+    """
+    permission_classes = [HasCustomPermission.with_perm("admin:access")]
+
+    def get(self, request):
+        company_id = request.query_params.get("company_id")
+        job_id = request.query_params.get("job_id")
+        status_filter = request.query_params.get("status")
+        q = (request.query_params.get("q") or "").strip()
+
+        where_clauses = []
+        params = []
+
+        if company_id and str(company_id).isdigit():
+            where_clauses.append("c.id = %s")
+            params.append(int(company_id))
+
+        if job_id and str(job_id).isdigit():
+            where_clauses.append("j.id = %s")
+            params.append(int(job_id))
+
+        if status_filter and status_filter != "all":
+            if status_filter in ("reviewing", "screening"):
+                where_clauses.append("a.status IN ('reviewing', 'screening')")
+            elif status_filter in ("interview", "interview_scheduled"):
+                where_clauses.append("a.status IN ('interview', 'interview_scheduled')")
+            else:
+                where_clauses.append("a.status = %s")
+                params.append(status_filter)
+
+        if q:
+            like = f"%{q}%"
+            where_clauses.append(
+                "(u.full_name LIKE %s OR u.email LIKE %s OR j.title LIKE %s OR c.name LIKE %s)"
+            )
+            params.extend([like, like, like, like])
+
+        where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
+        sql = f"""
+            SELECT
+                a.id, a.job_id, a.seeker_id, a.resume_id, a.cover_letter, a.status, a.created_at,
+                u.full_name AS applicant_name, u.email AS applicant_email, u.phone_number AS applicant_phone,
+                sp.headline AS applicant_headline, sp.summary AS applicant_summary, sp.avatar_url AS applicant_avatar,
+                sp.province AS applicant_province, sp.city AS applicant_city, sp.expected_salary, sp.salary_currency,
+                r.title AS resume_title, r.file_path AS resume_path,
+                j.title AS job_title, j.title_km AS job_title_km, j.slug AS job_slug,
+                c.id AS company_id, c.name AS company_name, c.logo_url AS company_logo,
+                c.verification_status AS company_verification
+            FROM applications a
+            INNER JOIN seeker_profiles sp ON sp.id = a.seeker_id
+            INNER JOIN users u ON u.id = sp.user_id
+            INNER JOIN jobs j ON j.id = a.job_id
+            INNER JOIN companies c ON c.id = j.company_id
+            LEFT JOIN resumes r ON r.id = a.resume_id
+            {where_sql}
+            ORDER BY a.created_at DESC, a.id DESC
+        """
+        applications = fetch_all(sql, params)
+
+        for app in applications:
+            app["interview"] = fetch_one(
+                "SELECT id, scheduled_at, location_or_link, interview_type, notes, status FROM interviews WHERE application_id = %s ORDER BY id DESC LIMIT 1",
+                [app["id"]],
+            )
+            app["skills"] = fetch_all(
+                """
+                SELECT s.name AS skill_name, s.name, ss.proficiency_level
+                FROM seeker_skills ss
+                INNER JOIN skills s ON s.id = ss.skill_id
+                WHERE ss.seeker_id = %s
+                ORDER BY s.name ASC
+                """,
+                [app["seeker_id"]],
+            )
+            app["educations"] = fetch_all(
+                """
+                SELECT institution AS school, institution, degree, field_of_study, start_date, end_date
+                FROM educations
+                WHERE seeker_id = %s
+                ORDER BY start_date DESC LIMIT 3
+                """,
+                [app["seeker_id"]],
+            )
+            app["experiences"] = fetch_all(
+                "SELECT company_name, job_title, start_date, end_date, is_current FROM work_experiences WHERE seeker_id = %s ORDER BY start_date DESC LIMIT 3",
+                [app["seeker_id"]],
+            )
+
+        companies = fetch_all("SELECT id, name FROM companies ORDER BY name ASC")
+        jobs = fetch_all("SELECT id, title, company_id FROM jobs ORDER BY created_at DESC")
+
+        return Response({
+            "success": True,
+            "data": {
+                "applications": applications,
+                "companies": companies,
+                "jobs": jobs,
+            },
+        })
 
 
 

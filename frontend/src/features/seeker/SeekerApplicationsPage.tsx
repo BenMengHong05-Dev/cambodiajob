@@ -416,17 +416,6 @@ export const SeekerApplicationsPage: React.FC = () => {
                               <span>{isKhmer ? 'ចូលរួមសម្ភាសន៍' : 'Join Interview'}</span>
                             </a>
                           )}
-                          {iv.google_calendar_url && (
-                            <a
-                              href={iv.google_calendar_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 text-xs font-semibold transition shadow-2xs"
-                              title={isKhmer ? 'Sync ជាមួយ Google Calendar' : 'Sync to Google Calendar'}
-                            >
-                              <span>📅 Google Cal</span>
-                            </a>
-                          )}
                         </div>
                       </div>
 

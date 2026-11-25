@@ -49,6 +49,13 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
     permission: PERMISSIONS.MODERATE_JOBS,
   },
   {
+    name: 'Job Applications',
+    nameKm: 'បេក្ខជនដាក់ពាក្យ',
+    path: '/admin/applications',
+    icon: FileText,
+    permission: PERMISSIONS.ADMIN_ACCESS,
+  },
+  {
     name: 'User Management',
     nameKm: 'គ្រប់គ្រងអ្នកប្រើប្រាស់',
     path: '/admin/users',

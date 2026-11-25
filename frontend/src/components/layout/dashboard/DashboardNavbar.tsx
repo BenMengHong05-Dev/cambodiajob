@@ -209,23 +209,8 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                       {user?.full_name}
                     </p>
                     <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
-                      {profileSubtitle || user?.email}
+                      {user?.email || profileSubtitle}
                     </p>
-                    <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/70">
-                        <Shield className="w-2.5 h-2.5" />
-                        <span>
-                          {isSuperAdmin
-                            ? getSystemRoleLabel('super_admin', isKhmer)
-                            : getSystemRoleLabel(primaryRoleKey, isKhmer)}
-                        </span>
-                      </span>
-                      {user?.company_member_role && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
-                          {getCompanyRoleLabel(user.company_member_role, isKhmer)}
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
 

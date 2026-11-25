@@ -178,6 +178,19 @@ export const adminService = {
     return res.data.data
   },
 
+  async getApplications(params?: {
+    company_id?: number | string
+    job_id?: number | string
+    status?: string
+    q?: string
+  }): Promise<{ applications: any[]; companies: any[]; jobs: any[] }> {
+    const res = await api.get<ApiResponse<{ applications: any[]; companies: any[]; jobs: any[] }>>(
+      '/admin/applications/',
+      { params }
+    )
+    return res.data.data
+  },
+
   async getCategories(params?: { has_jobs?: boolean }): Promise<any[]> {
     const res = await api.get<ApiResponse<any[]>>('/admin/categories/', { params })
     return res.data.data

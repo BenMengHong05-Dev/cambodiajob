@@ -826,11 +826,19 @@ export const JobsPage: React.FC = () => {
                 {/* 2. Content Body (Compact & relative z-10) */}
                 <div className="p-3 pt-4 relative z-10 bg-white">
                   <div>
-                    {/* Company Name & Location row */}
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                      <span className="font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors pr-2">
-                        {job.company_name}
-                      </span>
+                    {/* Company Name & Salary row */}
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 mb-1">
+                      <div className="flex items-center gap-1 min-w-0 pr-2">
+                        <span className="font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors">
+                          {job.company_name}
+                        </span>
+                        {(job as any).company_verification === 'verified' && (
+                          <FacebookVerifiedBadge
+                            className="w-3.5 h-3.5 shrink-0"
+                            title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Company'}
+                          />
+                        )}
+                      </div>
                       <span className="inline-block text-[10px] font-black text-emerald-600 shrink-0">
                         {formatSalaryRange(
                           job.salary_min,

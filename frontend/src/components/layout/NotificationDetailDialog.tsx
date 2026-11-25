@@ -16,6 +16,13 @@ import {
   Copy,
   Check,
   ArrowRight,
+  LogIn,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+  Building2,
+  Bookmark,
+  Activity,
 } from 'lucide-react'
 
 export interface NotificationItem {
@@ -122,7 +129,58 @@ export const NotificationDetailDialog: React.FC<NotificationDetailDialogProps> =
           iconWrapper: 'bg-blue-100/90 text-blue-600 border-blue-200',
           icon: Briefcase,
         }
+      case 'login':
+        return {
+          label: isKhmer ? 'ការចូលគណនី' : 'Account Sign-In',
+          badgeClass: 'bg-teal-50 text-teal-700 border-teal-200/80',
+          iconWrapper: 'bg-teal-100/90 text-teal-600 border-teal-200',
+          icon: LogIn,
+        }
+      case 'logout':
+        return {
+          label: isKhmer ? 'ការចាកចេញពីគណនី' : 'Account Sign-Out',
+          badgeClass: 'bg-slate-100 text-slate-700 border-slate-200/80',
+          iconWrapper: 'bg-slate-100 text-slate-600 border-slate-200',
+          icon: LogOut,
+        }
+      case 'security':
+        return {
+          label: isKhmer ? 'សុវត្ថិភាពគណនី' : 'Security Alert',
+          badgeClass: 'bg-rose-50 text-rose-700 border-rose-200/80',
+          iconWrapper: 'bg-rose-100/90 text-rose-600 border-rose-200',
+          icon: ShieldCheck,
+        }
+      case 'profile_update':
+        return {
+          label: isKhmer ? 'បច្ចុប្បន្នភាពប្រវត្តិរូប' : 'Profile Update',
+          badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+          iconWrapper: 'bg-indigo-100/90 text-indigo-600 border-indigo-200',
+          icon: UserCheck,
+        }
+      case 'company_update':
+        return {
+          label: isKhmer ? 'សកម្មភាពក្រុមហ៊ុន' : 'Company Update',
+          badgeClass: 'bg-cyan-50 text-cyan-700 border-cyan-200/80',
+          iconWrapper: 'bg-cyan-100/90 text-cyan-600 border-cyan-200',
+          icon: Building2,
+        }
+      case 'job_saved':
+        return {
+          label: isKhmer ? 'ការងារបានរក្សាទុក' : 'Saved Job',
+          badgeClass: 'bg-amber-50 text-amber-700 border-amber-200/80',
+          iconWrapper: 'bg-amber-100/90 text-amber-600 border-amber-200',
+          icon: Bookmark,
+        }
+      case 'user_activity':
+        return {
+          label: isKhmer ? 'សកម្មភាពអ្នកប្រើប្រាស់' : 'User Activity',
+          badgeClass: 'bg-violet-50 text-violet-700 border-violet-200/80',
+          iconWrapper: 'bg-violet-100/90 text-violet-600 border-violet-200',
+          icon: Activity,
+        }
       case 'new_job':
+      case 'job_published':
+      case 'job_updated':
       case 'job':
         return {
           label: isKhmer ? 'ការងារថ្មី' : 'Job Vacancy',
@@ -361,55 +419,111 @@ export const NotificationDetailDialog: React.FC<NotificationDetailDialogProps> =
               </div>
             )}
 
-            {parsedData.location_or_link && (
-              <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1.5">
-                <span className="font-semibold text-xs text-slate-700 block">
-                  {isUrl(parsedData.location_or_link)
-                    ? isKhmer
-                      ? 'តំណភ្ជាប់ចូលរួម'
-                      : 'Meeting Link'
-                    : isKhmer
-                    ? 'ទីតាំងជួបសម្ភាសន៍'
-                    : 'Interview Location'}
-                </span>
-                {isUrl(parsedData.location_or_link) ? (
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={parsedData.location_or_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 truncate text-xs text-blue-600 hover:text-blue-700 underline font-medium flex items-center gap-1.5"
-                    >
-                      <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span className="truncate">{parsedData.location_or_link}</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(parsedData.location_or_link)}
-                      className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition shrink-0 flex items-center gap-1 cursor-pointer"
-                      title={isKhmer ? 'ចម្លងតំណភ្ជាប់' : 'Copy link'}
-                    >
-                      {copiedLink ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-700">{isKhmer ? 'បានចម្លង' : 'Copied'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-slate-600" />
-                          <span>{isKhmer ? 'ចម្លង' : 'Copy'}</span>
-                        </>
+            {parsedData.location_or_link && (() => {
+              const rawLoc = String(parsedData.location_or_link)
+              const urlMatch = rawLoc.match(/https?:\/\/[^\s)]+/)
+              const extractedUrl = urlMatch ? urlMatch[0] : null
+              const coordMatch = rawLoc.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/)
+              const lat = coordMatch ? parseFloat(coordMatch[1]) : null
+              const lng = coordMatch ? parseFloat(coordMatch[2]) : null
+              const isMapLocation =
+                parsedData.interview_type === 'in_person' ||
+                (lat !== null && lng !== null) ||
+                Boolean(
+                  extractedUrl &&
+                    (extractedUrl.includes('maps.google.') ||
+                      extractedUrl.includes('google.com/maps') ||
+                      extractedUrl.includes('openstreetmap.org'))
+                )
+              const cleanAddress = extractedUrl
+                ? rawLoc.replace(`(${extractedUrl})`, '').replace(extractedUrl, '').trim()
+                : rawLoc
+              const googleMapsHref =
+                extractedUrl && (extractedUrl.includes('maps.google.') || extractedUrl.includes('google.com/maps'))
+                  ? extractedUrl
+                  : lat !== null && lng !== null
+                  ? `https://maps.google.com/?q=${lat},${lng}`
+                  : `https://maps.google.com/?q=${encodeURIComponent(cleanAddress || rawLoc)}`
+
+              return (
+                <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-xs text-slate-700 block">
+                      {!isMapLocation && isUrl(rawLoc)
+                        ? isKhmer
+                          ? 'តំណភ្ជាប់ចូលរួម'
+                          : 'Meeting Link'
+                        : isKhmer
+                        ? 'ទីតាំងជួបសម្ភាសន៍'
+                        : 'Interview Location'}
+                    </span>
+                    {isMapLocation && (
+                      <a
+                        href={googleMapsHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-0.5 rounded-lg border border-blue-200/80 transition shrink-0"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>{isKhmer ? 'បើកក្នុង Google Maps' : 'Open in Maps'}</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {!isMapLocation && isUrl(rawLoc) ? (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={rawLoc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 truncate text-xs text-blue-600 hover:text-blue-700 underline font-medium flex items-center gap-1.5"
+                      >
+                        <Video className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="truncate">{rawLoc}</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(rawLoc)}
+                        className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition shrink-0 flex items-center gap-1 cursor-pointer"
+                        title={isKhmer ? 'ចម្លងតំណភ្ជាប់' : 'Copy link'}
+                      >
+                        {copiedLink ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-700">{isKhmer ? 'បានចម្លង' : 'Copied'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-600" />
+                            <span>{isKhmer ? 'ចម្លង' : 'Copy'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {cleanAddress && (
+                        <div className="flex items-start gap-1.5 text-xs text-slate-700 font-medium">
+                          <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{cleanAddress}</span>
+                        </div>
                       )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-1.5 text-xs text-slate-700 font-medium">
-                    <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{parsedData.location_or_link}</span>
-                  </div>
-                )}
-              </div>
-            )}
+                      {lat !== null && lng !== null && (
+                        <div className="overflow-hidden rounded-xl border border-emerald-200/80 bg-slate-100">
+                          <iframe
+                            title="Interview Location Map"
+                            src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
+                            className="w-full h-44 border-0"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         )}
 

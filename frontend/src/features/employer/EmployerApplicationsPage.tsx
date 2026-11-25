@@ -35,6 +35,7 @@ import {
   Briefcase,
 } from 'lucide-react'
 import { TablePagination } from '../../components/common/TablePagination'
+import { MapPickerModal } from '../../components/common/MapPickerModal'
 
 export const EmployerApplicationsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -63,6 +64,8 @@ export const EmployerApplicationsPage: React.FC = () => {
   const [interviewNotes, setInterviewNotes] = useState('')
   const [sendEmail, setSendEmail] = useState(true)
   const [isScheduling, setIsScheduling] = useState(false)
+  const [isGeneratingMeet, setIsGeneratingMeet] = useState(false)
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
 
   // Delete modal
   const [deleteCandidateId, setDeleteCandidateId] = useState<number | null>(null)
@@ -167,6 +170,18 @@ export const EmployerApplicationsPage: React.FC = () => {
 
   const handleOpenGoogleMeetNew = () => {
     window.open('https://meet.google.com/new', '_blank', 'noopener,noreferrer')
+  }
+
+  const handleGenerateMeetLink = () => {
+    const meetUrl = 'https://meet.google.com/new'
+    setLocationOrLink(meetUrl)
+    window.open(meetUrl, '_blank', 'noopener,noreferrer')
+    toast.success(
+      isKhmer ? 'បានបើក Google Meet' : 'Google Meet Opened',
+      isKhmer
+        ? 'តំណភ្ជាប់ត្រូវបានបញ្ចូល និងបើក Google Meet រួចរាល់ (អ្នកអាច Copy លេខកូដបន្ទប់ពិតមកបិទភ្ជាប់បាន)'
+        : 'Google Meet opened. You can also copy the created room link and paste it here.'
+    )
   }
 
   const handlePasteClipboard = async () => {
@@ -387,8 +402,8 @@ export const EmployerApplicationsPage: React.FC = () => {
                   ? 'ត្រឡប់ទៅការងារទាំងអស់'
                   : 'Back to Vacancies'
                 : isKhmer
-                ? 'ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង'
-                : 'Back to Dashboard'}
+                  ? 'ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង'
+                  : 'Back to Dashboard'}
             </span>
           </Link>
           <div className="flex items-center space-x-2">
@@ -399,8 +414,8 @@ export const EmployerApplicationsPage: React.FC = () => {
                     ? 'គ្រប់គ្រងបេក្ខជន'
                     : 'Applicant Pipeline'
                   : isKhmer
-                  ? 'បេក្ខជនទាំងអស់ទូទាំងក្រុមហ៊ុន'
-                  : 'All Company Applicants')}
+                    ? 'បេក្ខជនទាំងអស់ទូទាំងក្រុមហ៊ុន'
+                    : 'All Company Applicants')}
             </h1>
             {job?.slug && (
               <Link
@@ -599,9 +614,12 @@ export const EmployerApplicationsPage: React.FC = () => {
                         {/* Status Dropdown */}
                         <div className="w-36">
                           <Select
+                            size="sm"
+                            searchable={false}
                             value={normalizeAppStatus(app.status)}
                             onChange={(e) => handleStatusChange(app.id, e.target.value)}
                             options={candidateStatusOptions}
+                            className="[&_[role=button]]:h-8"
                           />
                         </div>
 
@@ -609,7 +627,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => openInterviewModal(app.id)}
-                          className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-gray-200 text-blue-700 text-xs font-semibold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                          className="h-8 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 border border-gray-200 text-blue-700 text-xs font-semibold transition inline-flex items-center space-x-1 cursor-pointer shadow-2xs whitespace-nowrap"
                         >
                           <Calendar className="w-3.5 h-3.5 text-blue-600" />
                           <span>{isKhmer ? 'សម្ភាសន៍' : 'Interview'}</span>
@@ -620,7 +638,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => toggleExpand(app.id)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-gray-200 text-slate-700 text-xs font-semibold transition flex items-center space-x-1 cursor-pointer shadow-2xs"
+                        className="h-8 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-gray-200 text-slate-700 text-xs font-semibold transition inline-flex items-center space-x-1 cursor-pointer shadow-2xs whitespace-nowrap"
                       >
                         <FileText className="w-3.5 h-3.5 text-slate-500" />
                         <span>{isExpanded ? (isKhmer ? 'បិទ' : 'Hide') : (isKhmer ? 'ព័ត៌មាន CV' : 'View CV')}</span>
@@ -632,7 +650,7 @@ export const EmployerApplicationsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setDeleteCandidateId(app.id)}
-                          className="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
+                          className="h-8 w-8 inline-flex items-center justify-center text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
                           title={isKhmer ? 'លុបបេក្ខជន' : 'Remove candidate'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -685,19 +703,8 @@ export const EmployerApplicationsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Right actions: 1-Click Calendar Sync & Edit */}
+                        {/* Right actions: Reschedule */}
                         <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
-                          {app.interview.google_calendar_url && (
-                            <a
-                              href={app.interview.google_calendar_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white hover:bg-slate-50 border border-gray-200 text-slate-700 text-[11px] font-semibold transition shadow-2xs"
-                              title={isKhmer ? 'Sync ជាមួយ Google Calendar' : 'Sync with Google Calendar'}
-                            >
-                              <span>📅 Google Cal</span>
-                            </a>
-                          )}
                           <PermissionGuard permission={PERMISSIONS.REVIEW_APPLICATIONS}>
                             <button
                               type="button"
@@ -962,38 +969,47 @@ export const EmployerApplicationsPage: React.FC = () => {
 
                 {/* 3. Meeting Link or Location */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
                     <label className="text-xs font-semibold text-slate-700">
                       {interviewType === 'online'
                         ? isKhmer
                           ? 'តំណភ្ជាប់បន្ទប់ Google Meet'
                           : 'Google Meet Room Link'
                         : isKhmer
-                        ? 'ទីតាំងការិយាល័យសម្ភាសន៍'
-                        : 'Office Interview Location'}
+                          ? 'ទីតាំងការិយាល័យសម្ភាសន៍'
+                          : 'Office Interview Location'}
                     </label>
-                    {interviewType === 'online' && (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={handleOpenGoogleMeetNew}
-                          className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer shadow-2xs"
-                          title={isKhmer ? 'បើក Google Meet ដើម្បីបង្កើតបន្ទប់ពិតប្រាកដ' : 'Open Google Meet to create real room'}
-                        >
-                          <Video className="w-3.5 h-3.5 text-blue-600" />
-                          <span>{isKhmer ? 'បង្កើតបន្ទប់លើ Meet' : 'Create Room on Meet'}</span>
-                          <ExternalLink className="w-3 h-3 text-blue-400" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handlePasteClipboard}
-                          className="text-[11px] font-semibold text-slate-600 hover:text-slate-800 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer shadow-2xs"
-                          title={isKhmer ? 'បិទភ្ជាប់តំណភ្ជាប់ដែលបានចម្លង' : 'Paste copied link'}
-                        >
-                          <Clipboard className="w-3 h-3 text-slate-500" />
-                          <span>{isKhmer ? 'បិទភ្ជាប់' : 'Paste'}</span>
-                        </button>
-                      </div>
+                    {interviewType === 'online' ? (
+                      <button
+                        type="button"
+                        onClick={handleGenerateMeetLink}
+                        disabled={isGeneratingMeet}
+                        className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0 disabled:opacity-60"
+                      >
+                        {isGeneratingMeet ? (
+                          <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
+                        <span>
+                          {isGeneratingMeet
+                            ? isKhmer
+                              ? 'កំពុងបង្កើត...'
+                              : 'Generating...'
+                            : isKhmer
+                              ? 'បង្កើតតំណភ្ជាប់'
+                              : 'Generate Link'}
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsMapPickerOpen(true)}
+                        className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{isKhmer ? 'បើកផែនទី' : 'Open Map'}</span>
+                      </button>
                     )}
                   </div>
                   <div className="relative">
@@ -1005,11 +1021,32 @@ export const EmployerApplicationsPage: React.FC = () => {
                         interviewType === 'online'
                           ? 'https://meet.google.com/xxx-yyyy-zzz'
                           : isKhmer
-                          ? 'ឧ. អគារការិយាល័យកណ្តាល ជាន់ទី ៣...'
-                          : 'e.g. Head Office, 3rd Floor...'
+                            ? 'ឧ. អគារការិយាល័យកណ្តាល ជាន់ទី ៣...'
+                            : 'e.g. Head Office, 3rd Floor...'
                       }
-                      className="w-full px-3.5 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
+                      className="w-full pl-3.5 pr-9 py-2 min-h-[38px] text-xs sm:text-sm bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder:text-slate-400 font-medium outline-none hover:border-gray-300 hover:bg-slate-100/60 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition"
                     />
+                    {locationOrLink ? (
+                      <button
+                        type="button"
+                        onClick={() => setLocationOrLink('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        title={isKhmer ? 'សម្អាត' : 'Clear'}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      interviewType === 'online' && (
+                        <button
+                          type="button"
+                          onClick={handlePasteClipboard}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
+                          title={isKhmer ? 'បិទភ្ជាប់តំណភ្ជាប់' : 'Paste link'}
+                        >
+                          <Clipboard className="w-3.5 h-3.5" />
+                        </button>
+                      )
+                    )}
                   </div>
                   {interviewType === 'online' && (
                     <div className="mt-1.5 space-y-1">
@@ -1082,8 +1119,8 @@ export const EmployerApplicationsPage: React.FC = () => {
                           ? 'កំពុងកំណត់...'
                           : 'Scheduling...'
                         : isKhmer
-                        ? 'បញ្ជាក់កាលវិភាគ'
-                        : 'Confirm Schedule'}
+                          ? 'បញ្ជាក់កាលវិភាគ'
+                          : 'Confirm Schedule'}
                     </span>
                   </button>
                 </div>
@@ -1092,6 +1129,13 @@ export const EmployerApplicationsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Interactive Map Picker Modal for In-Person Interviews */}
+      <MapPickerModal
+        isOpen={isMapPickerOpen}
+        onClose={() => setIsMapPickerOpen(false)}
+        onSelectLocation={(formattedLocation) => setLocationOrLink(formattedLocation)}
+      />
 
       {/* Delete Candidate Confirmation Modal */}
       {deleteCandidateId && (

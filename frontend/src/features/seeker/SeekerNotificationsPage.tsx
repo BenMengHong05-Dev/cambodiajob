@@ -1,7 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../services/api'
-import { Bell, CheckCheck, ChevronRight, Calendar, Briefcase, Trash2 } from 'lucide-react'
+import {
+  Bell,
+  CheckCheck,
+  ChevronRight,
+  Calendar,
+  Briefcase,
+  Trash2,
+  LogIn,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+  Building2,
+  Bookmark,
+  Activity,
+  Sparkles,
+} from 'lucide-react'
 import { TablePagination } from '../../components/common/TablePagination'
 import {
   NotificationDetailDialog,
@@ -53,6 +68,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role: prop
       await api.patch('/notifications/read-all/')
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
       setUnreadCount(0)
+      window.dispatchEvent(new Event('notifications:refresh'))
     } catch (err) {
       console.error('Failed to mark all as read:', err)
     }
@@ -66,6 +82,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role: prop
           prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
         )
         setUnreadCount((prev) => Math.max(0, prev - 1))
+        window.dispatchEvent(new Event('notifications:refresh'))
       } catch (err) {
         console.error('Failed to mark read:', err)
       }
@@ -84,6 +101,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role: prop
       if (target && !target.is_read) {
         setUnreadCount((prev) => Math.max(0, prev - 1))
       }
+      window.dispatchEvent(new Event('notifications:refresh'))
       if (selectedNotification?.id === id) {
         setIsDetailDialogOpen(false)
         setSelectedNotification(null)
@@ -120,9 +138,107 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role: prop
             <Calendar className="w-4.5 h-4.5" />
           </div>
         )
+      case 'login':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-teal-50 text-teal-600 border border-teal-200/80'
+                : 'bg-teal-100 text-teal-700 border border-teal-300 shadow-2xs'
+            }`}
+          >
+            <LogIn className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'logout':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                : 'bg-slate-200 text-slate-700 border border-slate-300 shadow-2xs'
+            }`}
+          >
+            <LogOut className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'security':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-rose-50 text-rose-600 border border-rose-200/80'
+                : 'bg-rose-100 text-rose-700 border border-rose-300 shadow-2xs'
+            }`}
+          >
+            <ShieldCheck className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'profile_update':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200/80'
+                : 'bg-indigo-100 text-indigo-700 border border-indigo-300 shadow-2xs'
+            }`}
+          >
+            <UserCheck className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'company_update':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-cyan-50 text-cyan-600 border border-cyan-200/80'
+                : 'bg-cyan-100 text-cyan-700 border border-cyan-300 shadow-2xs'
+            }`}
+          >
+            <Building2 className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'job_saved':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-amber-50 text-amber-600 border border-amber-200/80'
+                : 'bg-amber-100 text-amber-700 border border-amber-300 shadow-2xs'
+            }`}
+          >
+            <Bookmark className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'user_activity':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-violet-50 text-violet-600 border border-violet-200/80'
+                : 'bg-violet-100 text-violet-700 border border-violet-300 shadow-2xs'
+            }`}
+          >
+            <Activity className="w-4.5 h-4.5" />
+          </div>
+        )
+      case 'welcome':
+        return (
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              isRead
+                ? 'bg-purple-50 text-purple-600 border border-purple-200/80'
+                : 'bg-purple-100 text-purple-700 border border-purple-300 shadow-2xs'
+            }`}
+          >
+            <Sparkles className="w-4.5 h-4.5" />
+          </div>
+        )
       case 'application_status':
       case 'application':
       case 'new_job':
+      case 'job_published':
+      case 'job_updated':
       case 'job':
         return (
           <div

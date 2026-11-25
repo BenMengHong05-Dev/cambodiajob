@@ -121,7 +121,7 @@ export const AdminCategoriesPage: React.FC = () => {
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>('id')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)

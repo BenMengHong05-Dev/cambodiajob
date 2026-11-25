@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, ChevronDown, Check } from 'lucide-react'
 
@@ -26,12 +27,52 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   const { i18n } = useTranslation()
   const isKhmer = i18n.language === 'km'
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  const updatePosition = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const spaceAbove = rect.top - 8
+    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const openUpward = spaceAbove > 160 || spaceAbove > spaceBelow
+    setPopoverStyle({
+      position: 'fixed',
+      zIndex: 99999,
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 136)),
+      ...(openUpward
+        ? { bottom: window.innerHeight - rect.top + 8 }
+        : { top: rect.bottom + 8 }),
+      backgroundColor: '#ffffff',
+      opacity: 1,
+    })
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!isDropdownOpen) {
+      setPopoverStyle(null)
+      return
+    }
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [isDropdownOpen, updatePosition])
 
   // Close dropdown on click outside or escape key
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        (!popoverRef.current || !popoverRef.current.contains(target))
+      ) {
         setIsDropdownOpen(false)
       }
     }
@@ -100,6 +141,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
         {/* Flat Design Page Size Select */}
         <div className="relative inline-flex items-center" ref={dropdownRef}>
           <button
+            ref={buttonRef}
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
             aria-expanded={isDropdownOpen}
@@ -121,11 +163,12 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
             />
           </button>
 
-          {isDropdownOpen && (
+          {isDropdownOpen && popoverStyle && createPortal(
             <div
+              ref={popoverRef}
               role="listbox"
-              style={{ backgroundColor: '#ffffff', opacity: 1 }}
-              className="absolute left-0 bottom-full mb-2 w-32 bg-white border border-gray-200 rounded-xl shadow-xl p-1 z-[99999] select-popover animate-in fade-in zoom-in-95 duration-100"
+              style={popoverStyle}
+              className="w-32 bg-white border border-gray-200 rounded-xl shadow-xl p-1 select-popover animate-in fade-in zoom-in-95 duration-100"
             >
               <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
                 {isKhmer ? 'ចំនួនក្នុង១ទំព័រ' : 'Rows per page'}
@@ -160,7 +203,8 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
                   )
                 })}
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>

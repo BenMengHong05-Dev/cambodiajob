@@ -8,6 +8,7 @@ import { useAuth, usePreferences, useToast, useSiteSettings } from '../../app/pr
 import { formatSalaryRange } from '../../utils/currency'
 import { getAssetUrl } from '../../utils/assets'
 import { Button, Input, Select } from '../../components/ui'
+import { FacebookVerifiedBadge } from '../../components/common/FacebookVerifiedBadge'
 import {
   Search,
   MapPin,
@@ -422,10 +423,18 @@ export const HomePage: React.FC = () => {
                   <div className="p-3 pt-4 flex-1 flex flex-col justify-between relative z-10 bg-white">
                     <div>
                       {/* Company Name & Location row */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                        <span className="font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors pr-2">
-                          {job.company_name}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 mb-1">
+                        <div className="flex items-center gap-1 min-w-0 pr-2">
+                          <span className="font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors">
+                            {job.company_name}
+                          </span>
+                          {(job as any).company_verification === 'verified' && (
+                            <FacebookVerifiedBadge
+                              className="w-3.5 h-3.5 shrink-0"
+                              title={isKhmer ? 'ក្រុមហ៊ុនបានផ្ទៀងផ្ទាត់' : 'Verified Company'}
+                            />
+                          )}
+                        </div>
                         <div className="flex items-center text-[10px] text-slate-400 font-medium shrink-0">
                           <MapPin className="w-2.5 h-2.5 mr-0.5 text-slate-400 shrink-0" />
                           <span>{job.province || 'Phnom Penh'}</span>

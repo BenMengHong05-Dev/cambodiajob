@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 from common.permissions import IsAuthenticatedCustom
 from common.database import fetch_one, execute_sql, execute_insert
 from common.authentication import get_user_by_id
+from apps.notifications.services import create_notification, notify_admins
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -246,6 +247,16 @@ class MeView(APIView):
 
         updated_user = get_user_by_id(user.id)
         data = updated_user.to_dict() if updated_user else user.to_dict()
+        if updates:
+            create_notification(
+                user_id=user.id,
+                title="Account Details Updated",
+                title_km="ព័ត៌មានគណនីត្រូវបានកែប្រែ",
+                message="Your account name or phone number has been updated.",
+                message_km="ព័ត៌មានគណនីរបស់អ្នកត្រូវបានកែប្រែដោយជោគជ័យ។",
+                notification_type="profile_update",
+                data={"action": "account_update"},
+            )
         return Response(
             {
                 "success": True,
@@ -295,6 +306,25 @@ class ChangePasswordView(APIView):
             )
         except Exception:
             pass
+
+        create_notification(
+            user_id=request.user.id,
+            title="Password Changed",
+            title_km="ពាក្យសម្ងាត់ត្រូវបានផ្លាស់ប្តូរ",
+            message="Your account password was changed successfully.",
+            message_km="ពាក្យសម្ងាត់គណនីរបស់អ្នកត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ។",
+            notification_type="security",
+            data={"action": "change_password"},
+        )
+        notify_admins(
+            title="User Changed Password",
+            title_km="អ្នកប្រើប្រាស់បានប្តូរពាក្យសម្ងាត់",
+            message=f"{request.user.full_name or request.user.email} changed their account password.",
+            message_km=f"{request.user.full_name or request.user.email} បានផ្លាស់ប្តូរពាក្យសម្ងាត់គណនី។",
+            notification_type="security",
+            data={"action": "change_password", "actor_id": request.user.id},
+            exclude_user_id=request.user.id,
+        )
 
         return Response(
             {"success": True, "message": "Password changed successfully."},

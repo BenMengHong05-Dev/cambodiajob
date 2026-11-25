@@ -68,5 +68,14 @@ export const employerService = {
     const res = await api.post(`/interviews/applications/${appId}/interview/`, data)
     return res.data.data
   },
+
+  async generateGoogleMeetLink(payload?: {
+    scheduled_at?: string
+    summary?: string
+    attendee_email?: string
+  }): Promise<{ connected: boolean; meet_link?: string; auth_url?: string }> {
+    const res = await api.post('/interviews/google-meet/generate/', payload || {})
+    return res.data.data
+  },
 }
 

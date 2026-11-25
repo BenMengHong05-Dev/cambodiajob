@@ -8,6 +8,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from common.permissions import IsJobSeeker
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql
+from apps.notifications.services import create_notification, notify_admins
 
 
 class SeekerResumeView(APIView):
@@ -76,6 +77,24 @@ class SeekerResumeView(APIView):
         )
 
         new_resume = fetch_one("SELECT * FROM resumes WHERE id = %s", [resume_id])
+        create_notification(
+            user_id=request.user.id,
+            title="Resume / CV Uploaded",
+            title_km="ប្រវត្តិរូបសង្ខេប (CV) ត្រូវបានផ្ទុកឡើង",
+            message=f"Your CV '{title or file_name}' was uploaded to your profile.",
+            message_km=f"ប្រវត្តិរូបសង្ខេប '{title or file_name}' ត្រូវបានផ្ទុកឡើងដោយជោគជ័យ។",
+            notification_type="profile_update",
+            data={"action": "resume_upload", "resume_id": resume_id},
+        )
+        notify_admins(
+            title="Job Seeker Uploaded CV",
+            title_km="បេក្ខជនបានផ្ទុកឡើង CV ថ្មី",
+            message=f"{request.user.full_name or request.user.email} uploaded CV '{title or file_name}'.",
+            message_km=f"{request.user.full_name or request.user.email} បានផ្ទុកឡើង CV '{title or file_name}'។",
+            notification_type="profile_update",
+            data={"action": "resume_upload", "resume_id": resume_id, "actor_id": request.user.id},
+            exclude_user_id=request.user.id,
+        )
         return Response({"success": True, "data": new_resume}, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):

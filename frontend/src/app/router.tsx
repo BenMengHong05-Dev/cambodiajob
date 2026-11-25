@@ -37,6 +37,7 @@ import { AdminDashboardPage } from '../features/admin/AdminDashboardPage'
 import { AdminCategoriesPage } from '../features/admin/AdminCategoriesPage'
 import { AdminCompaniesPage } from '../features/admin/AdminCompaniesPage'
 import { AdminJobsPage } from '../features/admin/AdminJobsPage'
+import { AdminApplicationsPage } from '../features/admin/AdminApplicationsPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { AdminAuditPage } from '../features/admin/AdminAuditPage'
 import { AdminSettingsPage } from '../features/admin/AdminSettingsPage'
@@ -227,6 +228,14 @@ export const router = createBrowserRouter([
         element: (
           <RoutePermissionGuard permission={PERMISSIONS.MODERATE_JOBS}>
             <AdminJobsPage />
+          </RoutePermissionGuard>
+        ),
+      },
+      {
+        path: 'applications',
+        element: (
+          <RoutePermissionGuard permission={PERMISSIONS.ADMIN_ACCESS}>
+            <AdminApplicationsPage />
           </RoutePermissionGuard>
         ),
       },

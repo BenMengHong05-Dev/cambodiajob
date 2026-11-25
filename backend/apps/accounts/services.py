@@ -19,6 +19,7 @@ from apps.notifications.email_service import (
     send_welcome_email,
     send_login_notification_email,
 )
+from apps.notifications.services import create_notification, notify_admins
 
 
 def register_user(validated_data: dict) -> dict:
@@ -94,6 +95,25 @@ def register_user(validated_data: dict) -> dict:
     except Exception as em_err:
         print(f"[Register] Welcome email notification skipped: {em_err}")
 
+    create_notification(
+        user_id=user_id,
+        title="Welcome to JobPortal Cambodia",
+        title_km="សូមស្វាគមន៍មកកាន់ JobPortal Cambodia",
+        message=f"Your {role_name.replace('_', ' ')} account ({email}) has been created successfully.",
+        message_km=f"គណនី ({email}) របស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ។",
+        notification_type="welcome",
+        data={"action": "register", "role": role_name, "email": email},
+    )
+    notify_admins(
+        title="New User Registered",
+        title_km="មានអ្នកប្រើប្រាស់ថ្មីបានចុះឈ្មោះ",
+        message=f"{full_name} ({email}) registered as {role_name.replace('_', ' ')}.",
+        message_km=f"{full_name} ({email}) បានចុះឈ្មោះជា {role_name.replace('_', ' ')}។",
+        notification_type="user_activity",
+        data={"action": "register", "actor_id": user_id, "email": email, "role": role_name},
+        exclude_user_id=user_id,
+    )
+
     return {
         "user": user_obj.to_dict(),
         "access": access_token,
@@ -143,6 +163,26 @@ def authenticate_user(validated_data: dict) -> dict:
         send_login_notification_email(user_email=email, user_name=row["full_name"] or "User")
     except Exception as em_err:
         print(f"[Login] Login notification email skipped: {em_err}")
+
+    actor_name = row["full_name"] or email
+    create_notification(
+        user_id=user_id,
+        title="Account Sign-In Detected",
+        title_km="មានការចូលគណនីថ្មី",
+        message=f"You signed in to your account ({email}) at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}.",
+        message_km=f"អ្នកបានចូលគណនី ({email}) ដោយជោគជ័យ។",
+        notification_type="login",
+        data={"action": "login", "email": email},
+    )
+    notify_admins(
+        title="User Signed In",
+        title_km="អ្នកប្រើប្រាស់បានចូលប្រព័ន្ធ",
+        message=f"{actor_name} ({email}) signed in as {primary_role.replace('_', ' ')}.",
+        message_km=f"{actor_name} ({email}) បានចូលប្រព័ន្ធ។",
+        notification_type="user_activity",
+        data={"action": "login", "actor_id": user_id, "email": email, "role": primary_role},
+        exclude_user_id=user_id,
+    )
 
     user_obj = get_user_by_id(user_id)
     return {
@@ -198,7 +238,40 @@ def refresh_token_service(refresh_token_str: str) -> dict:
 
 
 def logout_user(refresh_token_str: str) -> bool:
-    return revoke_refresh_token(refresh_token_str)
+    token_user = fetch_one(
+        """
+        SELECT u.id, u.email, u.full_name
+        FROM refresh_tokens rt
+        INNER JOIN users u ON u.id = rt.user_id
+        WHERE rt.token = %s
+        LIMIT 1
+        """,
+        [refresh_token_str],
+    )
+    revoked = revoke_refresh_token(refresh_token_str)
+    if token_user:
+        actor_name = token_user.get("full_name") or token_user.get("email") or "User"
+        email = token_user.get("email") or ""
+        uid = token_user["id"]
+        create_notification(
+            user_id=uid,
+            title="Signed Out Successfully",
+            title_km="បានចាកចេញពីគណនីដោយជោគជ័យ",
+            message=f"You signed out from your session ({email}).",
+            message_km=f"អ្នកបានចាកចេញពីគណនី ({email}) ដោយជោគជ័យ។",
+            notification_type="logout",
+            data={"action": "logout", "email": email},
+        )
+        notify_admins(
+            title="User Signed Out",
+            title_km="អ្នកប្រើប្រាស់បានចាកចេញពីប្រព័ន្ធ",
+            message=f"{actor_name} ({email}) signed out.",
+            message_km=f"{actor_name} ({email}) បានចាកចេញពីប្រព័ន្ធ។",
+            notification_type="user_activity",
+            data={"action": "logout", "actor_id": uid, "email": email},
+            exclude_user_id=uid,
+        )
+    return revoked
 
 
 def oauth_login_or_register(provider: str, email: str, full_name: str, avatar_url: str = None, role: str = "job_seeker") -> dict:
@@ -232,6 +305,24 @@ def oauth_login_or_register(provider: str, email: str, full_name: str, avatar_ur
             send_login_notification_email(user_email=email, user_name=row["full_name"] or "User")
         except Exception as em_err:
             print(f"[OAuth Login] Login notification email skipped: {em_err}")
+        create_notification(
+            user_id=user_id,
+            title="Signed In via Google",
+            title_km="បានចូលគណនីតាម Google",
+            message=f"You signed in with {provider.capitalize()} ({email}).",
+            message_km=f"អ្នកបានចូលគណនីតាម {provider.capitalize()} ({email}) ដោយជោគជ័យ។",
+            notification_type="login",
+            data={"action": "oauth_login", "provider": provider, "email": email},
+        )
+        notify_admins(
+            title="User Signed In (OAuth)",
+            title_km="អ្នកប្រើប្រាស់បានចូលប្រព័ន្ធ (OAuth)",
+            message=f"{row['full_name'] or email} ({email}) signed in via {provider.capitalize()}.",
+            message_km=f"{row['full_name'] or email} ({email}) បានចូលប្រព័ន្ធតាម {provider.capitalize()}។",
+            notification_type="user_activity",
+            data={"action": "oauth_login", "actor_id": user_id, "email": email},
+            exclude_user_id=user_id,
+        )
     else:
         target_role = role if role in ["job_seeker", "employer"] else "job_seeker"
         role_row = fetch_one("SELECT id FROM roles WHERE name = %s", [target_role])

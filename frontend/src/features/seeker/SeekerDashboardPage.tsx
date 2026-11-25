@@ -342,17 +342,6 @@ export const SeekerDashboardPage: React.FC = () => {
                 <span>{isKhmer ? 'ចូលបន្ទប់សម្ភាសន៍' : 'Join Call'}</span>
               </a>
             )}
-            {upcomingInterviews[0].google_calendar_url && (
-              <a
-                href={upcomingInterviews[0].google_calendar_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/80 hover:bg-white border border-white/80 text-slate-700 hover:text-blue-600 text-xs font-semibold shadow-2xs transition"
-                title="Sync with Google Calendar"
-              >
-                <span>📅 Google Cal</span>
-              </a>
-            )}
             <Link
               to="/seeker/applications"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white border border-white/80 text-xs font-semibold text-slate-700 hover:text-blue-600 transition shadow-2xs"

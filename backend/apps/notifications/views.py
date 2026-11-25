@@ -1,3 +1,4 @@
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from common.permissions import IsAuthenticatedCustom
@@ -9,9 +10,25 @@ class NotificationListView(APIView):
 
     def get(self, request):
         notifications = fetch_all(
-            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT 50",
+            "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC, id DESC LIMIT 60",
             [request.user.id],
         )
+        for n in notifications:
+            raw_data = n.get("data")
+            parsed = {}
+            if isinstance(raw_data, dict):
+                parsed = raw_data
+            elif isinstance(raw_data, str) and raw_data.strip():
+                try:
+                    parsed = json.loads(raw_data)
+                except Exception:
+                    parsed = {}
+            n["data"] = parsed
+            if not n.get("title_km") and parsed.get("title_km"):
+                n["title_km"] = parsed["title_km"]
+            if not n.get("message_km") and parsed.get("message_km"):
+                n["message_km"] = parsed["message_km"]
+
         unread_count = sum(1 for n in notifications if not n["is_read"])
         return Response({
             "success": True,

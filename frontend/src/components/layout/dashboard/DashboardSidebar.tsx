@@ -178,7 +178,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
       {/* Footer Sidebar actions */}
       <div
-        className={`border-t border-slate-200/80 bg-white/40 backdrop-blur-md space-y-1 text-left shrink-0 ${
+        className={`border-t border-slate-200/80 dark:border-slate-800 bg-white/40 dark:bg-slate-950/90 backdrop-blur-md space-y-1 text-left shrink-0 ${
           isCollapsed ? 'p-1.5' : 'p-3'
         }`}
       >

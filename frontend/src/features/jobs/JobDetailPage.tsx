@@ -766,7 +766,9 @@ export const JobDetailPage: React.FC = () => {
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                {job.company_description ||
+                {(job.company_description
+                  ? String(job.company_description).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+                  : '') ||
                   (isKhmer
                     ? 'សហគ្រាសឈានមុខគេកំពុងប្រតិបត្តិការនៅកម្ពុជា។'
                     : 'Leading enterprise operating in Cambodia.')}

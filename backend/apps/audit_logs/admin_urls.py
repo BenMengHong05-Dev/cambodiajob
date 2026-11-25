@@ -16,6 +16,7 @@ from .views import (
     AdminSiteSettingsUploadLogoView,
     AdminRolesPermissionsView,
     AdminRolesPermissionsDetailView,
+    AdminApplicationsView,
 )
 from apps.job_categories.views import CategoryListView, CategoryDetailView
 
@@ -39,6 +40,7 @@ urlpatterns = [
     path("jobs/", AdminJobsModerationView.as_view(), name="admin-jobs"),
     path("jobs/<int:pk>/", AdminJobDetailView.as_view(), name="admin-job-detail"),
     path("jobs/<int:pk>/moderation/", AdminJobsModerationView.as_view(), name="admin-job-moderation"),
+    path("applications/", AdminApplicationsView.as_view(), name="admin-applications"),
     path("audit/", AdminAuditLogsView.as_view(), name="admin-audit-logs"),
 ]
 

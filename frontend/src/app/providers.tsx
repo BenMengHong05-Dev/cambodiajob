@@ -106,7 +106,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
   })
 
   const [language, setLanguageState] = useState<string>(() => {
-    return localStorage.getItem('app_language') || 'en'
+    return localStorage.getItem('app_language') || 'km'
   })
 
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {

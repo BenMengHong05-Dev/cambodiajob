@@ -427,10 +427,14 @@ export const AdminJobsPage: React.FC = () => {
 
                         {/* Column 4: Applicants Count */}
                         <td className="py-2.5 px-3 align-middle whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-normal text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-gray-200">
+                          <Link
+                            to={`/admin/applications?job_id=${j.id}&company_id=${j.company_id}`}
+                            title={isKhmer ? 'មើលបេក្ខជនដាក់ពាក្យ' : 'View job applications'}
+                            className="inline-flex items-center gap-1 text-[11px] font-normal text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 dark:hover:bg-blue-950/40 dark:hover:text-blue-400 px-2 py-0.5 rounded-md border border-gray-200 dark:border-slate-700 transition-colors"
+                          >
                             <Users className="w-3 h-3 text-slate-400" />
                             <span>{j.applications_count || 0}</span>
-                          </span>
+                          </Link>
                         </td>
 
                         {/* Column 5: Published Date */}

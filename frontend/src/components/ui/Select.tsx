@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, Children, isValidElement, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, Children, isValidElement, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, Check, AlertCircle, Search, X } from 'lucide-react'
 
 export interface SelectOptionItem {
@@ -56,7 +57,10 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // 1. Extract options from either propOptions or children <option> elements
@@ -108,6 +112,55 @@ export const Select: React.FC<SelectProps> = ({
     value !== null
   )
 
+  const updatePopoverPosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const spaceBelow = window.innerHeight - rect.bottom - 8
+    const spaceAbove = rect.top - 8
+    const openUpward = spaceBelow < 220 && spaceAbove > spaceBelow
+
+    const style: React.CSSProperties = {
+      position: 'fixed',
+      zIndex: 99999,
+      backgroundColor: isDark ? undefined : '#ffffff',
+      opacity: 1,
+    }
+
+    if (openUpward) {
+      style.bottom = window.innerHeight - rect.top + 4
+    } else {
+      style.top = rect.bottom + 4
+    }
+
+    if (align === 'right') {
+      style.right = Math.max(8, window.innerWidth - rect.right)
+      style.minWidth = rect.width
+      style.maxWidth = Math.min(window.innerWidth - 16, 360)
+    } else {
+      style.left = Math.max(8, Math.min(rect.left, window.innerWidth - rect.width - 8))
+      style.width = rect.width
+      style.minWidth = rect.width
+    }
+
+    setPopoverStyle(style)
+  }, [align, variant])
+
+  // Compute portal position immediately when opening and keep synced on scroll/resize
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setPopoverStyle(null)
+      return
+    }
+    updatePopoverPosition()
+    window.addEventListener('resize', updatePopoverPosition)
+    window.addEventListener('scroll', updatePopoverPosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePopoverPosition)
+      window.removeEventListener('scroll', updatePopoverPosition, true)
+    }
+  }, [isOpen, updatePopoverPosition])
+
   // Reset query and focus search input on open
   useEffect(() => {
     if (isOpen) {
@@ -121,7 +174,12 @@ export const Select: React.FC<SelectProps> = ({
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        (!popoverRef.current || !popoverRef.current.contains(target))
+      ) {
         setIsOpen(false)
       }
     }
@@ -208,6 +266,7 @@ export const Select: React.FC<SelectProps> = ({
 
       {/* HeroUI Trigger Button */}
       <div
+        ref={triggerRef}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-haspopup="listbox"
@@ -258,12 +317,13 @@ export const Select: React.FC<SelectProps> = ({
         />
       </div>
 
-      {/* Dropdown Popover Listbox */}
-      {isOpen && (
+      {/* Dropdown Popover Listbox (Portaled to body to escape overflow-hidden & backdrop-filter stacking contexts) */}
+      {isOpen && popoverStyle && createPortal(
         <div
+          ref={popoverRef}
           role="listbox"
-          style={{ backgroundColor: isDark ? undefined : '#ffffff', opacity: 1 }}
-          className={`absolute ${popoverAlign} mt-1 max-h-72 flex flex-col rounded-xl border p-1.5 z-[9999] select-popover animate-in fade-in zoom-in-95 duration-100 ${popoverBg}`}
+          style={popoverStyle}
+          className={`max-h-72 flex flex-col rounded-xl border p-1.5 select-popover animate-in fade-in zoom-in-95 duration-100 ${popoverBg}`}
         >
 
           {isSearchable && (
@@ -370,7 +430,8 @@ export const Select: React.FC<SelectProps> = ({
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Error Message */}

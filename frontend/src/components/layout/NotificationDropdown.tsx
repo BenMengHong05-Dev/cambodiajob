@@ -16,6 +16,13 @@ import {
   ExternalLink,
   Sparkles,
   Eye,
+  LogIn,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+  Building2,
+  Bookmark,
+  Activity,
 } from 'lucide-react'
 
 interface NotificationDropdownProps {
@@ -46,11 +53,21 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
     }
   }
 
-  // Initial fetch and 30-second polling for real-time alerts
+  // Initial fetch, 15-second polling, visibility sync, and instant custom event refresh
   useEffect(() => {
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
+    const interval = setInterval(fetchNotifications, 15000)
+    const handleRefresh = () => fetchNotifications()
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchNotifications()
+    }
+    window.addEventListener('notifications:refresh', handleRefresh)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('notifications:refresh', handleRefresh)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [])
 
   // Close when clicked outside
@@ -114,22 +131,69 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ role
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
+      case 'interview':
       case 'interview_scheduled':
         return (
-          <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <Calendar className="w-4 h-4" />
           </div>
         )
-      case 'application_status':
-      case 'new_job':
+      case 'login':
         return (
-          <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400 flex items-center justify-center shrink-0">
+            <LogIn className="w-4 h-4" />
+          </div>
+        )
+      case 'logout':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 flex items-center justify-center shrink-0">
+            <LogOut className="w-4 h-4" />
+          </div>
+        )
+      case 'security':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+        )
+      case 'profile_update':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <UserCheck className="w-4 h-4" />
+          </div>
+        )
+      case 'company_update':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-400 flex items-center justify-center shrink-0">
+            <Building2 className="w-4 h-4" />
+          </div>
+        )
+      case 'job_saved':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <Bookmark className="w-4 h-4" />
+          </div>
+        )
+      case 'user_activity':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 flex items-center justify-center shrink-0">
+            <Activity className="w-4 h-4" />
+          </div>
+        )
+      case 'application_status':
+      case 'application':
+      case 'new_job':
+      case 'job_published':
+      case 'job_updated':
+      case 'job':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Briefcase className="w-4 h-4" />
           </div>
         )
       default:
         return (
-          <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 flex items-center justify-center shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
         )

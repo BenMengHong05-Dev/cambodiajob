@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next'
 import en from './en/translation.json'
 import km from './km/translation.json'
 
-const savedLanguage = localStorage.getItem('app_language') || 'en'
+const savedLanguage = localStorage.getItem('app_language') || 'km'
 
 i18n
   .use(initReactI18next)

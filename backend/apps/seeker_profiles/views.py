@@ -5,6 +5,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from common.permissions import IsJobSeeker
 from common.database import fetch_one, fetch_all, execute_insert, execute_sql, atomic_transaction
+from apps.notifications.services import create_notification, notify_admins
 from .serializers import (
     SeekerProfileUpdateSerializer,
     EducationSerializer,
@@ -115,6 +116,25 @@ class SeekerProfileView(APIView):
                 p_sql = f"UPDATE seeker_profiles SET {', '.join(profile_updates)} WHERE id = %s"
                 profile_params.append(seeker_id)
                 execute_sql(p_sql, profile_params)
+
+        create_notification(
+            user_id=user_id,
+            title="Career Profile Updated",
+            title_km="ប្រវត្តិរូបការងារត្រូវបានកែប្រែ",
+            message="Your job seeker profile details have been saved.",
+            message_km="ព័ត៌មានប្រវត្តិរូបការងាររបស់អ្នកត្រូវបានរក្សាទុកដោយជោគជ័យ។",
+            notification_type="profile_update",
+            data={"action": "seeker_profile_update"},
+        )
+        notify_admins(
+            title="Job Seeker Updated Profile",
+            title_km="បេក្ខជនបានកែប្រែប្រវត្តិរូប",
+            message=f"{request.user.full_name or request.user.email} updated their career profile.",
+            message_km=f"{request.user.full_name or request.user.email} បានកែប្រែប្រវត្តិរូបការងារ។",
+            notification_type="profile_update",
+            data={"action": "seeker_profile_update", "actor_id": user_id},
+            exclude_user_id=user_id,
+        )
 
         return self.get(request)
 

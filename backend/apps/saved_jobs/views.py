@@ -24,7 +24,7 @@ class SeekerSavedJobsView(APIView):
             INNER JOIN jobs j ON j.id = sj.job_id
             INNER JOIN companies c ON c.id = j.company_id
             WHERE sj.seeker_id = %s
-            ORDER BY sj.created_at DESC
+            ORDER BY sj.created_at DESC, sj.id DESC
         """
         saved = fetch_all(sql, [seeker["id"]])
         return Response({"success": True, "data": saved})

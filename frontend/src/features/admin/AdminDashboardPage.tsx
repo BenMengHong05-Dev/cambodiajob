@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/providers'
 import { adminService } from '../../services/admin.service'
@@ -30,6 +30,7 @@ import {
 export const AdminDashboardPage: React.FC = () => {
   const { user, isSuperAdmin } = useAuth()
   const { i18n } = useTranslation()
+  const navigate = useNavigate()
   const isKhmer = i18n.language === 'km'
 
   const primaryRoleKey =
@@ -181,14 +182,6 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="glass-card rounded-2xl border border-white/90 shadow-sm p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-              <span>
-                {isSuperAdmin
-                  ? getSystemRoleLabel('super_admin', isKhmer)
-                  : getSystemRoleLabel(primaryRoleKey, isKhmer)}
-              </span>
-            </span>
             <span className="text-[11px] font-medium text-slate-400">
               {new Date().toLocaleDateString(isKhmer ? 'km-KH' : 'en-US', {
                 weekday: 'long',
@@ -273,14 +266,6 @@ export const AdminDashboardPage: React.FC = () => {
           icon={Users}
           accent="blue"
           badge={isKhmer ? 'គណនី' : 'Accounts'}
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'គណនីប្រព័ន្ធ' : 'Accounts'}</span>
-              <span className="text-blue-600 text-[10px] font-semibold shrink-0">
-                {isKhmer ? 'សកម្ម' : 'Active'}
-              </span>
-            </div>
-          }
         />
 
         {/* Metric 2: Registered Companies */}
@@ -291,14 +276,6 @@ export const AdminDashboardPage: React.FC = () => {
           icon={Building2}
           accent="indigo"
           badge={isKhmer ? 'សហគ្រាស' : 'Companies'}
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'សហគ្រាសដៃគូ' : 'Partners'}</span>
-              <span className="text-indigo-600 text-[10px] font-semibold shrink-0">
-                {isKhmer ? 'ផ្ទៀងផ្ទាត់' : 'Verified'}
-              </span>
-            </div>
-          }
         />
 
         {/* Metric 3: Published Jobs & Moderation Queue (Combines Published Jobs + Pending Review) */}
@@ -318,76 +295,39 @@ export const AdminDashboardPage: React.FC = () => {
             )
           }
           tone={pendingReviewTotal > 0 ? 'warning' : 'success'}
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'រង់ចាំពិនិត្យ' : 'Pending'}</span>
-              <span
-                className={`font-semibold text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
-                  pendingReviewTotal > 0
-                    ? 'text-amber-700 bg-amber-50 border border-amber-200'
-                    : 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                }`}
-              >
-                {pendingReviewTotal > 0
-                  ? `${pendingReviewTotal}`
-                  : (isKhmer ? '0 (រួចរាល់)' : '0 Clear')}
-              </span>
-            </div>
-          }
         />
 
         {/* Metric 4: Completed Placements & Success Rate (Combines Completed Applications + Placement Rate) */}
         <StatCard
+          to="/admin/applications?status=offered"
           label={isKhmer ? 'ពាក្យសុំជោគជ័យ' : 'Completed Placements'}
           value={stats.completed_applications || 0}
           icon={CheckCircle2}
           accent="emerald"
           badge={isKhmer ? 'ផ្តល់ការងារ' : 'Offered'}
           tone="success"
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'អត្រាជោគជ័យ' : 'Success'}</span>
-              <span className="font-bold text-emerald-700 text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
-                {stats.placement_rate || 0}%
-              </span>
-            </div>
-          }
         />
 
         {/* Metric 5: Total Applications */}
         <StatCard
+          to="/admin/applications"
           label={isKhmer ? 'ពាក្យសុំការងារសរុប' : 'Total Applications'}
           value={stats.total_applications || 0}
           icon={FileCheck}
           accent="indigo"
           badge={isKhmer ? 'ដាក់ពាក្យ' : 'Candidates'}
           tone="info"
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'បេក្ខជនសរុប' : 'Submissions'}</span>
-              <span className="text-slate-400 text-[10px] font-semibold shrink-0">
-                {isKhmer ? 'សរុប' : 'Total'}
-              </span>
-            </div>
-          }
         />
 
         {/* Metric 6: Total Interviews Conducted */}
         <StatCard
+          to="/admin/applications?status=interview"
           label={isKhmer ? 'ការសម្ភាសន៍សរុប' : 'Total Interviews'}
           value={stats.total_interviews || 0}
           icon={Video}
           accent="purple"
           badge={isKhmer ? 'សម្ភាសន៍' : 'Scheduled'}
           tone="info"
-          subtext={
-            <div className="flex items-center justify-between w-full">
-              <span className="truncate">{isKhmer ? 'សម្ភាសន៍ Meet' : 'Google Meet'}</span>
-              <span className="text-purple-600 text-[10px] font-semibold shrink-0">
-                {isKhmer ? 'តាម Meet' : 'Meet'}
-              </span>
-            </div>
-          }
         />
       </div>
 
@@ -456,10 +396,10 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
 
               <Link
-                to="/admin/jobs"
+                to="/admin/applications"
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1 transition"
               >
-                <span>{isKhmer ? 'មើលការងារទាំងអស់' : 'View Jobs'}</span>
+                <span>{isKhmer ? 'មើលបេក្ខជនទាំងអស់' : 'View All'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -482,7 +422,11 @@ export const AdminDashboardPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
                     {recentApplications.slice(0, 5).map((app: any) => (
-                      <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
+                      <tr
+                        key={app.id}
+                        onClick={() => navigate('/admin/applications')}
+                        className="hover:bg-blue-50/40 transition-colors group cursor-pointer"
+                      >
                         <td className="py-2.5 px-3">
                           <div className="flex items-center space-x-2">
                             {app.applicant_avatar ? (

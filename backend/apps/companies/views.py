@@ -13,6 +13,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from common.permissions import IsEmployer, IsAuthenticatedCustom, HasCustomPermission
 from common.database import fetch_one, fetch_all, fetch_scalar, execute_insert, execute_sql, atomic_transaction
 from common.pagination import paginate_raw_query
+from apps.notifications.services import create_notification, notify_admins
 from common.validators import slugify_string
 from .serializers import CompanySerializer
 
@@ -176,6 +177,24 @@ class EmployerCompanyView(APIView):
             )
 
         company = fetch_one("SELECT * FROM companies WHERE id = %s", [company_id])
+        create_notification(
+            user_id=request.user.id,
+            title="Company Profile Created",
+            title_km="ប្រវត្តិរូបក្រុមហ៊ុនត្រូវបានបង្កើត",
+            message=f"{name} was created and is awaiting verification.",
+            message_km=f"ក្រុមហ៊ុន {name} ត្រូវបានបង្កើត និងកំពុងរង់ចាំការផ្ទៀងផ្ទាត់។",
+            notification_type="company_update",
+            data={"action": "create_company", "company_id": company_id},
+        )
+        notify_admins(
+            title="New Company Pending Verification",
+            title_km="មានក្រុមហ៊ុនថ្មីរង់ចាំការផ្ទៀងផ្ទាត់",
+            message=f"{name} was registered by {request.user.full_name or request.user.email}.",
+            message_km=f"ក្រុមហ៊ុន {name} ត្រូវបានចុះឈ្មោះដោយ {request.user.full_name or request.user.email}។",
+            notification_type="company_update",
+            data={"action": "create_company", "company_id": company_id},
+            exclude_user_id=request.user.id,
+        )
         return Response({"success": True, "data": company}, status=status.HTTP_201_CREATED)
 
     def patch(self, request):
@@ -223,6 +242,25 @@ class EmployerCompanyView(APIView):
             execute_sql(sql, params)
 
         updated = fetch_one("SELECT * FROM companies WHERE id = %s", [company_id])
+        if fields and updated:
+            create_notification(
+                user_id=request.user.id,
+                title="Company Profile Updated",
+                title_km="ប្រវត្តិរូបក្រុមហ៊ុនត្រូវបានកែប្រែ",
+                message=f"Your company profile for {updated.get('name', 'Company')} has been updated.",
+                message_km=f"ប្រវត្តិរូបក្រុមហ៊ុន {updated.get('name', '')} ត្រូវបានកែប្រែដោយជោគជ័យ។",
+                notification_type="company_update",
+                data={"action": "update_company", "company_id": company_id},
+            )
+            notify_admins(
+                title="Company Profile Updated",
+                title_km="ក្រុមហ៊ុនបានកែប្រែព័ត៌មាន",
+                message=f"{updated.get('name', 'A company')} updated their profile/verification details.",
+                message_km=f"ក្រុមហ៊ុន {updated.get('name', '')} បានកែប្រែព័ត៌មានក្រុមហ៊ុន។",
+                notification_type="company_update",
+                data={"action": "update_company", "company_id": company_id},
+                exclude_user_id=request.user.id,
+            )
         return Response({"success": True, "data": updated})
 
 

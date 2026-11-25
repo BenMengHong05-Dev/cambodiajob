@@ -58,40 +58,23 @@ export const KhmerFlagIcon: React.FC<{ className?: string }> = ({ className = 'w
 
 export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ className = '' }) => {
   const { language, setLanguage } = usePreferences()
+  const isKhmer = language === 'km'
+
+  const toggleLanguage = () => {
+    setLanguage(isKhmer ? 'en' : 'km')
+  }
+
+  const label = isKhmer ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'
 
   return (
-    <div
-      className={`inline-flex items-center p-0.5 rounded-full bg-slate-100/90 border border-slate-200/90 shadow-2xs gap-0.5 shrink-0 ${className}`}
+    <button
+      type="button"
+      onClick={toggleLanguage}
+      title={label}
+      aria-label={label}
+      className={`p-2 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition shadow-2xs cursor-pointer flex items-center justify-center active:scale-95 shrink-0 ${className}`}
     >
-      <button
-        type="button"
-        onClick={() => setLanguage('en')}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
-          language === 'en'
-            ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200'
-            : 'text-slate-500 hover:text-slate-800 opacity-60 hover:opacity-100'
-        }`}
-        title="English"
-        aria-label="Switch to English"
-      >
-        <UKFlagIcon className="w-4 h-4" />
-        <span className="leading-none">EN</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setLanguage('km')}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
-          language === 'km'
-            ? 'bg-white text-slate-900 shadow-xs ring-1 ring-slate-200'
-            : 'text-slate-500 hover:text-slate-800 opacity-60 hover:opacity-100'
-        }`}
-        title="ភាសាខ្មែរ"
-        aria-label="ប្តូរទៅជាភាសាខ្មែរ"
-      >
-        <KhmerFlagIcon className="w-4 h-4" />
-        <span className="leading-none">ខ្មែរ</span>
-      </button>
-    </div>
+      {isKhmer ? <KhmerFlagIcon className="w-4.5 h-4.5" /> : <UKFlagIcon className="w-4.5 h-4.5" />}
+    </button>
   )
 }

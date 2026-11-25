@@ -511,65 +511,61 @@ export const AdminCompaniesPage: React.FC = () => {
                           </span>
                         </td>
 
-                        {/* Column 7: Actions: Inspect (Blue), View (Slate), Approve (Green), Delete (Red) */}
+                        {/* Column 7: Compact Actions */}
                         <td className="py-2.5 px-4 align-middle text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end space-x-1.5">
-                            {/* 0. Inspect Full Company Profile */}
+                          <div className="flex items-center justify-end gap-1.5">
+                            {/* Inspect Full Company Profile */}
                             <button
                               type="button"
                               onClick={() => handleOpenViewingCompany(c)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 transition cursor-pointer"
                               title={isKhmer ? 'ពិនិត្យមើលព័ត៌មានលម្អិតក្រុមហ៊ុន' : 'Inspect Company Information'}
                             >
-                              <Eye className="w-3 h-3 text-blue-600" />
+                              <Eye className="w-3.5 h-3.5 text-blue-600" />
                               <span className="hidden sm:inline">{isKhmer ? 'ពិនិត្យ' : 'Inspect'}</span>
                             </button>
 
-                            {/* 1. Edit Company Information */}
+                            {/* Edit Company Information */}
                             <button
                               type="button"
                               onClick={() => handleOpenEditCompany(c)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs"
-                              title={isKhmer ? 'កែសម្រួលព័ត៌មានក្រុមហ៊ុន' : 'Edit Company Information'}
+                              className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 transition cursor-pointer"
+                              title={isKhmer ? 'កែប្រែព័ត៌មានក្រុមហ៊ុន' : 'Edit Company'}
                             >
-                              <Pencil className="w-3 h-3 text-amber-600" />
-                              <span className="hidden sm:inline">{isKhmer ? 'កែប្រែ' : 'Edit'}</span>
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
 
-                            {/* 2. Approve Button (Green Base) */}
+                            {/* Approve / Reject */}
                             {!isVerified ? (
                               <button
                                 type="button"
                                 disabled={actionInProgress === c.id}
                                 onClick={() => handleVerifyCompany(c.id, 'verified')}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
+                                className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition cursor-pointer disabled:opacity-50"
                                 title={isKhmer ? 'អនុម័តក្រុមហ៊ុន' : 'Approve Company'}
                               >
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span className="hidden sm:inline">{isKhmer ? 'អនុម័ត' : 'Approve'}</span>
+                                <Check className="w-3.5 h-3.5" />
                               </button>
                             ) : (
                               <button
                                 type="button"
                                 disabled={actionInProgress === c.id}
                                 onClick={() => handleVerifyCompany(c.id, 'rejected')}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition cursor-pointer shadow-2xs disabled:opacity-50"
+                                className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200/80 transition cursor-pointer disabled:opacity-50"
                                 title={isKhmer ? 'បដិសេធ' : 'Reject Company'}
                               >
-                                <X className="w-3 h-3 text-amber-600" />
-                                <span className="hidden sm:inline">{isKhmer ? 'បដិសេធ' : 'Reject'}</span>
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
 
-                            {/* 3. Delete Button (Red Base) */}
+                            {/* Delete Company */}
                             <button
                               type="button"
                               onClick={() => handleOpenDelete(c)}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer shadow-2xs"
+                              className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition cursor-pointer"
                               title={isKhmer ? 'លុបក្រុមហ៊ុន' : 'Delete Company'}
                             >
-                              <Trash2 className="w-3 h-3 text-rose-600" />
-                              <span className="hidden sm:inline">{isKhmer ? 'លុប' : 'Delete'}</span>
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
