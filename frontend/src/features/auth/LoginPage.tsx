@@ -295,44 +295,72 @@ export const LoginPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Quick Demo Credentials Autofill */}
-            <div className="pt-3 border-t border-gray-100">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 text-center">
-                {isKhmer ? 'ចុចដើម្បីបំពេញគណនីសាកល្បង (Demo Logins)' : 'Quick Fill Test Accounts (Password: Password123!)'}
-              </span>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('admin@gmail.com')
-                    setPassword('Password123!')
-                  }}
-                  className="px-2 py-1.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/70 text-blue-700 text-[11px] font-semibold transition cursor-pointer text-center"
-                >
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('employees@gmail.com')
-                    setPassword('Password123!')
-                  }}
-                  className="px-2 py-1.5 rounded-xl border border-sky-200 bg-sky-50/60 hover:bg-sky-100/70 text-sky-700 text-[11px] font-semibold transition cursor-pointer text-center"
-                >
-                  Employer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('jobseeker@gmail.com')
-                    setPassword('Password123!')
-                  }}
-                  className="px-2 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/70 text-emerald-700 text-[11px] font-semibold transition cursor-pointer text-center"
-                >
-                  Seeker
-                </button>
-              </div>
-            </div>
+            {/* Quick Demo Credentials Autofill (from .env) */}
+            {(() => {
+              const demoPassword = import.meta.env.VITE_DEMO_PASSWORD || 'Password123!'
+              const demoAccounts = [
+                {
+                  key: 'admin',
+                  email: import.meta.env.VITE_DEMO_ADMIN_EMAIL || 'admin@gmail.com',
+                  label: isKhmer ? 'អភិបាល' : 'Admin',
+                  icon: ShieldCheck,
+                  cardClass:
+                    'border-blue-200/80 dark:border-blue-800/70 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:border-blue-300 text-blue-700 dark:text-blue-300',
+                  iconWrap: 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300',
+                },
+                {
+                  key: 'employer',
+                  email: import.meta.env.VITE_DEMO_EMPLOYER_EMAIL || 'employees@gmail.com',
+                  label: isKhmer ? 'និយោជក' : 'Employer',
+                  icon: Building2,
+                  cardClass:
+                    'border-indigo-200/80 dark:border-indigo-800/70 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:border-indigo-300 text-indigo-700 dark:text-indigo-300',
+                  iconWrap: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300',
+                },
+                {
+                  key: 'seeker',
+                  email: import.meta.env.VITE_DEMO_SEEKER_EMAIL || 'jobseeker@gmail.com',
+                  label: isKhmer ? 'បេក្ខជន' : 'Seeker',
+                  icon: User,
+                  cardClass:
+                    'border-emerald-200/80 dark:border-emerald-800/70 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:border-emerald-300 text-emerald-700 dark:text-emerald-300',
+                  iconWrap: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300',
+                },
+              ].filter((a) => Boolean(a.email))
+
+              if (demoAccounts.length === 0) return null
+
+              return (
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block text-center">
+                    {isKhmer ? 'គណនីសាកល្បង (Demo)' : 'Demo Accounts'}
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {demoAccounts.map((acc) => {
+                      const Icon = acc.icon
+                      const isActive = email === acc.email
+                      return (
+                        <button
+                          key={acc.key}
+                          type="button"
+                          onClick={() => {
+                            setEmail(acc.email)
+                            setPassword(demoPassword)
+                          }}
+                          className={`h-9 px-2.5 rounded-xl border transition-all duration-150 cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-95 ${
+                            acc.cardClass
+                          } ${isActive ? 'ring-2 ring-blue-500/30' : ''}`}
+                          title={acc.email}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <span className="text-[11px] font-semibold truncate">{acc.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Switch to Register */}
             <div className="pt-3 border-t border-gray-100 text-center text-xs text-slate-500">
