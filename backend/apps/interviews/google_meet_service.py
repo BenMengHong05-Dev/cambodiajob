@@ -4,6 +4,7 @@ Google Calendar API integration for creating real, shared Google Meet rooms.
 
 import datetime
 import json
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -144,6 +145,33 @@ def get_valid_access_token(user_id: int) -> str | None:
             [new_access, new_expires, user_id],
         )
         return new_access
+    except Exception:
+        return None
+
+
+def get_platform_access_token() -> str | None:
+    """
+    Exchange platform-wide GOOGLE_MEET_REFRESH_TOKEN from .env for an access token
+    so any company can generate real Google Meet links with 1 click and zero sign-in popup.
+    """
+    refresh_token = os.getenv("GOOGLE_MEET_REFRESH_TOKEN", "").strip()
+    if not refresh_token:
+        return None
+
+    post_data = urllib.parse.urlencode(
+        {
+            "client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
+            "client_secret": getattr(settings, "GOOGLE_CLIENT_SECRET", ""),
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        }
+    ).encode("utf-8")
+    try:
+        req = urllib.request.Request("https://oauth2.googleapis.com/token", data=post_data, method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token_data = json.loads(resp.read().decode("utf-8"))
+        return token_data.get("access_token")
     except Exception:
         return None
 

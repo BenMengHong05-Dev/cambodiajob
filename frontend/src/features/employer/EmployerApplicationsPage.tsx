@@ -172,16 +172,94 @@ export const EmployerApplicationsPage: React.FC = () => {
     window.open('https://meet.google.com/new', '_blank', 'noopener,noreferrer')
   }
 
-  const handleGenerateMeetLink = () => {
-    const meetUrl = 'https://meet.google.com/new'
-    setLocationOrLink(meetUrl)
-    window.open(meetUrl, '_blank', 'noopener,noreferrer')
-    toast.success(
-      isKhmer ? 'បានបើក Google Meet' : 'Google Meet Opened',
-      isKhmer
-        ? 'តំណភ្ជាប់ត្រូវបានបញ្ចូល និងបើក Google Meet រួចរាល់ (អ្នកអាច Copy លេខកូដបន្ទប់ពិតមកបិទភ្ជាប់បាន)'
-        : 'Google Meet opened. You can also copy the created room link and paste it here.'
-    )
+  const handleGenerateMeetLink = async () => {
+    const app = applications.find((a) => a.id === selectedAppId)
+    const payload = {
+      scheduled_at: scheduledAt || undefined,
+      summary: app?.job_title
+        ? `Interview: ${app.job_title}${app.applicant_name ? ` - ${app.applicant_name}` : ''}`
+        : 'Job Interview',
+      attendee_email: app?.applicant_email || undefined,
+    }
+
+    setIsGeneratingMeet(true)
+    try {
+      const res = await employerService.generateGoogleMeetLink(payload)
+      if (res.connected && res.meet_link) {
+        setLocationOrLink(res.meet_link)
+        toast.success(
+          isKhmer ? 'បានបង្កើតតំណភ្ជាប់ Google Meet' : 'Google Meet Link Generated',
+          isKhmer
+            ? 'តំណភ្ជាប់ Google Meet ត្រូវបានបញ្ចូលក្នុងប្រអប់ដោយស្វ័យប្រវត្តិ'
+            : 'Real Google Meet link generated and set into the input.'
+        )
+        return
+      }
+
+      if (!res.connected && res.auth_url) {
+        const width = 520
+        const height = 640
+        const left = window.screenX + (window.outerWidth - width) / 2
+        const top = window.screenY + (window.outerHeight - height) / 2
+        const popup = window.open(
+          res.auth_url,
+          'google_meet_oauth',
+          `width=${width},height=${height},left=${left},top=${top}`
+        )
+        if (!popup) {
+          toast.error(
+            isKhmer ? 'កម្មវិធីរុករកបានបិទផ្ទាំង Popup' : 'Popup Blocked',
+            isKhmer
+              ? 'សូមអនុញ្ញាត Popup ដើម្បីភ្ជាប់ Google Calendar ម្ដងគត់'
+              : 'Please allow popups once to connect Google Calendar.'
+          )
+          return
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          const cleanup = () => {
+            window.removeEventListener('message', onMessage)
+            clearInterval(timer)
+          }
+          const onMessage = (ev: MessageEvent) => {
+            if (ev.data?.type === 'google-meet-connected') {
+              cleanup()
+              resolve()
+            } else if (ev.data?.type === 'google-meet-error') {
+              cleanup()
+              reject(new Error(ev.data.error || 'Google authorization failed.'))
+            }
+          }
+          const timer = setInterval(() => {
+            if (popup.closed) {
+              cleanup()
+              reject(new Error('Popup closed'))
+            }
+          }, 500)
+          window.addEventListener('message', onMessage)
+        })
+
+        const retry = await employerService.generateGoogleMeetLink(payload)
+        if (retry.connected && retry.meet_link) {
+          setLocationOrLink(retry.meet_link)
+          toast.success(
+            isKhmer ? 'បានបង្កើតតំណភ្ជាប់ Google Meet' : 'Google Meet Link Generated',
+            isKhmer
+              ? 'តំណភ្ជាប់ Google Meet ត្រូវបានបញ្ចូលក្នុងប្រអប់ដោយស្វ័យប្រវត្តិ'
+              : 'Real Google Meet link generated and set into the input.'
+          )
+        }
+      }
+    } catch (err: any) {
+      if (err?.message === 'Popup closed') return
+      const errMsg =
+        err?.response?.data?.error ||
+        err?.message ||
+        (isKhmer ? 'មិនអាចបង្កើតតំណភ្ជាប់ Google Meet បានទេ' : 'Failed to generate Google Meet link.')
+      toast.error(isKhmer ? 'បរាជ័យ' : 'Error', errMsg)
+    } finally {
+      setIsGeneratingMeet(false)
+    }
   }
 
   const handlePasteClipboard = async () => {

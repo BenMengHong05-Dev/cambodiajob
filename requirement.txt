@@ -1,0 +1,32 @@
+PROJECT REQUIREMENTS
+==================================================
+
+1. INTERVIEW & LOCATION
+--------------------------------------------------
+- Interview Option: Let users choose "Google Meet" or "On-Site (At Company)" when scheduling.
+- Auto Google Meet: Automatically create a Google Meet link when Google Meet is selected.
+- Google Maps: Let companies paste a Google Maps URL to show an embedded map.
+
+
+2. COMPANY & JOBS
+--------------------------------------------------
+- National ID Card: Require companies to upload a National ID Card before posting jobs.
+- AI Job Creator: Add an AI option to automatically write job details when creating a new job.
+
+3. NOTIFICATIONS
+--------------------------------------------------
+- Detail View: Make notifications clickable so users can open and read the full details.
+
+4. DASHBOARD & USERS
+--------------------------------------------------
+- Dashboard KPI: Show a card for "Total Completed Job Applications".
+- Sub-User Accounts: Let companies create employee sub-user accounts under their company.
+- Super Admin Access: Give the Super Admin full permissions for everything.
+- Anti-Spam Limit: Limit dashboard chart API calls to a maximum of 5 requests to stop spam.
+- Fix Users Page: Remove the raw JSON text/message showing on the Users page.
+
+
+5. LANGUAGE & FONT
+--------------------------------------------------
+- Khmer & English: Support switching between Khmer (KH) and English (EN) for both menus and saved data.
+- Khmer Font: Change the font from Google Sans to a clean Khmer font (like Kantumruy Pro or Noto Sans Khmer).

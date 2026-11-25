@@ -21,6 +21,7 @@ from .google_meet_service import (
     build_google_calendar_auth_url,
     exchange_code_and_save_tokens,
     get_valid_access_token,
+    get_platform_access_token,
     create_google_meet_event,
 )
 
@@ -265,7 +266,7 @@ class GoogleMeetGenerateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        access_token = get_valid_access_token(request.user.id)
+        access_token = get_valid_access_token(request.user.id) or get_platform_access_token()
         if not access_token:
             auth_url = build_google_calendar_auth_url(request, request.user.id)
             return Response(
