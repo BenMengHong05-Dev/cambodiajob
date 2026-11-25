@@ -1,6 +1,13 @@
 # CambodiaJobs
 
 CambodiaJobs is a bilingual (Khmer & English) recruitment and career platform built with a React + TypeScript frontend and a Django REST Framework backend backed by MySQL. It connects job seekers, verified employers, and platform administrators across Cambodia with AI career tools, interview scheduling, and role-based access control.
+## Features
+
+<img width="1917" height="875" alt="image" src="https://github.com/user-attachments/assets/00dd2d63-133c-4ed5-97d1-2cc99dc8597a" />
+![Uploading image.png…]()
+
+
+
 
 ## Features
 
